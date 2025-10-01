@@ -209,6 +209,9 @@ jobs:
                 if (!document.querySelector('link[href*="pagefind-ui.css"]')) {
                   const l = document.createElement('link'); l.rel='stylesheet'; l.href = basePath + 'pagefind/pagefind-ui.css'; document.head.appendChild(l);
                 }
+                if (!document.querySelector('link[href*="theme-overrides.css"]')) {
+                  const l = document.createElement('link'); l.rel='stylesheet'; l.href = basePath + 'theme-overrides.css'; document.head.appendChild(l);
+                }
                 new PagefindUI({ element: '#pf-ui', showSubResults: true, translations: { placeholder: 'Поиск…' } });
                 setTimeout(() => { document.querySelector('#pf-ui input')?.focus(); }, 0);
               } else {
