@@ -119,12 +119,6 @@ jobs:
             --app-link-border-color: rgba(193, 68, 36, 0.2);
             --app-link-color-dark: #C14424;
             --app-link-border-color-dark: rgba(193, 68, 36, 0.2);
-            --bg: var(--wh-color-white);
-            --fg: var(--wh-color-text-main);
-            --primary: var(--wh-color-primary-light-theme);
-            --header-bg: var(--app-header);
-            --on-primary: var(--wh-color-text-main);
-            --pagefind-ui-text: var(--wh-color-text-main);
           }
           
           @media (prefers-color-scheme: light) {
@@ -139,14 +133,20 @@ jobs:
           }
           @media (prefers-color-scheme: dark) {
             :root {
-              --wh-color-primary-light-theme: #C14424
+              --wh-color-primary-light-theme: #C14424;
               --bg: var(--app-header);
               --fg: var(--wh-color-text-main);
               --primary: var(--wh-color-primary-light-theme);
               --header-bg: var(--app-header);
               --on-primary: var(--wh-color-text-secondary);
               --pagefind-ui-text: var(--wh-color-text-main);
+              --pagefind-ui-background: var(--app-header);
             }
+          }
+          
+          .pagefind-ui--reset ol {
+              overflow: auto;
+              max-height: 400px;
           }
           CSS
       # ---------- Модалка/хоткей Ctrl+K + кнопка; корректные пути на Pages ----------
