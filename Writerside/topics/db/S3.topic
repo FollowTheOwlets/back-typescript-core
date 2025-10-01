@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="S3" id="S3">
+        <chapter title="Введение">
+            <p>
+                Хранилища, совместимые с
+                <tooltip term="S3">S3 API</tooltip>
+                , — это объектные системы хранения данных, ориентированные на сохранение файлов (объектов) в «бакетах» (
+                <tooltip term="Bucket">bucket</tooltip>
+                ) с простым HTTP-интерфейсом. Самый известный провайдер — Amazon S3, но есть и совместимые решения для
+                собственных серверов и частных облаков:
+                <format style="bold">MinIO</format>
+                , Ceph RGW и др. S3-подобные системы масштабируются горизонтально, поддерживают версионирование,
+                шифрование, политики доступа и
+                <tooltip term="Lifecycle policy">правила жизненного цикла</tooltip>
+                .
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Объект</format>
+                    — блоб данных + метаданные (Content-Type, пользовательские метки) и ключ (имя).
+                </li>
+                <li>
+                    <format style="bold">Bucket</format>
+                    — логический контейнер для объектов (на уровне API напоминает «папку», но внутри нет настоящей
+                    файловой иерархии).
+                </li>
+                <li>
+                    <format style="bold">Доступ</format>
+                    — управляется ключами (Access Key / Secret Key),
+                    <tooltip term="IAM">IAM-политиками</tooltip>
+                    , ACL и
+                    <tooltip term="Bucket policy">bucket policy</tooltip>
+                    .
+                </li>
+                <li>
+                    <format style="bold">Совместимость</format>
+                    — клиенты обращаются через HTTP(S) и стандартные REST-методы; MinIO реализует тот же S3 API, поэтому
+                    SDK для S3 обычно подходят «как есть» при указании кастомного endpoint.
+                </li>
+            </list>
+            <tip>
+                <p>Если вы уже знакомы с AWS S3 SDK, для MinIO чаще всего достаточно указать endpoint (например,
+                    http://localhost:9000), включить <code>forcePathStyle</code> и передать свои ключи доступа.</p>
+            </tip>
+        </chapter>
+
+        <chapter title="Зачем и когда использовать S3/MinIO">
+            <list>
+                <li>
+                    <format style="bold">Хранение статического контента</format>
+                    : изображения, видео, документы, логи, бэкапы.
+                </li>
+                <li>
+                    <format style="bold">Дешёвое и масштабируемое хранилище</format>
+                    для больших данных с высокой надёжностью.
+                </li>
+                <li>
+                    <format style="bold">Интеграция по HTTP</format>
+                    : простая загрузка/выгрузка из приложений, CI/CD и из браузера через
+                    <tooltip term="Presigned URL">предподписанные URL</tooltip>
+                    .
+                </li>
+                <li>
+                    <format style="bold">Локальные и частные инсталляции</format>
+                    : MinIO даёт S3-совместимое хранилище on-prem с поддержкой отказоустойчивости и
+                    <tooltip term="Erasure coding">кодирования стираний</tooltip>
+                    .
+                </li>
+            </list>
+            <note>
+                <p>MinIO хорош, когда нужен полный контроль над данными, соответствие требованиям безопасности
+                    (on-prem), высокая скорость в пределах локальной сети и S3-совместимость для существующих
+                    инструментов.</p>
+            </note>
+        </chapter>
+
+        <chapter title="Ключевые понятия S3/MinIO">
+            <list>
+                <li>
+                    <format style="bold">Имена бакетов</format>
+                    : глобально уникальны в AWS; в MinIO — в пределах кластера. Обычно строчные, без подчёркиваний.
+                </li>
+                <li>
+                    <format style="bold">Ключ объекта</format>
+                    : строка-идентификатор. Слэши в ключе — просто часть имени (псевдокаталоги).
+                </li>
+                <li>
+                    <format style="bold">Регион</format>
+                    : в AWS обязателен; в MinIO — формальность для совместимости.
+                </li>
+                <li>
+                    <format style="bold">Path-style vs Virtual-hosted-style</format>
+                    : в локальных/MinIO окружениях часто нужен path-style (<code>http://host:9000/bucket/object</code>),
+                    а не поддомен.
+                </li>
+                <li>
+                    <format style="bold">Версионирование</format>
+                    : хранит несколько версий одного объекта для откатов и защиты от случайного удаления.
+                </li>
+                <li>
+                    <format style="bold">Политики</format>
+                    : гибко задают права (чтение/запись) на уровне бакета и префиксов.
+                </li>
+                <li>
+                    <format style="bold">Шифрование</format>
+                    : на стороне сервера (SSE) или клиента (CSE); MinIO поддерживает SSE-S3/SSE-KMS и SSE-C.
+                </li>
+            </list>
+        </chapter>
+
+        <chapter title="Минимальный набор операций">
+            <list>
+                <li>Создать бакет</li>
+                <li>Загрузить объект (put)</li>
+                <li>Скачать объект (get)</li>
+                <li>Список объектов (list)</li>
+                <li>Удалить объект (delete)</li>
+                <li>Сгенерировать предподписанную ссылку (presign) для безопасной загрузки/скачивания без прямой выдачи
+                    ключей
+                </li>
+            </list>
+            <tip>
+                <p>Для больших файлов используйте
+                    <tooltip term="Multipart upload">мультичастичную загрузку</tooltip>
+                    , чтобы надёжно докачивать части при обрывах и параллелить аплоад.
+                </p>
+            </tip>
+        </chapter>
+
+        <chapter title="Настройка MinIO (локально)">
+            <list>
+                <li>Скачайте MinIO сервер и клиент <code>mc</code>, запустите контейнер или бинарник: <code>minio server
+                    /data</code>.
+                </li>
+                <li>Откройте консолиданный веб-интерфейс (по умолчанию http://localhost:9001) или используйте
+                    <code>mc</code> для управления.
+                </li>
+                <li>Создайте пользователя/ключи, бакеты, политики.</li>
+            </list>
+            <code-block lang="bash">
+                # Пример запуска Docker
+                docker run -p 9000:9000 -p 9001:9001 \
+                  -e MINIO_ROOT_USER=minioadmin \
+                  -e MINIO_ROOT_PASSWORD=minioadmin \
+                  -v $(pwd)/data:/data \
+                  minio/minio server /data --console-address ":9001"
+
+                # Настройка алиаса и создание бакета с mc
+
+                mc alias set local [http://localhost:9000](http://localhost:9000) minioadmin minioadmin
+                mc mb local/my-bucket
+                mc ls local
+            </code-block>
+            <warning><p>Дефолтные логин/пароль (<code>minioadmin/minioadmin</code>) подходят лишь для локальной
+                разработки. В проде обязательно создайте отдельные учётные записи с минимально необходимыми правами.</p>
+            </warning>
+        </chapter>
+        <tabs>
+            <tab title="Java (AWS SDK v2 с MinIO/AWS S3)">
+                <p>Используем официальный AWS SDK v2. Для MinIO укажем кастомный endpoint и включим path-style
+                    адресацию.</p>
+                <code-block lang="xml">
+<!-- build.gradle (Kotlin DSL эквивалентно) или pom.xml для Maven -->
+                    &lt;dependency&gt;
+  &lt;groupId&gt;software.amazon.awssdk&lt;/groupId&gt;
+  &lt;artifactId&gt;s3&lt;/artifactId&gt;
+  &lt;version&gt;2.25.40&lt;/version&gt;
+&lt;/dependency&gt;
+    </code-block>
+                <br></br>
+                ---
+                <br></br>
+                <code-block lang="java">
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.*;
+
+import java.net.URI;
+import java.nio.file.Paths;
+
+public class MinioS3JavaExample {
+    public static void main(String[] args) {
+        String endpoint = "[http://localhost:9000](http://localhost:9000)"; // MinIO
+        String accessKey = "minioadmin";
+        String secretKey = "minioadmin";
+        String bucket = "my-bucket";
+        String key = "docs/hello.txt";
+
+
+        S3Configuration s3conf = S3Configuration.builder()
+            .pathStyleAccessEnabled(true) // важно для MinIO локально
+            .build();
+
+        S3Client s3 = S3Client.builder()
+            .httpClient(UrlConnectionHttpClient.create())
+            .endpointOverride(URI.create(endpoint)) // убрать для AWS
+            .region(Region.US_EAST_1) // для MinIO любая
+            .credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(accessKey, secretKey)))
+            .serviceConfiguration(s3conf)
+            .build();
+
+        // Создать бакет (idempotent)
+        try {
+          s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException ignored) {}
+
+        // Загрузка строки
+        s3.putObject(PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType("text/plain")
+                .build(),
+            RequestBody.fromString("Hello S3-compatible world!"));
+
+        // Загрузка файла
+        s3.putObject(PutObjectRequest.builder()
+                .bucket(bucket)
+                .key("files/report.pdf")
+                .contentType("application/pdf")
+                .build(),
+            Paths.get("./report.pdf"));
+
+        // Чтение объекта
+        GetObjectResponse meta = s3.getObject(GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build(),
+            Paths.get("./downloaded-hello.txt"));
+        System.out.println("ETag: " + meta.eTag()); // демонстрация
+
+        // Список объектов по префиксу
+        ListObjectsV2Response list = s3.listObjectsV2(ListObjectsV2Request.builder()
+            .bucket(bucket)
+            .prefix("docs/")
+            .build());
+        list.contents().forEach(o -> System.out.println(o.key())); // демонстрация
+
+        // Удаление
+        s3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(key).build());
+    }
+} </code-block>
+                <note><p>Для предзнаков (presigned URL) в Java используйте <code>S3Presigner</code> из AWS SDK v2,
+                    указывая
+                    тот же endpoint/регион.</p></note>
+            </tab>
+
+            <tab title="Go (официальный MinIO SDK)">
+                <p>Библиотека <code>github.com/minio/minio-go/v7</code> предоставляет удобные методы для всех типичных
+                    операций и корректно работает как с MinIO, так и с AWS S3 (при указании соответствующего endpoint).
+                </p>
+                <code-block lang="bash">
+go get github.com/minio/minio-go/v7
+    </code-block>
+                <br></br>
+                ---
+                <br></br>
+                <code-block lang="go">
+            package main
+            
+            import (
+                "context"
+                "fmt"
+                "log"
+                "strings"
+                "time"
+                
+                "github.com/minio/minio-go/v7"
+                "github.com/minio/minio-go/v7/pkg/credentials"
+            )
+            
+            func main() {
+                endpoint := "localhost:9000"
+                accessKeyID := "minioadmin"
+                secretAccessKey := "minioadmin"
+                useSSL := false
+            
+                ctx := context.Background()
+                client, err := minio.New(endpoint, &minio.Options{
+                    Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+                    Secure: useSSL,
+                })
+                if err != nil {
+                    log.Fatalln(err)
+                }
+            
+                bucket := "my-bucket"
+                location := "us-east-1"
+            
+                // Создать бакет, если нет
+                exists, err := client.BucketExists(ctx, bucket)
+                if err != nil {
+                    log.Fatalln(err)
+                }
+                if !exists {
+                    if err := client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{Region: location}); err != nil {
+                        log.Fatalln(err)
+                    }
+                }
+            
+                // Загрузить объект из строки
+                objName := "docs/hello.txt"
+                content := "Hello from Go + MinIO!"
+                _, err = client.PutObject(ctx, bucket, objName, strings.NewReader(content), int64(len(content)),
+                minio.PutObjectOptions{ContentType: "text/plain"})
+                if err != nil {
+                    log.Fatalln(err)
+                }
+            
+                // Скачать объект в память
+                obj, err := client.GetObject(ctx, bucket, objName, minio.GetObjectOptions{})
+                if err != nil {
+                    log.Fatalln(err)
+                }
+                stat, _ := obj.Stat()
+                fmt.Println("ETag:", stat.ETag) // демонстрация
+            
+                // Список объектов
+                for objInfo := range client.ListObjects(ctx, bucket, minio.ListObjectsOptions{
+                    Prefix:    "docs/",
+                    Recursive: true,
+                }) {
+                    if objInfo.Err != nil {
+                        log.Fatalln(objInfo.Err)
+                    }
+                    fmt.Println("Key:", objInfo.Key)
+                }
+            
+                // Предподписанная ссылка на скачивание (на 15 минут)
+                reqParams := make(urlValues)
+                // пример: reqParams.Set("response-content-disposition", "attachment; filename=hello.txt")
+            
+                presigned, err := client.PresignedGetObject(ctx, bucket, objName, 15*time.Minute, reqParams)
+                if err != nil {
+                    log.Fatalln(err)
+                }
+                fmt.Println("Presigned GET:", presigned.String())
+            
+            // Удаление
+                err = client.RemoveObject(ctx, bucket, objName, minio.RemoveObjectOptions{})
+                if err != nil {
+                    log.Fatalln(err)
+                }
+            }
+            
+            // urlValues — небольшая утилита для наглядности
+            type urlValues map[string][]string
+            
+            func (v urlValues) Set(k, val string) {
+                v[k] = []string{val}
+            } 
+            </code-block>
+                <tip><p>Для больших файлов используйте <code>FPutObject</code> (загрузка с диска) — SDK сам разобьёт
+                    данные
+                    на части и выполнит мультичастичную загрузку.</p></tip>
+            </tab>
+
+            <tab title="TypeScript (MinIO SDK)">
+                <p>Ниже — базовые операции и генерация предподписанных URL.</p>
+                <code-block lang="bash">
+                  npm i minio
+                </code-block>
+                <br></br>
+                        ---
+                <br></br>
+                <code-block lang="ts">
+import {Module} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import {Client as MinioClient, ClientOptions} from 'minio';
+import {S3Service} from '~src/data/storages/s3/s3.service';
+
+@Module({
+    providers: [
+        {
+            provide: MinioClient,
+            useFactory: (config: ConfigService) =&gt; {
+                return new MinioClient(config.getOrThrow&lt;ClientOptions&gt;('s3'));
+            },
+            inject: [ConfigService]
+        },
+        S3Service
+    ],
+    exports: [S3Service]
+})
+export class S3Module {
+}
+
+            </code-block>
+                <code-block lang="ts">
+import {Injectable} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import {Client as MinioClient} from 'minio';
+
+@Injectable()
+export class S3Service {
+    constructor(
+            private readonly configService: ConfigService,
+            private readonly client: MinioClient
+    ) {
+    }
+
+    async uploadFile(key: string, buffer: Buffer, bucket: string): Promise&lt;void&gt; {
+        await this.client.putObject(bucket, key, buffer);
+    }
+
+    @Trace('S3Service.getDownloadLink')
+    async getDownloadLink(
+            key: string,
+            bucket: string,
+            expiresIn: number = this.configService.getOrThrow&lt;number&gt;('s3.expire-in-links-seconds')
+    ): Promise&lt;string&gt; {
+        return await this.client.presignedGetObject(bucket, key, expiresIn);
+    }
+
+    async getViewLink(
+            key: string,
+            bucket: string,
+            expiresIn: number = this.configService.getOrThrow&lt;number&gt;('s3.expire-in-links-seconds')
+    ): Promise&lt;string&gt; {
+        const filename = key.split('/').pop();
+        const params = {
+            'response-content-disposition': `inline; filename="${filename}.pdf"`,
+            'response-content-type': 'application/pdf'
+        };
+        return this.client.presignedGetObject(bucket, key, expiresIn, params);
+    }
+
+    async getFile(bucket: string, key: string): Promise&lt;Buffer&gt; {
+        try {
+            const stream = await this.client.getObject(bucket, key);
+            const chunks: Buffer[] = [];
+            return await new Promise&lt;Buffer&gt;((resolve, reject) =&gt; {
+                stream.on('data', (chunk: Buffer) =&gt; chunks.push(chunk));
+                stream.on('end', () =&gt; resolve(Buffer.concat(chunks)));
+                stream.on('error', (err) =&gt; reject(err));
+            });
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async removeFile(key: string, bucket: string) {
+        return await this.client.removeObject(bucket, key);
+    }
+}
+
+            </code-block>
+                <note><p>Для загрузок из браузера включите CORS на бакете/сервере и отдавайте upload по предподписанным
+                    URL:
+                    это позволяет клиенту писать напрямую в хранилище без проксирования через ваш backend.</p></note>
+            </tab>
+
+        </tabs>
+        <chapter title="Практические рекомендации и лучшие практики">
+            <list>
+                <li>
+                    <format style="bold">Безопасность ключей</format>
+                    : не храните секреты в репозитории. Используйте переменные окружения, менеджеры секретов (AWS
+                    Secrets Manager, HashiCorp Vault).
+                </li>
+                <li>
+                    <format style="bold">Минимальные права</format>
+                    : создавайте отдельные пользователей/ролей с доступом только к нужным бакетам/префиксам (принцип
+                    наименьших привилегий).
+                </li>
+                <li>
+                    <format style="bold">Контент-типы и кеширование</format>
+                    : задавайте <code>Content-Type</code>, <code>Cache-Control</code> при <code>PutObject</code> — это
+                    влияет на отдачу статики.
+                </li>
+                <li>
+                    <format style="bold">Версионирование и «мягкое» удаление</format>
+                    : включите versioning для защиты от случайных удалений/перезаписей.
+                </li>
+                <li>
+                    <format style="bold">Лайфциклы</format>
+                    : переводите старые объекты в «холодные» классы хранения (в AWS) или удаляйте/архивируйте по
+                    правилам lifecycle.
+                </li>
+                <li>
+                    <format style="bold">Большие файлы</format>
+                    : используйте мультичастичную загрузку и параллелизм, контролируйте размер частей (например, 8–32
+                    МБ).
+                </li>
+                <li>
+                    <format style="bold">Надёжность MinIO</format>
+                    : в проде используйте распределённый режим с кодированием стираний, как минимум 4 диска/узла для
+                    устойчивости к сбоям.
+                </li>
+            </list>
+            <warning>
+                <p>Открытый доступ на запись к бакету приводит к утечкам и злоупотреблениям. Всегда проверяйте <code>bucket
+                    policy</code> и CORS, не допускайте глобального <code>"Principal": "*"</code> на
+                    <code>s3:PutObject</code>.</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Особенности совместимости и отладки">
+            <list>
+                <li>
+                    <format style="bold">Path-style</format>
+                    : для MinIO локально включайте <code>pathStyleAccess</code>/<code>forcePathStyle</code>. Без этого
+                    SDK могут пытаться обращаться к поддоменам вида <code>bucket.localhost</code>.
+                </li>
+                <li>
+                    <format style="bold">HTTPS и сертификаты</format>
+                    : в dev можно использовать HTTP, но в проде — только HTTPS. Проверьте доверие к сертификату при
+                    соединении.
+                </li>
+                <li>
+                    <format style="bold">ETag</format>
+                    : в S3 часто равен MD5 для одночастных загрузок, но при мультичастичной — это не MD5 содержимого,
+                    что важно при проверках целостности.
+                </li>
+                <li>
+                    <format style="bold">Логи и трассировка</format>
+                    : включайте расширенный лог/отладку SDK, а также access logs на стороне MinIO для анализа проблем
+                    доступа и CORS.
+                </li>
+            </list>
+        </chapter>
+
+</topic>

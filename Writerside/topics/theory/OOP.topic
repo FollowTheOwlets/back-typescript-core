@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Объектно-ориентированное программирование" id="OOP">
+
+    <chapter title="Что такое ООП и зачем оно нужно">
+        <p>
+            <format style="bold">Объектно-ориентированное программирование</format>
+            — это подход к разработке, в котором программа строится из взаимодействующих
+            <tooltip term="Объект">объектов</tooltip>
+            . Каждый объект объединяет данные (состояние) и процедуры (поведение) так, чтобы их можно было воспринимать
+            как элемент реального мира: кнопку интерфейса, банковский счёт, файл, фигуру на плоскости.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Модель мира</format>
+                : мы описываем сущности и их связи через
+                <tooltip term="Класс">классы</tooltip>
+                и
+                <tooltip term="Объект">объекты</tooltip>
+                .
+            </li>
+            <li>
+                <format style="bold">Управление сложностью</format>
+                : скрываем внутренности (инкапсулируем), даём чёткие интерфейсы.
+            </li>
+            <li>
+                <format style="bold">Повторное использование</format>
+                : наследование и композиция помогают переиспользовать код без копирования.
+            </li>
+            <li>
+                <format style="bold">Гибкость</format>
+                : за счёт
+                <tooltip term="Полиморфизм">полиморфизма</tooltip>
+                и
+                <tooltip term="Интерфейс">интерфейсов</tooltip>
+                код легче расширять.
+            </li>
+        </list>
+        <note>ООП — не про язык, а про стиль. Даже в языках без «классической» поддержки классов (например, Go) можно
+            применять объектное мышление: у нас есть данные и методы, есть интерфейсы и подстановка.
+        </note>
+    </chapter>
+
+    <chapter title="Базовые понятия">
+        <p>
+            <format style="bold">Класс</format>
+            — это шаблон (чертёж) будущих объектов.
+            <format style="bold">Объект</format>
+            (экземпляр) — это конкретный представитель класса с конкретным состоянием.
+            <format style="bold">Поле</format>
+            хранит данные;
+            <format style="bold">метод</format>
+            описывает поведение;
+            <format style="bold">конструктор</format>
+            подготавливает объект к работе.
+        </p>
+        <list>
+            <li>
+                <tooltip term="Класс">Класс</tooltip>
+                определяет форму и поведение.
+            </li>
+            <li>
+                <tooltip term="Экземпляр">Экземпляр</tooltip>
+                — это созданный объект по этому шаблону.
+            </li>
+            <li>
+                <tooltip term="Сигнатура метода">Сигнатура метода</tooltip>
+                — имя + параметры (и их типы).
+            </li>
+            <li>
+                <tooltip term="Интерфейс">Интерфейс</tooltip>
+                — контракт: «что умеет» без деталей «как».
+            </li>
+        </list>
+        <tip>Начинайте с существительных (классы) и глаголов (методы). Например, класс <code>Account</code> и методы
+            <code>deposit</code>, <code>withdraw</code>.
+        </tip>
+    </chapter>
+
+    <chapter title="Четыре столпа ООП">
+        <chapter title="Инкапсуляция">
+            <p>Скрытие внутренностей и управление правилами работы с состоянием через методы. Это защищает инварианты
+                класса и
+                упрощает сопровождение.</p>
+            <note>Используйте модификаторы доступа (например, <code>private</code>, <code>protected</code>) и
+                геттеры/сеттеры только когда действительно нужна логика при чтении/записи.
+            </note>
+            <warning>Публичные поля нарушают инкапсуляцию: изменения формата данных сломают весь код, который к ним
+                обращается напрямую.
+            </warning>
+        </chapter>
+        <chapter title="Абстракция">
+            <p>Выделение существенного и «срезание» деталей. Через
+                <tooltip term="Интерфейс">интерфейсы</tooltip>
+                и
+                <tooltip term="Абстрактный класс">абстрактные классы</tooltip>
+                мы программируем «на уровне идей», а не реализаций.
+            </p>
+            <tip>Пишите код «против интерфейса»: принимайте в методах абстракции, а не конкретные классы. Это упрощает
+                подмену реализаций.
+            </tip>
+        </chapter>
+        <chapter title="Наследование">
+            <p>Механизм, позволяющий одному классу «унаследовать» состояние и поведение другого. Важно отличать
+                <format style="bold">наследование интерфейса</format>
+                (обещание методов) и
+                <format style="bold">наследование реализации</format>
+                (перенятие кода).
+            </p>
+            <warning>Наследование — тесная связь. Лёгкая ошибка родителя может сломать всех наследников («хрупкий
+                базовый класс»). Предпочитайте
+                <tooltip term="Композиция">композицию</tooltip>
+                , если нет естественного «is-a».
+            </warning>
+        </chapter>
+        <chapter title="Полиморфизм">
+            <p>Один интерфейс — много реализаций. Код работает с
+                <tooltip term="Интерфейс">интерфейсом</tooltip>
+                , а конкретный объект подставляется в рантайме (динамическая диспетчеризация).
+            </p>
+            <note>Не путайте
+                <format style="bold">перегрузку</format>
+                (разные сигнатуры с одним именем в одном классе) и
+                <format style="bold">переопределение</format>
+                (замена реализации в потомке).
+            </note>
+        </chapter>
+    </chapter>
+
+    <chapter title="Композиция против наследования и агрегации">
+        <p>
+            <format style="bold">Наследование</format>
+            описывает отношение «A — это B» (is-a).
+            <format style="bold">Композиция</format>
+            — отношение «A состоит из B» (has-a). Композиция менее хрупкая и чаще предпочтительна для повторного
+            использования поведения.
+        </p>
+        <p>
+            <format style="bold">Агрегация</format>
+            — это разновидность композиции, но с более «слабой» связью. В композиции части не могут существовать без
+            целого
+            (двигатель обычно не существует без автомобиля), а в агрегации объект может жить отдельно от «владельца».
+            Например, университет содержит студентов, но студенты могут существовать и без конкретного университета.
+        </p>
+        <list>
+            <li>«Круг — это Фигура» — разумное наследование.</li>
+            <li>«Автомобиль состоит из Двигателя» — это композиция, а не наследование.</li>
+            <li>«Университет содержит Студентов» — это агрегация: студенты могут учиться в разных местах или временно не
+                принадлежать университету.
+            </li>
+        </list>
+        <tip>
+            Если вы добавляете класс только ради повторного использования маленького куска кода — начните с
+            композиции. Используйте агрегацию, если объекты связаны, но могут существовать самостоятельно.
+        </tip>
+
+        <chapter title="Примеры: Наследование, Композиция, Агрегация">
+            <p>Пример: <code>Shape</code> и <code>Circle</code> (наследование), <code>Car</code> и <code>Engine</code>
+                (композиция), <code>University</code> и <code>Student</code> (агрегация).</p>
+
+            <tabs>
+                <tab title="C++">
+                <code-block lang="cpp">
+// Наследование
+struct Shape { virtual double area() const = 0; };
+struct Circle : Shape {
+  double r;
+  Circle(double r) : r(r) {}
+  double area() const override { return 3.14 * r * r; }
+};
+
+// Композиция
+struct Engine {
+  int rpm = 0;
+  void rev(int delta) { rpm += delta; }
+};
+struct Car {
+  Engine engine; // часть объекта
+  void accelerate() { engine.rev(1000); }
+};
+
+// Агрегация
+struct Student { std::string name; };
+struct University {
+  std::vector&lt;Student*&gt; students; // могут жить отдельно
+  void add(Student* s) { students.push_back(s); }
+};
+                </code-block>
+                </tab>
+
+                <tab title="Java">
+                <code-block lang="java">
+// Наследование
+abstract class Shape { abstract double area(); }
+class Circle extends Shape {
+  double r;
+  Circle(double r) { this.r = r; }
+  double area() { return Math.PI * r * r; }
+}
+
+// Композиция
+class Engine {
+  private int rpm = 0;
+  void rev(int delta) { rpm += delta; }
+  int getRpm() { return rpm; }
+}
+class Car {
+  private final Engine engine = new Engine();
+  void accelerate() { engine.rev(1000); }
+}
+
+// Агрегация
+class Student { String name; }
+class University {
+  private List&lt;Student&gt; students = new ArrayList&lt;&gt;();
+  void add(Student s) { students.add(s); }
+}
+                </code-block>
+                </tab>
+
+                <tab title="JavaScript">
+                <code-block lang="javascript">
+// Наследование
+class Shape {
+    area() {
+        throw "abstract";
+    }
+}
+
+class Circle extends Shape {
+    constructor(r) {
+        super();
+        this.r = r;
+    }
+
+    area() {
+        return Math.PI * this.r * this.r;
+    }
+}
+
+// Композиция
+class Engine {
+    constructor() {
+        this.rpm = 0;
+    }
+
+    rev(delta) {
+        this.rpm += delta;
+    }
+}
+
+class Car {
+    constructor() {
+        this.engine = new Engine();
+    }
+
+    accelerate() {
+        this.engine.rev(1000);
+    }
+}
+
+// Агрегация
+class Student {
+    constructor(name) {
+        this.name = name;
+    }
+}
+
+class University {
+    constructor() {
+        this.students = [];
+    }
+
+    add(student) {
+        this.students.push(student);
+    }
+}
+                </code-block>
+                </tab>
+
+                <tab title="TypeScript">
+                <code-block lang="typescript">
+// Наследование
+abstract class Shape {
+    abstract area(): number;
+}
+
+class Circle extends Shape {
+    constructor(private r: number) {
+        super();
+    }
+
+    area(): number {
+        return Math.PI * this.r * this.r;
+    }
+}
+
+// Композиция
+class Engine {
+    private rpm = 0;
+
+    rev(delta: number) {
+        this.rpm += delta;
+    }
+}
+
+class Car {
+    private engine = new Engine();
+
+    accelerate() {
+        this.engine.rev(1000);
+    }
+}
+
+// Агрегация
+class Student {
+    constructor(public name: string) {
+    }
+}
+
+class University {
+    private students: Student[] = [];
+
+    add(s: Student) {
+        this.students.push(s);
+    }
+}
+                </code-block>
+                </tab>
+
+                <tab title="Go">
+                <code-block lang="go">
+package main
+import "fmt"
+
+// Наследование нет, используем интерфейсы
+type Shape interface { Area() float64 }
+type Circle struct { R float64 }
+func (c Circle) Area() float64 { return 3.14 * c.R * c.R }
+
+// Композиция
+type Engine struct { Rpm int }
+func (e *Engine) Rev(delta int) { e.Rpm += delta }
+type Car struct { Engine } // встраивание (композиция)
+func (c *Car) Accelerate() { c.Rev(1000) }
+
+// Агрегация
+type Student struct { Name string }
+type University struct { Students []*Student }
+func (u *University) Add(s *Student) { u.Students = append(u.Students, s) }
+
+func main() {
+  s := &amp;Student{"Bob"}
+  u := &amp;University{}
+  u.Add(s)
+  fmt.Println(u.Students[0].Name) // Bob
+}
+                </code-block>
+                </tab>
+
+                <tab title="VBA">
+                <code-block lang="VisualBasic">
+' Наследование в VBA нет, только интерфейсы через Implements
+
+' Композиция
+' Class Module: Engine
+Public Rpm As Integer
+Public Sub Rev(delta As Integer)
+  Rpm = Rpm + delta
+End Sub
+
+' Class Module: Car
+Private eng As Engine
+Private Sub Class_Initialize()
+  Set eng = New Engine
+End Sub
+Public Sub Accelerate()
+  eng.Rev 1000
+End Sub
+
+' Агрегация
+' Class Module: Student
+Public Name As String
+
+' Class Module: University
+Private students As Collection
+Private Sub Class_Initialize()
+  Set students = New Collection
+End Sub
+Public Sub Add(s As Student)
+  students.Add s
+End Sub
+                </code-block>
+                </tab>
+            </tabs>
+        </chapter>
+    </chapter>
+
+    <chapter title="Интерфейсы, абстрактные классы, контракты">
+        <p>
+            <tooltip term="Интерфейс">Интерфейсы</tooltip>
+            задают
+            <format style="bold">контракт</format>
+            поведения.
+            <tooltip term="Абстрактный класс">Абстрактные классы</tooltip>
+            могут содержать общую реализацию. Контракт включает инварианты, предусловия и постусловия.
+        </p>
+        <note>В языках без ключевого слова <code>interface</code> роль контракта может играть набор методов с
+            оговорёнными сигнатурами (утиная типизация в JavaScript, интерфейсы по методу в Go).
+        </note>
+    </chapter>
+
+    <chapter title="Жизненный цикл объекта">
+        <list>
+            <li>
+                <format style="bold">Создание</format>
+                : конструктор/фабрика инициализируют состояние.
+            </li>
+            <li>
+                <format style="bold">Использование</format>
+                : объект обеспечивает инварианты через методы.
+            </li>
+            <li>
+                <format style="bold">Завершение</format>
+                : в C++ — деструктор, в Java/JS/TS — сборщик мусора.
+            </li>
+        </list>
+        <warning>Избегайте тяжёлой логики в конструкторах (сеть/диск). Лучше — ленивые методы, чтобы проще
+            тестировать и обрабатывать ошибки.
+        </warning>
+    </chapter>
+
+    <chapter title="ООП в разных языках: единый пример (Фигура → Площадь)">
+        <p>Ниже — одинаковая модель: есть «фигура» и конкретная реализация «прямоугольник». Мы вызываем метод через
+            абстракцию и получаем полиморфное поведение.</p>
+
+
+        <tabs>
+            <tab title="C++">
+    <code-block lang="cpp">
+
+
+\#include \&lt;iostream\&gt;
+\#include \&lt;memory\&gt;
+
+struct Shape { virtual double area() const = 0; virtual \~Shape() = default; };
+struct Rect : Shape {
+double w, h;
+Rect(double w, double h) : w(w), h(h) {}
+double area() const override { return w \* h; }
+};
+
+int main() {
+std::unique\_ptr\&lt;Shape\&gt; s = std::make\_unique\&lt;Rect\&gt;(3, 4);
+std::cout \&lt;\&lt; s-\&gt;area() \&lt;\&lt; "\n"; // 12
+} </code-block>
+            </tab>
+
+
+            <tab title="Java">
+    <code-block lang="java">
+
+
+interface Shape { double area(); }
+
+class Rect implements Shape {
+double w, h;
+Rect(double w, double h) { this.w = w; this.h = h; }
+public double area() { return w \* h; }
+}
+
+public class Main {
+public static void main(String\[] args) {
+Shape s = new Rect(3, 4);
+System.out.println(s.area()); // 12
+}
+} </code-block>
+            </tab>
+
+
+            <tab title="JavaScript">
+    <code-block lang="javascript">
+
+
+class Rect {
+    constructor(w, h) {
+        this.w = w;
+        this.h = h;
+    }
+
+    area() {
+        return this.w * this.h;
+    }
+}
+
+const s = new Rect(3, 4);
+console.log(s.area()); // 12 </code-block>
+            </tab>
+
+
+            <tab title="TypeScript">
+    <code-block lang="typescript">
+
+
+interface Shape {
+    area(): number;
+}
+
+class Rect implements Shape {
+    constructor(public w: number, public h: number) {
+    }
+
+    area(): number {
+        return this.w * this.h;
+    }
+}
+
+const s: Shape = new Rect(3, 4);
+console.log(s.area()); // 12 </code-block>
+            </tab>
+
+
+            <tab title="Go">
+    <code-block lang="go">
+
+
+package main
+
+import (
+"fmt"
+)
+
+type Shape interface { Area() float64 }
+
+type Rect struct { W, H float64 }
+
+func (r Rect) Area() float64 { return r.W \* r.H }
+
+func main() {
+var s Shape = Rect{3, 4}
+fmt.Println(s.Area()) // 12
+} </code-block>
+                <note>В Go нет ключевого слова «class», но есть структуры и интерфейсы; методы определяются для
+                    типов-получателей. В JavaScript/TypeScript классы — синтаксический сахар над прототипами,
+                    полиморфизм
+                    обеспечивается динамической/статической (TS) типизацией.
+                </note>
+            </tab>
+
+
+            <tab title="VBA">
+    <code-block lang="visualbasic">
+
+
+' Class Module: Rect
+' Public W As Double
+' Public H As Double
+' Public Function Area() As Double
+'   Area = W \* H
+' End Function
+
+' Module
+Sub Demo()
+Dim s As Rect
+Set s = New Rect
+s.W = 3
+s.H = 4
+Debug.Print s.Area ' 12
+End Sub </code-block>
+            </tab>
+        </tabs>
+
+    </chapter>
+
+    <chapter title="Практические рекомендации">
+        <list>
+            <li>
+                <format style="bold">Названия</format>
+                : классы — существительные, методы — глаголы. Из названия понятна ответственность.
+            </li>
+            <li>
+                <format style="bold">Программируйте против абстракций</format>
+                : зависимости — через интерфейсы, передавайте их снаружи.
+            </li>
+            <li>
+                <format style="bold">Не злоупотребляйте наследованием</format>
+                : если сомневаетесь — берите композицию.
+            </li>
+            <li>
+                <format style="bold">Инварианты</format>
+                : защищайте корректность состояния внутри класса (проверки в методах, не только при создании).
+            </li>
+        </list>
+        <warning>«God Object» (всесильный класс) — антипаттерн: перегружает ответственность, затрудняет тестирование и
+            сопровождение.
+        </warning>
+        <tip>Делайте методы короткими. Если метод сложно назвать одним глаголом — разбейте его.</tip>
+    </chapter>
+
+    <chapter title="Частые подводные камни">
+        <list>
+            <li>
+                <format style="bold">Хрупкий базовый класс</format>
+                : изменения в родителе ломают наследников. Смягчайте через
+                <tooltip term="Композиция">композицию</tooltip>
+                и тесты контрактов.
+            </li>
+            <li>
+                <format style="bold">Алмаз наследования</format>
+                (C++): множественное наследование порождает неоднозначность. Решение — виртуальное наследование или
+                отказ от него.
+            </li>
+            <li>
+                <format style="bold">Утечки инкапсуляции</format>
+                : возврат «сырого» изменяемого состояния наружу (<code>getItems()</code> отдаёт изменяемый список).
+                Возвращайте копии или иммутабельные представления.
+            </li>
+            <li>
+                <format style="bold">Сложные конструкторы</format>
+                : тяжёлые операции при создании усложняют ошибки/тесты. Используйте фабрики/ленивую инициализацию.
+            </li>
+        </list>
+        <warning>Публичные поля и «setters everywhere» ведут к невозможности контролировать инварианты. Предпочитайте
+            методы предметной области: <code>withdraw(amount)</code> вместо <code>setBalance(newBalance)</code>.
+        </warning>
+    </chapter>
+
+</topic>

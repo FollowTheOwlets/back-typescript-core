@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="CORS" id="CORS">
+
+    <chapter title="Что такое CORS и зачем он нужен">
+        <p>
+            <tooltip term="CORS">CORS</tooltip>
+            (Cross-Origin Resource Sharing) — это механизм безопасности браузера, который контролирует, может ли
+            страница с одного источника (схема+домен+порт) обращаться к ресурсам другого источника. По умолчанию браузер
+            ограничивает доступ из скриптов к ответам с другого источника. CORS позволяет серверу явно указать, кому и
+            что можно запрашивать, с помощью специальных
+            <tooltip term="Заголовок">заголовков</tooltip>
+            .
+        </p>
+        <list>
+            <li>
+                <format style="bold">Origin</format>
+                — комбинация схемы (http/https), домена и порта. Разные порты уже разные источники.
+            </li>
+            <li>
+                <format style="bold">Браузер</format>
+                автоматически применяет правила CORS; для запросов с бекенда (сервер-&gt;сервер) CORS не требуется.
+            </li>
+            <li>
+                <format style="bold">Сервер</format>
+                решает, какие источники допустить, какими методами и с какими заголовками.
+            </li>
+        </list>
+        <warning>Если не настроить CORS, браузер заблокирует доступ фронтенду к ответу. Это выглядит как ошибка CORS в
+            консоли, хотя сам запрос может успешно дойти до сервера.
+        </warning>
+    </chapter>
+    <chapter title="Типы запросов и preflight (предварительный) запрос">
+        <p>Браузер различает
+            <format style="bold">простые</format>
+            запросы и запросы, требующие предварительной проверки (preflight). Preflight посылается методом <code>OPTIONS</code> и спрашивает у сервера разрешение на основной запрос.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Простые запросы</format>
+                : методы GET/HEAD/POST, заголовки только из безопасного набора (например, <code>Accept</code>, <code>Content-Type:
+                application/x-www-form-urlencoded | text/plain | multipart/form-data</code>), без нестандартных
+                заголовков.
+            </li>
+            <li>
+                <format style="bold">Не простые</format>
+                : любые другие методы (PUT, PATCH, DELETE), кастомные заголовки (например, <code>X-Request-Id</code>),
+                <code>Content-Type</code> c application/json — всё это требует preflight.
+            </li>
+        </list>
+        <note>При preflight браузер посылает <code>OPTIONS</code> с заголовками <code>Origin</code>, <code>Access-Control-Request-Method</code>
+            и <code>Access-Control-Request-Headers</code>. Сервер должен ответить разрешающими заголовками, иначе
+            основной запрос не выполнится.
+        </note>
+    </chapter>
+    <chapter title="Ключевые CORS-заголовки и их смысл">
+        <list>
+            <li><code>Access-Control-Allow-Origin</code> — кому разрешено. Значение: конкретный origin (например, <code>https://app.example.com</code>)
+                или <code>*</code> (всем).
+            </li>
+            <li><code>Access-Control-Allow-Methods</code> — какие методы разрешены (GET, POST, PUT, DELETE, ...).</li>
+            <li><code>Access-Control-Allow-Headers</code> — какие запросные заголовки разрешены (например, <code>Content-Type,
+                Authorization</code>).
+            </li>
+            <li><code>Access-Control-Allow-Credentials</code> — можно ли отправлять
+                куки/HTTP-авторизацию (<code>true</code>/<code>false</code>).
+            </li>
+            <li><code>Access-Control-Expose-Headers</code> — какие заголовки ответа будут доступны JS (по умолчанию
+                доступ к большинству заголовков закрыт).
+            </li>
+            <li><code>Access-Control-Max-Age</code> — сколько секунд кешировать результат preflight, чтобы реже делать
+                <code>OPTIONS</code>.
+            </li>
+            <li><code>Vary: Origin</code> — сообщает кешам, что ответ зависит от заголовка <code>Origin</code>.</li>
+        </list>
+        <warning><code>Access-Control-Allow-Origin: *</code> запрещён вместе с <code>Allow-Credentials: true</code> —
+            браузер отклонит такой ответ. Для куки и авторизации всегда возвращайте конкретный origin.
+        </warning>
+    </chapter>
+    <chapter title="Быстрый старт: пакет cors"><p>Проще всего управлять CORS через официальный пакет <code>cors</code>
+        для Express.</p>
+        <code-block lang="ts">
+        // src/app.ts (фрагмент)
+        import express from &quot;express&quot;;
+        import cors from &quot;cors&quot;;
+
+        const app = express();
+
+        app.use(cors({
+            origin: "https://app.example.com", // конкретный фронтенд
+            methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+            allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
+            exposedHeaders: ["X-Total-Count", "X-Request-Id"],
+            credentials: true, // разрешить куки/авторизацию
+            maxAge: 600 // кэш preflight на 10 минут
+        }));
+
+        app.get("/health", (_req, res) => res.send("ok"));
+</code-block>
+        <tip>Если у вас несколько фронтендов, используйте функцию для <code>origin</code> и whitelist.</tip>
+    </chapter>
+
+    <chapter title="Whitelist и динамический origin"> <code-block lang="ts">
+        // src/middlewares/cors.ts
+        import cors from &quot;cors&quot;;
+
+        const whitelist = new Set([
+            "https://app.example.com",
+            "https://admin.example.com",
+            "http://localhost:5173"
+        ]);
+
+        export const corsMiddleware = cors({
+            origin: (origin, callback) => {
+                // origin может быть undefined для некоторых инструментов и curl
+                if (!origin || whitelist.has(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("Not allowed by CORS"));
+                }
+            },
+            credentials: true,
+            methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
+            exposedHeaders: ["X-Total-Count", "X-Request-Id"],
+            maxAge: 600
+        });
+
+        // src/app.ts
+        import express from "express";
+        import {corsMiddleware} from "./middlewares/cors";
+
+        const app = express();
+        app.use(corsMiddleware);
+</code-block>
+        <note>При динамическом значении <code>origin</code> пакет автоматически проставляет соответствующий <code>Access-Control-Allow-Origin</code>
+            и <code>Vary: Origin</code>.
+        </note>
+    </chapter>
+
+    <chapter title="Credentials (куки, заголовки авторизации) безопасно"><p>Чтобы браузер отправлял и принимал
+        куки/токены между источниками, нужны настройки и на клиенте, и на сервере.</p>
+        <list>
+            <li>Сервер: <code>credentials: true</code> и <code>Access-Control-Allow-Origin</code> не может быть
+                <code>*</code>.
+            </li>
+            <li>Клиент: для fetch/axios указывается <code>credentials: &quot;include&quot;</code>.</li>
+            <li>Куки: настройте <code>SameSite=None; Secure</code> (иначе межсайтовая передача будет заблокирована
+                современными браузерами).
+            </li>
+            <li>Только HTTPS для <code>SameSite=None; Secure</code>.</li>
+        </list>
+        <code-block
+                lang="ts"> // пример установки cookie в Express res.cookie(&quot;session&quot;, token, { httpOnly: true, secure: true, // обязательно в продакшн с HTTPS sameSite: &quot;none&quot;, // разрешить межсайтовую отправку domain: &quot;.example.com&quot;, // опционально: общий домен path: &quot;/&quot; }); </code-block>
+        <warning>Неправильная комбинация <code>SameSite</code> и <code>Secure</code> приводит к «пропадающим» куки.
+            Проверяйте в DevTools -&gt; Application -&gt; Cookies.
+        </warning>
+    </chapter>
+    <chapter title="Ручная настройка без пакета cors (понимание механики)"><p>Иногда полезно явно увидеть ответы на
+        preflight и основной запрос.</p>
+        <code-block lang="ts"> // src/app.ts (минимальный пример) import express from &quot;express&quot;;
+
+        const app = express();
+
+        const ALLOWED_ORIGIN = "https://app.example.com";
+
+        app.use((req, res, next) => {
+            res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+            res.setHeader("Vary", "Origin");
+            res.setHeader("Access-Control-Allow-Credentials", "true");
+            res.setHeader("Access-Control-Expose-Headers", "X-Total-Count, X-Request-Id");
+            if (req.method === "OPTIONS") {
+                res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+                res.setHeader("Access-Control-Allow-Headers", req.header("Access-Control-Request-Headers") || "Content-Type, Authorization");
+                res.setHeader("Access-Control-Max-Age", "600");
+                return res.status(204).send();
+            }
+            next();
+        });
+
+        app.get("/api/data", (_req, res) => {
+            res.setHeader("X-Request-Id", "abc-123");
+            res.json({ok: true});
+        });
+</code-block>
+        <tip>Ручной режим полезен для тонкой отладки и когда нужна особая логика на preflight. Но в большинстве случаев
+            пакет <code>cors</code> надёжнее и проще.
+        </tip>
+    </chapter>
+
+    <chapter title="Оптимизация preflight (производительность)">
+        <list>
+            <li>Используйте <code>Access-Control-Max-Age</code> для кеширования разрешения браузером (например, 600–3600
+                секунд).
+            </li>
+            <li>Сведите к минимуму нестандартные заголовки и меняйте их только при необходимости — меньше причин для
+                preflight.
+            </li>
+            <li>Стабилизируйте набор методов и заголовков — частые изменения могут приводить к лишним
+                <code>OPTIONS</code>.
+            </li>
+        </list>
+        <note>Preflight — это сетевой RTT. На высоких латенсиях и мобильных сетях лишние <code>OPTIONS</code> заметно
+            замедляют UX.
+        </note>
+    </chapter>
+    <chapter title="Безопасность: частые ошибки и как их избежать">
+        <list>
+            <li>
+                <format style="bold">Отражение Origin без валидации</format>
+                : установка <code>Access-Control-Allow-Origin</code> равным входящему <code>Origin</code> без whitelist
+                — риск утечки данных. Всегда проверяйте против списка.
+            </li>
+            <li>
+                <format style="bold">Allow-Credentials с *</format>
+                : браузер заблокирует такой ответ; используйте конкретный origin.
+            </li>
+            <li>
+                <format style="bold">Слишком широкий Allow-Headers</format>
+                : разрешайте только нужные заголовки, чтобы сузить поверхность атаки.
+            </li>
+            <li>
+                <format style="bold">Отсутствует Vary: Origin</format>
+                : кэши могут отдать ответ не тому источнику. Добавляйте <code>Vary</code> при динамическом разрешении
+                origin.
+            </li>
+            <li>
+                <format style="bold">HTTP вместо HTTPS</format>
+                : для <code>SameSite=None</code> куки должны быть <code>Secure</code>, то есть только HTTPS.
+            </li>
+        </list>
+        <warning>Неправильный CORS не делает ваш API &quot;публичным&quot; безопасно — он лишь открывает доступ скриптам
+            из браузера. Для защиты содержимого используйте аутентификацию, авторизацию и контроль выдачи данных.
+        </warning>
+    </chapter>
+    <chapter title="Отладка и диагностика">
+        <list>
+            <li>Смотрите вкладку &quot;Network&quot; в DevTools: есть ли запрос <code>OPTIONS</code>, какие заголовки
+                пришли/ушли.
+            </li>
+            <li>Проверьте консоль: браузер пишет причину блокировки CORS (какого заголовка не хватает).</li>
+            <li>Логируйте на сервере заголовки <code>Origin</code>, <code>Access-Control-Request-Method</code>, <code>Access-Control-Request-Headers</code>
+                для preflight.
+            </li>
+            <li>Тестируйте curl-ом серверную реакцию (curl не применяет CORS, но помогает увидеть заголовки ответа).
+            </li>
+        </list>
+        <code-block lang="bash">
+            curl -i -X OPTIONS &quot;https://api.example.com/resource&quot; \
+            -H &quot;Origin: https://app.example.com&quot; \
+            -H &quot;Access-Control-Request-Method: PUT&quot; \
+            -H &quot;Access-Control-Request-Headers: Content-Type, Authorization&quot; </code-block>
+    </chapter>
+    <chapter title="Dev proxy как альтернатива при локальной разработке"><p>Чтобы реже трогать CORS в деве, используйте
+        прокси в дев-сервере фронта (Vite/webpack). Тогда запросы уходят на тот же origin, а прокси перенаправляет их на
+        API.</p>
+        <note>Прокси решает CORS только в dev. В продакшне всё равно нужно корректно настроить заголовки на сервере.
+        </note>
+    </chapter>
+    <chapter title="Краткий чек-лист настроек">
+        <list>
+            <li>Определите, какие фронтенды (origin) должны иметь доступ — сделайте whitelist.</li>
+            <li>Разрешите только нужные методы и заголовки (<code>Allow-Methods</code>, <code>Allow-Headers</code>).
+            </li>
+            <li>Если нужны куки/авторизация — <code>credentials: true</code>, конкретный <code>Allow-Origin</code>, куки
+                с <code>SameSite=None; Secure</code>.
+            </li>
+            <li>Настройте <code>Max-Age</code> для кеширования preflight.</li>
+            <li>Добавьте <code>Vary: Origin</code> при динамическом разрешении.</li>
+        </list>
+    </chapter>
+</topic>

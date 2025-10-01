@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="API-контракты" id="API">
+
+    <p> В этом топике разбираем, как формировать понятные и предсказуемые
+        <tooltip term="API">API</tooltip>
+        -контракты без привязки к фреймворку. Мы пройдёмся по правилам именования
+        <tooltip term="Endpoint">endpoint</tooltip>
+        -ов и выбору
+        <tooltip term="HTTP-методы">HTTP</tooltip>
+        -глаголов, разберём пагинацию, батч-запросы, получение сущностей по ID, критерии выбора
+        <tooltip term="Query-параметры">query</tooltip>
+        - и
+        <tooltip term="Path-параметры">path</tooltip>
+        -параметров, когда использовать
+        <tooltip term="Заголовок">заголовки</tooltip>
+        , как оформлять тело ответа (data-обёртки) и ошибочные ответы (поле <code>_error</code>), а также какие
+        <tooltip term="Статус-код">статусы</tooltip>
+        возвращать в разных ситуациях. Завершим кратким введением в
+        <tooltip term="OpenAPI">OpenAPI</tooltip>
+        и
+        <tooltip term="Swagger">Swagger</tooltip>
+        .
+    </p>
+    <chapter title="Базовые принципы и глаголы HTTP">
+        <list>
+            <li>
+                <format style="bold">Ресурсный подход (resource-oriented)</format>
+                : endpoint описывает коллекцию или отдельный ресурс. Пример коллекции: <code>/users</code>, элемент
+                коллекции: <code>/users/{id}</code>.
+            </li>
+            <li>
+                <format style="bold">Глаголы определяются методом</format>
+                :
+                <list>
+                    <li><code>GET</code> — чтение (без побочных эффектов,
+                        <tooltip term="Идемпотентность">идемпотентно</tooltip>
+                        , безопасно).
+                    </li>
+                    <li><code>POST</code> — создание или небезопасное действие (обычно не идемпотентно).</li>
+                    <li><code>PUT</code> — полная замена ресурса (идемпотентно).</li>
+                    <li><code>PATCH</code> — частичное обновление (может быть идемпотентным по контракту).</li>
+                    <li><code>DELETE</code> — удаление ресурса (идемпотентно: повторное удаление возвращает тот же
+                        результат состояния).
+                    </li>
+                </list>
+            </li>
+            <li>
+                <format style="bold">Именуйте пути существительными во множественном числе</format>
+                : <code>/orders</code>, <code>/orders/{orderId}</code>, а не <code>/getOrders</code> или <code>/createOrder</code>.
+            </li>
+            <li>
+                <format style="bold">Гнездите под-ресурсы</format>
+                , когда есть жёстная иерархия: <code>/orders/{orderId}/items</code>.
+            </li>
+            <li>
+                <format style="bold">Версионирование</format>
+                : фиксируйте мажорную версию в пути (<code>/v1/...</code>) или через заголовок версии — главное, чтобы
+                было стабильно и прозрачно.
+            </li>
+        </list>
+        <warning>
+            Нельзя кодировать действие в пути вида <code>/users/create</code> или <code>/users/delete</code>. Действие
+            задаёт метод. Исключение — доменные команды, которые не укладываются в CRUD (например, <code>POST
+            /invoices/{id}:send</code>), но и их оформляйте как действие над ресурсом через <code>POST</code>.
+        </warning>
+
+        <tip>Старайтесь, чтобы одно и то же действие всегда соответствовало одному и тому же методу. Это снижает
+            когнитивную нагрузку для клиентов.
+        </tip>
+
+    </chapter>
+    <chapter title="Path vs Query vs Headers: что куда?">
+        <list>
+            <li>
+                <format style="bold">Path-параметры</format>
+                — часть <code>URI</code>, однозначно идентифицируют ресурс: <code>/users/{id}</code>, <code>/orders/{orderId}/items/{itemId}</code>.
+            </li>
+            <li>
+                <format style="bold">Query-параметры</format>
+                — фильтрация, поиск, сортировка, пагинация, не меняют идентичность ресурса: <code>/users?role=admin&amp;sort=createdAt&amp;order=desc</code>.
+            </li>
+            <li>
+                <format style="bold">Заголовки</format>
+                — сквозные технические аспекты: авторизация (<code>Authorization</code>), <code>Idempotency-Key</code>,
+                <code>Accept</code>/<code>Content-Type</code>, ключи трассировки, локаль (<code>Accept-Language</code>).
+            </li>
+        </list>
+        <note>Если параметр меняет адрес конкретного ресурса — это
+            <format style="bold">path</format>
+            . Если параметр задаёт представление коллекции (фильтры, сортировку, страницы) — это
+            <format style="bold">query</format>
+            . Технические метаданные — в
+            <format style="bold">headers</format>
+            .
+        </note>
+
+    </chapter>
+    <chapter title="Получение по ID"><p> Классический шаблон: <code>GET /{collection}/{id}</code>. Если ресурс не найден
+        — возвращайте <code>404</code>. Для выборки нескольких конкретных ID используйте батч (см. ниже) или <code>GET
+            /users?ids=1,2,3</code> с ограничениями на длину <code>URL</code>. </p>
+        <code-block lang="http">
+GET /users/2f7d89a1-9b3c-4f1f-86f1-6fb8d3f2c012 HTTP/1.1
+Accept: application/json
+        </code-block>
+        <code-block lang="json">
+            {
+                "id": "2f7d89a1-9b3c-4f1f-86f1-6fb8d3f2c012",
+                "email": "alice@example.com",
+                "role": "admin",
+                "createdAt": "2025-09-20T12:34:56Z"
+            }
+        </code-block>
+    </chapter>
+    <chapter title="Пагинация: варианты и контракт">
+        <p>Есть три распространённых подхода:
+            <tooltip term="Пагинация">page/size</tooltip>
+            ,
+            <tooltip term="Пагинация">limit/offset</tooltip>
+            ,
+            <tooltip term="Курсор">cursor</tooltip>
+            . Выбирайте осознанно.
+        </p>
+        <list>
+            <li>
+                <format style="bold">page/size</format>
+                — удобно для UI, но плохо при вставках/удалениях: элементы могут «прыгать» между страницами.
+            </li>
+            <li>
+                <format style="bold">limit/offset</format>
+                — просто реализовать, но на больших оффсетах неэффективно в БД и подвержено сдвигу данных.
+            </li>
+            <li>
+                <format style="bold">cursor</format>
+                — надёжно и эффективно для бесконечных списков: сервер возвращает <code>nextCursor</code> и/или <code>prevCursor</code>.
+            </li>
+        </list>
+        <tip>Для больших коллекций и лент используйте
+            <format style="bold">cursor-pagination</format>
+            . Для простых экранов администратора может хватить <code>limit/offset</code>.
+        </tip>
+
+        <code-block lang="http">
+            GET /orders?limit=20&cursor=eyJpZCI6IjEyMyIsImNyZWF0ZWRBdCI6IjIwMjUtMDktMjRUMTI6MDA6MDBaIn0%3D
+            Accept: application/json
+        </code-block>
+        <code-block lang="json">
+            {
+                "data": [
+                    {
+                        "id": "124",
+                        "total": 1200,
+                        "createdAt": "2025-09-24T12:10:00Z"
+                    }
+                ],
+                "meta": {
+                    "limit": 20,
+                    "nextCursor": "eyJpZCI6IjEyNCIsImNyZWF0ZWRBdCI6IjIwMjUtMDktMjRUMTI6MTA6MDBaIn0=",
+                    "hasMore": true
+                }
+            }
+        </code-block>
+
+        <warning>
+            Не смешивайте одновременно <code>page/size</code> и <code>cursor</code> на одном и том же endpoint — это
+            усложняет контракт и клиентов. Выберите один способ.
+        </warning>
+
+    </chapter>
+    <chapter title="Батч-запросы (batch)"><p> Батч уменьшает сетевые издержки и лимиты RPS, позволяя за один
+        <code>HTTP</code>-запрос обработать множество однородных операций. Два подхода: </p>
+        <list>
+            <li>
+                <format style="bold">Однотипный батч</format>
+                : <code>POST /users:batchGet</code>, <code>POST /users:batchUpdate</code>.
+            </li>
+            <li>
+                <format style="bold">Смешанный батч</format>
+                : <code>POST /batch</code> с описанием разных операций (сложнее валидировать и трассировать).
+            </li>
+        </list>
+        <code-block lang="http">
+            POST /users:batchGet HTTP/1.1
+            Content-Type: application/json
+        </code-block>
+        <code-block lang="json">
+            {
+                "ids": [
+                    "a1",
+                    "a2",
+                    "a3"
+                ]
+            }
+        </code-block>
+        <code-block lang="json">
+        {
+            "data": [
+                {
+                    "id": "a1",
+                    "email": "a1@example.com"
+                },
+                {
+                    "id": "a2",
+                    "email": "a2@example.com"
+                }
+            ],
+            "_error": [
+                {
+                    "id": "a3",
+                    "code": "NOT_FOUND",
+                    "message": "User not found"
+                }
+            ]
+        }
+        </code-block>
+
+        <note>В батче указывайте
+            <format style="bold">частичные ошибки</format>
+            на уровне элементов, чтобы не «ронять» весь запрос. Для итогового статуса подходит <code>207
+                Multi-Status</code> или <code>200 OK</code> с массивом ошибок в теле.
+        </note>
+
+    </chapter>
+    <chapter title="Когда использовать заголовки">
+        <list>
+            <li>
+                <format style="bold">Аутентификация/Авторизация</format>
+                : <code>Authorization: Bearer ...</code>.
+            </li>
+            <li>
+                <format style="bold">Идемпотентность</format>
+                : <code>Idempotency-Key</code> для безопасного повтора <code>POST</code>.
+            </li>
+            <li>
+                <format style="bold">Контент-негациация</format>
+                : <code>Accept</code>, <code>Content-Type</code>, <code>Accept-Encoding</code>.
+            </li>
+            <li>
+                <format style="bold">Трассировка</format>
+                : корреляционные ID (<code>X-Request-Id</code>).
+            </li>
+            <li>
+                <format style="bold">Локализация</format>
+                : <code>Accept-Language</code>.
+            </li>
+        </list>
+        <warning>Не прячьте бизнес-параметры (фильтры, поля домена) в заголовки: они должны быть в
+            <format style="bold">query</format>
+            или
+            <format style="bold">body</format>
+            . Заголовки — про транспорт и метаданные.
+        </warning>
+
+    </chapter>
+    <chapter title="Data-обёртка и метаданные ответа"><p> Единая структура ответа облегчает жизнь клиентам.
+        Распространённый шаблон: </p>
+        <code-block lang="json">
+            {
+                "data": {
+                    "id": "u1",
+                    "email": "alice@example.com"
+                },
+                "meta": {
+                    "requestId": "f0e1...",
+                    "traceId": "9ab2..."
+                }
+            }
+        </code-block>
+        <list>
+            <li>
+                <format style="bold">data</format>
+                — полезная нагрузка (объект или массив).
+            </li>
+            <li>
+                <format style="bold">meta</format>
+                — технические метаданные: пагинация, трассировка, статистика.
+            </li>
+        </list>
+        <tip>Для списков используйте <code>{ "data": [ ... ], "meta": { "total": ..., "limit": ..., "cursor": ... }
+            }</code>. Единообразие ускоряет интеграцию и тестирование.
+        </tip>
+
+    </chapter>
+    <chapter title="Структура ошибок и поле _error"><p> Ошибки должны быть машинно-парсабельными и человекочитаемыми.
+        Если вы приняли формат с полем <code>_error</code>, делайте его единообразным: </p>
+        <code-block lang="json">
+            {
+                "_error": {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Field \"email\" is invalid",
+                    "details": [
+                        {
+                            "field": "email",
+                            "rule": "email"
+                        }
+                    ],
+                    "requestId": "f0e1..."
+                }
+            }
+        </code-block>
+        <list>
+            <li>
+                <format style="bold">code</format>
+                — короткий машинный идентификатор.
+            </li>
+            <li>
+                <format style="bold">message</format>
+                — безопасное описание для пользователя/разработчика.
+            </li>
+            <li>
+                <format style="bold">details</format>
+                — массив конкретных нарушений.
+            </li>
+            <li>
+                <format style="bold">requestId</format>
+                — для поддержки и трассировки.
+            </li>
+        </list>
+        <note>Альтернатива — формат <code>application/problem+json</code> (RFC 7807). Внутренние стек-трейсы и
+            SQL-сообщения никогда не отдавайте клиенту.
+        </note>
+
+    </chapter>
+    <chapter title="Какие статус-коды когда использовать">
+        <list>
+            <li><code>200 OK</code> — успешное чтение/операция с телом ответа.</li>
+            <li><code>201 Created</code> — создан ресурс; добавьте <code>Location</code> на новый ресурс.</li>
+            <li><code>202 Accepted</code> — операция принята асинхронно (проверьте <code>status</code> по отдельному
+                ресурсу).
+            </li>
+            <li><code>204 No Content</code> — успех без тела (например, <code>DELETE</code>).</li>
+            <li><code>206 Partial Content</code> / <code>207 Multi-Status</code> — частичный результат (стриминг/батч).
+            </li>
+            <li><code>304 Not Modified</code> — при условных запросах (<code>If-None-Match</code>, <code>If-Modified-Since</code>).
+            </li>
+            <li><code>400 Bad Request</code> — ошибка запроса (валидация, синтаксис).</li>
+            <li><code>401 Unauthorized</code> — нет/невалидная авторизация.</li>
+            <li><code>403 Forbidden</code> — прав не хватает.</li>
+            <li><code>404 Not Found</code> — ресурс не найден.</li>
+            <li><code>405 Method Not Allowed</code> — метод не поддержан для ресурса.</li>
+            <li><code>409 Conflict</code> — конфликт версий, уникальности, состояния.</li>
+            <li><code>410 Gone</code> — ресурс удалён и не вернётся.</li>
+            <li><code>412 Precondition Failed</code> — нарушены условия (<code>If-Match</code> и т.п.).</li>
+            <li><code>415 Unsupported Media Type</code> — неверный <code>Content-Type</code>.</li>
+            <li><code>422 Unprocessable Entity</code> — корректный JSON, но семантическая ошибка домена.</li>
+            <li><code>429 Too Many Requests</code> — превышен лимит; добавьте <code>Retry-After</code>.</li>
+            <li><code>500 Internal Server Error</code> — внутренняя ошибка сервера.</li>
+            <li><code>503 Service Unavailable</code> — перегрузка/техработы; добавьте <code>Retry-After</code>.</li>
+        </list>
+        <tip>Возвращайте максимально специфичный 4xx/5xx статус. Это ускоряет обработку ошибок на клиенте и улучшает
+            наблюдаемость.
+        </tip>
+
+    </chapter>
+    <chapter title="Фильтрация, сортировка, поля ответа (query-параметры)"><p>Частые параметры:</p>
+        <list>
+            <li><code>filter[&lt;field&gt;]=...</code> — фильтры (можно несколько).</li>
+            <li><code>sort=createdAt</code> и <code>order=asc|desc</code> — сортировка.</li>
+            <li><code>fields=...</code> — проекция полей (экономит трафик).</li>
+            <li><code>include=...</code> — инклюды связанных представлений, если нужно.</li>
+        </list>
+        <code-block lang="http">
+GET /users?filter[role]=admin&amp;fields=id,email,createdAt&amp;sort=createdAt&amp;order=desc Accept: application/json
+        </code-block>
+        <warning>Не перегружайте один endpoint десятками нестыкующихся параметров. Когда семантика сильно отличается —
+            выделяйте отдельный путь.
+        </warning>
+
+    </chapter>
+    <chapter title="Идемпотентность и повтор запросов"><p> Для небезопасных операций <code>POST</code> поддерживайте
+        <code>Idempotency-Key</code> в заголовке: сервер обязан обеспечить, что повтор того же ключа не создаст
+        дубликат. </p>
+        <code-block lang="http">
+            POST /payments HTTP/1.1
+            Content-Type: application/json
+            Idempotency-Key: 5b2f1b1e-b7f3-4a0a-9a9f-0f0a3c9e11aa
+        </code-block>
+        <note>Храните результат первой обработки ключа минимум столько, сколько живёт повтор на стороне клиента (обычно
+            24 часа).
+        </note>
+
+    </chapter>
+    <chapter title="Примеры хороших и плохих путей">
+        <list>
+            <li>
+                <format style="bold">Хорошо</format>
+                : <code>/v1/users</code>, <code>/v1/users/{id}</code>, <code>/v1/users/{id}/roles</code>.
+            </li>
+            <li>
+                <format style="bold">Плохо</format>
+                : <code>/v1/getUsers</code>, <code>/v1/createUser</code>, <code>/v1/users/deleteById?id=...</code>.
+            </li>
+        </list>
+    </chapter>
+    <chapter title="OpenAPI и Swagger">
+        <p>
+            <tooltip term="OpenAPI">OpenAPI</tooltip>
+            — язык описания API (обычно YAML/JSON), позволяющий формализовать пути, параметры, схемы, ответы и ошибки.
+            <tooltip term="Swagger">Swagger UI</tooltip>
+            визуализирует и позволяет «пощёлкать» по спецификации, а <code>Swagger Codegen</code>/<code>OpenAPI
+            Generator</code> — генерировать клиенты/стабы.
+        </p>
+        <code-block lang="yaml">
+        openapi: 3.0.3
+        info:
+            title: Users API
+            version: 1.0.0
+        servers:
+            - url: https://api.example.com/v1
+        paths:
+            /users:
+                get:
+                    summary: List users
+                    parameters:
+                        - in: query
+                          name: limit
+                          schema: { type: integer, minimum: 1, maximum: 100 }
+                        - in: query
+                          name: cursor
+                          schema: { type: string }
+                    responses:
+                        "200":
+                            description: OK
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: "#/components/schemas/UserListResponse"
+                post:
+                    summary: Create user
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema: { $ref: "#/components/schemas/UserCreateRequest" }
+                    responses:
+                        "201":
+                            description: Created
+                            headers:
+                                Location:
+                                    schema: { type: string }
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: "#/components/schemas/UserResponse"
+            /users/{id}:
+                get:
+                    summary: Get user by ID
+                    parameters:
+                        - in: path
+                          name: id
+                          required: true
+                          schema: { type: string, format: uuid }
+                    responses:
+                        "200":
+                            description: OK
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: "#/components/schemas/UserResponse"
+                        "404":
+                            description: Not found
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: "#/components/schemas/ErrorResponse"
+        components:
+            schemas:
+                User:
+                    type: object
+                    required: [ id, email, createdAt ]
+                    properties:
+                        id: { type: string, format: uuid }
+                        email: { type: string, format: email }
+                        role: { type: string, enum: [ user, admin ] }
+                        createdAt: { type: string, format: date-time }
+                UserResponse:
+                    type: object
+                    properties:
+                        data:
+                            $ref: "#/components/schemas/User"
+                        meta:
+                            type: object
+                            additionalProperties: true
+                UserListResponse:
+                    type: object
+                    properties:
+                        data:
+                            type: array
+                            items: { $ref: "#/components/schemas/User" }
+                        meta:
+                            type: object
+                            properties:
+                                limit: { type: integer }
+                                nextCursor: { type: string, nullable: true }
+                                hasMore: { type: boolean }
+                UserCreateRequest:
+                    type: object
+                    required: [ email ]
+                    properties:
+                        email: { type: string, format: email }
+                        role: { type: string }
+                ErrorResponse:
+                    type: object
+                    properties:
+                        _error:
+                            type: object
+                            required: [ code, message ]
+                            properties:
+                                code: { type: string }
+                                message: { type: string }
+                                details:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            field: { type: string }
+                                            rule: { type: string }
+        </code-block>
+
+        <tip>Держите схемы (<code>components/schemas</code>) как единый источник правды: клиенты и серверы могут
+            автоматически валидировать вход/выход по этим описаниям.
+        </tip>
+
+    </chapter>
+    <chapter title="Практические рекомендации">
+        <list>
+            <li>Единый стиль путей и параметров по всему API — зафиксируйте в гайдлайне.</li>
+            <li>Всегда документируйте ответ с ошибкой. Клиенты должны знать структуру <code>_error</code> и набор <code>code</code>.
+            </li>
+            <li>Добавляйте примеры (<code>example</code>/<code>examples</code>) в OpenAPI — это ускорит интеграцию
+                студентов и новичков.
+            </li>
+            <li>Покрывайте контракты контрактными тестами (consumer-driven, например, Pact).</li>
+            <li>Фиксируйте ограничения: максимальные <code>limit</code>, поддерживаемые поля фильтров, сортировки,
+                размеры батча.
+            </li>
+        </list>
+        <warning>Неразрешимые «скрытые» ломающие изменения (переименование полей, изменение типов) без версии — главный
+            источник поломок у клиентов. Всегда выпускайте такие изменения в новой мажорной версии.
+        </warning>
+
+    </chapter>
+</topic>

@@ -1,0 +1,207 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:34.9229454"><title>Импорт, экспорт. Пакеты | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"vf25fc_2","level":0,"title":"Зачем нужны import/export и npm","anchor":"#vf25fc_2"},{"id":"vf25fc_3","level":0,"title":"Базовая настройка ESM/TS","anchor":"#vf25fc_3"},{"id":"vf25fc_4","level":0,"title":"Экспорт и импорт в TypeScript (ESM)","anchor":"#vf25fc_4"},{"id":"vf25fc_5","level":0,"title":"CommonJS кратко (для легаси)","anchor":"#vf25fc_5"},{"id":"vf25fc_6","level":0,"title":"Работа с пакетами (npm)","anchor":"#vf25fc_6"},{"id":"vf25fc_7","level":0,"title":"Импорт модулей: относительные пути, алиасы, типы","anchor":"#vf25fc_7"},{"id":"vf25fc_8","level":0,"title":"Реализация собственного модуля (пакета)","anchor":"#vf25fc_8"},{"id":"vf25fc_9","level":0,"title":"Лучшие практики и подводные камни","anchor":"#vf25fc_9"},{"id":"vf25fc_10","level":0,"title":"Короткие рецепты","anchor":"#vf25fc_10"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Импорт, экспорт. Пакеты | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/npm.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Импорт, экспорт. Пакеты | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/npm.html#webpage",
+    "url": "writerside-documentation//1.0.0/npm.html",
+    "name": "Импорт, экспорт. Пакеты | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="npm" data-main-title="Импорт, экспорт. Пакеты" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs="_JavaScript.topic|JavaScript///NodeJS.topic|NodeJS"><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="npm" id="npm.topic">Импорт, экспорт. Пакеты</h1><section class="chapter"><h2 id="vf25fc_2" data-toc="vf25fc_2">Зачем нужны import/export и npm</h2><p id="vf25fc_11">В экосистеме <span class="tooltip" id="vf25fc_14" title="Среда выполнения JavaScript вне браузера">Node.js</span> и <span class="tooltip" id="vf25fc_15" title="Надстройка над JavaScript с системой типов, компилируемая в JS">TypeScript</span> <span id="vf25fc_16"><b>модули</b></span> позволяют разбивать код на изолированные части и переиспользовать их. <span id="vf25fc_17"><b>npm</b></span> &mdash; стандартный менеджер пакетов, который устанавливает внешние библиотеки, управляет зависимостями и публикует ваши собственные пакеты.</p><ul class="list _bullet" id="vf25fc_12"><li class="list__item" id="vf25fc_18"><p><span id="vf25fc_22"><b>import/export</b></span> &mdash; интерфейс модульности в ES-модулях (ESM).</p></li><li class="list__item" id="vf25fc_19"><p><span id="vf25fc_23"><b>require/module.exports</b></span> &mdash; интерфейс модульности в CommonJS (CJS).</p></li><li class="list__item" id="vf25fc_20"><p><span id="vf25fc_24"><b>index.ts</b></span> &mdash; &laquo;баррель&raquo; (barrel), агрегирующий экспорт из нескольких файлов.</p></li><li class="list__item" id="vf25fc_21"><p><span id="vf25fc_25"><b>npm</b></span> &mdash; установка, обновление, публикация пакетов и управление версиями.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="vf25fc_13"><p>В новых проектах выбирайте ESM (import/export). CJS оставляйте для легаси.</p></aside></section><section class="chapter"><h2 id="vf25fc_3" data-toc="vf25fc_3">Базовая настройка ESM/TS</h2><p id="vf25fc_26">Чтобы <code class="code" id="vf25fc_31">import/export</code> работали предсказуемо, согласуйте настройки <code class="code" id="vf25fc_32">package.json</code> и <code class="code" id="vf25fc_33">tsconfig.json</code>.</p><div class="code-block" data-lang="json">
+{
+    &quot;name&quot;: &quot;my-app&quot;,
+    &quot;type&quot;: &quot;module&quot;,
+    &quot;scripts&quot;: {
+        &quot;build&quot;: &quot;tsc -p tsconfig.json&quot;,
+        &quot;start&quot;: &quot;node dist/main.js&quot;
+    },
+    &quot;devDependencies&quot;: {
+        &quot;typescript&quot;: &quot;^5.6.0&quot;
+    }
+}
+    </div><div class="code-block" data-lang="json">
+{
+    &quot;compilerOptions&quot;: {
+        &quot;target&quot;: &quot;ES2022&quot;,
+        &quot;module&quot;: &quot;ES2022&quot;,
+        &quot;moduleResolution&quot;: &quot;bundler&quot;,
+        &quot;outDir&quot;: &quot;dist&quot;,
+        &quot;rootDir&quot;: &quot;src&quot;,
+        &quot;strict&quot;: true,
+        &quot;esModuleInterop&quot;: true,
+        &quot;skipLibCheck&quot;: true
+    },
+    &quot;include&quot;: [
+        &quot;src&quot;
+    ]
+}
+    </div><aside class="prompt" data-type="tip" data-title="" id="vf25fc_29"><p>Если вы используете CJS, уберите поле <code class="code" id="vf25fc_34">&quot;type&quot;: &quot;module&quot;</code> и установите <code class="code" id="vf25fc_35">&quot;module&quot;: &quot;CommonJS&quot;</code> в <code class="code" id="vf25fc_36">tsconfig.json</code>.</p></aside><aside class="prompt" data-type="warning" data-title="" id="vf25fc_30"><p>Смешивание ESM и CJS без понимания экспорта/импорта приводит к ошибкам вида &quot;ERR_REQUIRE_ESM&quot; или &quot;Cannot use import statement outside a module&quot;.</p></aside></section><section class="chapter"><h2 id="vf25fc_4" data-toc="vf25fc_4">Экспорт и импорт в TypeScript (ESM)</h2><section class="chapter"><h3 id="vf25fc_37" data-toc="vf25fc_37">Именованный экспорт и импорт</h3><div class="code-block" data-lang="ts">
+                // src/math/add.ts
+                export function add(a: number, b: number): number {
+                    return a + b;
+                }
+
+                // src/main.ts
+                // в ESM относительные пути должны включать расширение .js после компиляции
+                console.log(add(2, 3)); // 5
+            </div><aside class="prompt" data-type="note" data-title="" id="vf25fc_41"><p>При сборке TS в ESM указывайте в импортах суффикс .js для локальных путей, даже если исходник .ts. Это соответствует выходному коду.</p></aside></section><section class="chapter"><h3 id="vf25fc_38" data-toc="vf25fc_38">Экспорт по умолчанию (default)</h3><div class="code-block" data-lang="ts">
+                // src/utils/logger.ts
+                export default function log(message: string): void {
+                    console.log(message); // демонстрация вывода
+                }
+
+                // src/main.ts
+                import log from &quot;./utils/logger.js&quot;;
+
+                log(&quot;Hello&quot;);
+                </div><aside class="prompt" data-type="warning" data-title="" id="vf25fc_43"><p>Не смешивайте в одном модуле много <span id="vf25fc_44"><b>default</b></span>-логики. Часто понятнее использовать именованные экспорты для явности.</p></aside></section><section class="chapter"><h3 id="vf25fc_39" data-toc="vf25fc_39">Переэкспорт (re-export) и index.ts (barrel)</h3><p id="vf25fc_45"><span id="vf25fc_49"><b>index.ts</b></span> собирает и переэкспортирует сущности из подпакетов, упрощая импорт в потребителях.</p><div class="code-block" data-lang="ts">
+            // src/math/index.ts
+            export * from &quot;./add.js&quot;;
+            export * from &quot;./mul.js&quot;;
+
+            // src/main.ts
+            import {add, mul} from &quot;./math&quot;;
+            // или короче:
+            import {add, mul} from &quot;./math&quot;;
+            </div><aside class="prompt" data-type="warning" data-title="" id="vf25fc_47"><p>&laquo;Баррели&raquo; могут скрыть циклические зависимости. Если при сборке/рантайме вы видите <code class="code" id="vf25fc_50">undefined</code> вместо функций &mdash; проверьте циклы импорта.</p></aside><aside class="prompt" data-type="tip" data-title="" id="vf25fc_48"><p>Ограничивайте &laquo;barrel&raquo; только публичными API. Внутренние утилиты не реэкспортируйте.</p></aside></section></section><section class="chapter"><h2 id="vf25fc_5" data-toc="vf25fc_5">CommonJS кратко (для легаси)</h2><div class="code-block" data-lang="ts">
+        // add.cjs
+        function add(a, b) {
+            return a + b;
+        }
+
+        module.exports = {add};
+
+        // main.cjs
+        const {add} = require(&quot;./add.cjs&quot;);
+        console.log(add(2, 3)); // 5
+
+    </div><aside class="prompt" data-type="note" data-title="" id="vf25fc_52"><p>В TypeScript под CJS используйте <code class="code" id="vf25fc_53">&quot;module&quot;: &quot;CommonJS&quot;</code> и не задавайте <code class="code" id="vf25fc_54">&quot;type&quot;: &quot;module&quot;</code> в package.json.</p></aside></section><section class="chapter"><h2 id="vf25fc_6" data-toc="vf25fc_6">Работа с пакетами (npm)</h2><section class="chapter"><h3 id="vf25fc_55" data-toc="vf25fc_55">Инициализация проекта и базовые команды</h3><div class="code-block" data-lang="bash">
+            npm init -y
+            npm install lodash         # зависимость для runtime
+            npm install -D typescript  # dev-зависимость
+            npx tsc --init             # создать tsconfig.json
+      </div><ul class="list _bullet" id="vf25fc_61"><li class="list__item" id="vf25fc_63"><p><span class="tooltip" id="vf25fc_66" title="Библиотека, требуемая в рантайме">dependencies</span> &mdash; то, что нужно в рантайме.</p></li><li class="list__item" id="vf25fc_64"><p><span class="tooltip" id="vf25fc_67" title="Зависимость, используемая только при разработке">devDependencies</span> &mdash; инструменты разработки.</p></li><li class="list__item" id="vf25fc_65"><p><span class="tooltip" id="vf25fc_68" title="Ожидаемая у потребителя совместимая зависимость">peerDependencies</span> &mdash; ожидаемые версии пакетов у потребителя.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="vf25fc_62"><p>Скрипты в <code class="code" id="vf25fc_69">package.json</code> стандартизируют команды: <code class="code" id="vf25fc_70">build</code>, <code class="code" id="vf25fc_71">lint</code>, <code class="code" id="vf25fc_72">test</code>, <code class="code" id="vf25fc_73">start</code>.</p></aside></section><section class="chapter"><h3 id="vf25fc_56" data-toc="vf25fc_56">Семантическое версионирование и диапазоны</h3><p id="vf25fc_74"><span id="vf25fc_78"><b>SemVer</b></span>: MAJOR.MINOR.PATCH.</p><ul class="list _bullet" id="vf25fc_75"><li class="list__item" id="vf25fc_79"><p><code class="code" id="vf25fc_82">^1.2.3</code> &mdash; обновляет MINOR и PATCH (1.x.x).</p></li><li class="list__item" id="vf25fc_80"><p><code class="code" id="vf25fc_83">~1.2.3</code> &mdash; обновляет только PATCH (1.2.x).</p></li><li class="list__item" id="vf25fc_81"><p>Точный пин: <code class="code" id="vf25fc_84">1.2.3</code>.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="vf25fc_76"><p>Широкие диапазоны (<code class="code" id="vf25fc_85">^</code>) на критичных пакетах могут привезти непредсказуемые изменения. Для продакшена чаще фиксируйте версии и полагайтесь на <code class="code" id="vf25fc_86">package-lock.json</code>.</p></aside><aside class="prompt" data-type="note" data-title="" id="vf25fc_77"><p>Команда <code class="code" id="vf25fc_87">npm ci</code> устанавливает зависимости строго по <code class="code" id="vf25fc_88">package-lock.json</code>, это идеальный режим для CI/CD.</p></aside></section><section class="chapter"><h3 id="vf25fc_57" data-toc="vf25fc_57">Установка внешних модулей и импорт</h3><p id="vf25fc_89">После установки вы импортируете пакет по имени:</p><div class="code-block" data-lang="ts">
+                import _ from &quot;lodash&quot;;
+
+                console.log(_.capitalize(&quot;hello&quot;)); // Hello
+            </div><aside class="prompt" data-type="tip" data-title="" id="vf25fc_91"><p>Для TS проверьте наличие тайпингов: либо пакет включает их, либо установите <code class="code" id="vf25fc_92">@types/&lt;имя&gt;</code>.</p></aside></section><section class="chapter"><h3 id="vf25fc_58" data-toc="vf25fc_58">Структура node_modules и lock-файлы</h3><p id="vf25fc_93"><code class="code" id="vf25fc_95">node_modules</code> хранит дерево зависимостей. <code class="code" id="vf25fc_96">package-lock.json</code> фиксирует точные версии.</p><aside class="prompt" data-type="warning" data-title="" id="vf25fc_94"><p>Не коммитьте <code class="code" id="vf25fc_97">node_modules</code>. Добавьте в <code class="code" id="vf25fc_98">.gitignore</code>. Никогда не редактируйте файлы прямо в <code class="code" id="vf25fc_99">node_modules</code>.</p></aside></section><section class="chapter"><h3 id="vf25fc_59" data-toc="vf25fc_59">Рабочие области (workspaces) кратко</h3><p id="vf25fc_100">Монорепозитории с несколькими пакетами:</p><div class="code-block" data-lang="json">
+                {
+                    &quot;name&quot;: &quot;my-monorepo&quot;,
+                    &quot;private&quot;: true,
+                    &quot;workspaces&quot;: [
+                        &quot;packages\*&quot;
+                    ]
+                }
+            </div><aside class="prompt" data-type="note" data-title="" id="vf25fc_102"><p>Workspaces упрощают локальную разработку и сквозные изменения без публикации.</p></aside></section></section><section class="chapter"><h2 id="vf25fc_7" data-toc="vf25fc_7">Импорт модулей: относительные пути, алиасы, типы</h2><section class="chapter"><h3 id="vf25fc_103" data-toc="vf25fc_103">Относительные и абсолютные пути</h3><div class="code-block" data-lang="ts">
+            import {add} from &quot;../math/add.js&quot;;         // относительный импорт
+            import {parse} from &quot;node:path&quot;;              // встроенный модуль Node.js
+            import express from &quot;express&quot;;                  // внешний пакет
+      </div></section><section class="chapter"><h3 id="vf25fc_104" data-toc="vf25fc_104">Пути-алиасы в TypeScript</h3><p id="vf25fc_107">Алиасы уменьшают &quot;../../../&quot; и делают импорты стабильнее.</p><div class="code-block" data-lang="json">
+                {
+                    &quot;compilerOptions&quot;: {
+                        &quot;baseUrl&quot;: &quot;./src&quot;,
+                        &quot;paths&quot;: {
+                            &quot;@core/*&quot;: [
+                                &quot;core/*&quot;
+                            ],
+                            &quot;@features/*&quot;: [
+                                &quot;features/*&quot;
+                            ]
+                        }
+                    }
+                }
+              </div><aside class="prompt" data-type="warning" data-title="" id="vf25fc_109"><p>Node не понимает TS-алиасы без резолвера. Используйте бандлер (Vite/Webpack/TS-Path-Register) или пост-обработку путей при сборке.</p></aside></section><section class="chapter"><h3 id="vf25fc_105" data-toc="vf25fc_105">Типы при импорте (type-only imports)</h3><div class="code-block" data-lang="ts">
+                import type {Request, Response} from &quot;express&quot;;
+
+                export function handler(req: Request, res: Response) {
+                    res.send(&quot;ok&quot;);
+                }
+            </div><aside class="prompt" data-type="note" data-title="" id="vf25fc_111"><p><code class="code" id="vf25fc_112">import type</code> удаляется при компиляции и не тянет runtime-зависимости.</p></aside></section></section><section class="chapter"><h2 id="vf25fc_8" data-toc="vf25fc_8">Реализация собственного модуля (пакета)</h2><section class="chapter"><h3 id="vf25fc_113" data-toc="vf25fc_113">Структура и экспорты</h3><p id="vf25fc_116">Минимальный пакет на TS с ESM и типами:</p><div class="code-block" data-lang="none">
+                my-lib/
+                  src/
+                    index.ts
+                    sum.ts
+                  package.json
+                  tsconfig.json
+                  README.md
+                  LICENSE
+                  .npmignore
+                </div><div class="code-block" data-lang="ts">
+                // src/sum.ts
+                export function sum(a: number, b: number): number {
+                    return a + b;
+                }
+
+                // src/index.ts (barrel)
+                export * from &quot;./sum.js&quot;;
+                </div><div class="code-block" data-lang="json">
+{
+    &quot;name&quot;: &quot;@scope/my-lib&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;type&quot;: &quot;module&quot;,
+    &quot;main&quot;: &quot;./dist/index.cjs&quot;,
+    // для CJS-потребителей (опционально)
+    &quot;module&quot;: &quot;./dist/index.js&quot;,
+    // для ESM-бандлеров (исторически)
+    &quot;exports&quot;: {
+        &quot;.&quot;: {
+            &quot;types&quot;: &quot;./dist/index.d.ts&quot;,
+            &quot;import&quot;: &quot;./dist/index.js&quot;,
+            &quot;require&quot;: &quot;./dist/index.cjs&quot;
+        }
+    },
+    &quot;types&quot;: &quot;./dist/index.d.ts&quot;,
+    &quot;sideEffects&quot;: false,
+    &quot;files&quot;: [
+        &quot;dist&quot;
+    ],
+    &quot;scripts&quot;: {
+        &quot;build&quot;: &quot;tsc -p tsconfig.json &amp;&amp; tsup src/index.ts --format cjs,esm --dts&quot;,
+        &quot;prepublishOnly&quot;: &quot;npm run build&quot;
+    },
+    &quot;devDependencies&quot;: {
+        &quot;typescript&quot;: &quot;^5.6.0&quot;,
+        &quot;tsup&quot;: &quot;^8.0.0&quot;
+    }
+}
+            </div><aside class="prompt" data-type="tip" data-title="" id="vf25fc_120"><p><code class="code" id="vf25fc_121">exports</code>-map делает ваш пакет &quot;правильно&quot; импортируемым в ESM и CJS. Поле <code class="code" id="vf25fc_122">sideEffects=false</code> включает tree-shaking.</p></aside></section><section class="chapter"><h3 id="vf25fc_114" data-toc="vf25fc_114">Локальная проверка пакета</h3><div class="code-block" data-lang="bash">
+
+
+                # сборка
+
+                npm run build
+
+                # локальная ссылка
+
+                npm link
+
+                # в другом проекте:
+
+                npm link @scope/my-lib
+
+                # альтернатива без link:
+
+                npm pack               # создаст архив .tgz
+                npm install ./@scope-my-lib-1.0.0.tgz
+            </div><aside class="prompt" data-type="warning" data-title="" id="vf25fc_124"><p><code class="code" id="vf25fc_125">npm link</code> может вести себя по-разному в CI и у разных ОС. Для репродьюсабельности тестируйте через <code class="code" id="vf25fc_126">npm pack</code>.</p></aside></section><section class="chapter"><h3 id="vf25fc_115" data-toc="vf25fc_115">Публикация пакета в npm</h3><ul class="list _bullet" id="vf25fc_127"><li class="list__item" id="vf25fc_130"><p>Добавьте README, LICENSE, корректные поля <code class="code" id="vf25fc_134">name</code>, <code class="code" id="vf25fc_135">version</code>, <code class="code" id="vf25fc_136">exports</code>, <code class="code" id="vf25fc_137">types</code>, <code class="code" id="vf25fc_138">files</code>.</p></li><li class="list__item" id="vf25fc_131"><p>Проверьте, что приватные файлы не попадут в публикацию: настройте <code class="code" id="vf25fc_139">.npmignore</code> или поле <code class="code" id="vf25fc_140">files</code>.</p></li><li class="list__item" id="vf25fc_132"><p><code class="code" id="vf25fc_141">npm login</code>, затем <code class="code" id="vf25fc_142">npm publish</code> (для scoped пакетов по умолчанию &mdash; как приватные; для публичной публикации используйте <code class="code" id="vf25fc_143">npm publish --access public</code>).</p></li><li class="list__item" id="vf25fc_133"><p>Поддерживайте SemVer и ченджлог.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="vf25fc_128"><p>Не публикуйте секреты (ключи, .env). Проверьте архив из <code class="code" id="vf25fc_144">npm pack</code> перед публикацией.</p></aside><aside class="prompt" data-type="note" data-title="" id="vf25fc_129"><p>Для организаций используйте <span id="vf25fc_145"><b>@scope</b></span> имена: <code class="code" id="vf25fc_146">@company/pkg</code>. Так проще управлять правами и неймспейсом.</p></aside></section></section><section class="chapter"><h2 id="vf25fc_9" data-toc="vf25fc_9">Лучшие практики и подводные камни</h2><ul class="list _bullet" id="vf25fc_147"><li class="list__item" id="vf25fc_151"><p><span id="vf25fc_157"><b>Единый стиль модулей:</b></span> выбирайте ESM или CJS в проекте. Смешение &mdash; источник ошибок.</p></li><li class="list__item" id="vf25fc_152"><p><span id="vf25fc_158"><b>Явные публичные API:</b></span> в <code class="code" id="vf25fc_159">index.ts</code> экспортируйте только то, что обещаете пользователю.</p></li><li class="list__item" id="vf25fc_153"><p><span id="vf25fc_160"><b>Минимум побочных эффектов:</b></span> не выполняйте код на верхнем уровне модуля, который что-то мутирует при импорте.</p></li><li class="list__item" id="vf25fc_154"><p><span id="vf25fc_161"><b>Жёсткие версии в проде:</b></span> фиксируйте версии ключевых зависимостей и используйте <code class="code" id="vf25fc_162">npm ci</code>.</p></li><li class="list__item" id="vf25fc_155"><p><span id="vf25fc_163"><b>Типы &mdash; часть контракта:</b></span> актуальные <code class="code" id="vf25fc_164">.d.ts</code> повышают DX и уменьшают баги у потребителей.</p></li><li class="list__item" id="vf25fc_156"><p><span id="vf25fc_165"><b>Проверка на циклы:</b></span> используйте анализаторы (madge и др.) для выявления циклических импортов.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="vf25fc_148"><p>Циклические импорты в ESM инициализируют частично загруженные модули: вы можете получить <code class="code" id="vf25fc_166">undefined</code> вместо функции при первом обращении.</p></aside><aside class="prompt" data-type="warning" data-title="" id="vf25fc_149"><p>Неправильные диапазоны версий (например, <code class="code" id="vf25fc_167">^</code> на критичных пакетах) могут ломать сборку после невинного <code class="code" id="vf25fc_168">npm install</code>.</p></aside><aside class="prompt" data-type="tip" data-title="" id="vf25fc_150"><p>Автоматизируйте релизы (Changesets/semantic-release), чтобы поддерживать SemVer и генерировать ченджлоги.</p></aside></section><section class="chapter"><h2 id="vf25fc_10" data-toc="vf25fc_10">Короткие рецепты</h2><section class="chapter"><h3 id="vf25fc_169" data-toc="vf25fc_169">Совместимость ESM &amp; CJS для потребителей</h3><div class="code-block" data-lang="ts">
+                // src/index.ts
+                export function hello(name: string) {
+                    return `Hello, ${name}!`;
+                }
+              </div><div class="code-block" data-lang="json">
+                    {
+                        &quot;exports&quot;: {
+                            &quot;.&quot;: {
+                                &quot;types&quot;: &quot;./dist/index.d.ts&quot;,
+                                &quot;import&quot;: &quot;./dist/index.js&quot;,
+                                &quot;require&quot;: &quot;./dist/index.cjs&quot;
+                            }
+                        }
+                    }
+              </div><p id="vf25fc_173">Теперь потребители могут делать и <code class="code" id="vf25fc_174">import { hello } from &quot;@scope/my-lib&quot;</code>, и <code class="code" id="vf25fc_175">const { hello } = require(&quot;@scope/my-lib&quot;)</code>.</p></section><section class="chapter"><h3 id="vf25fc_170" data-toc="vf25fc_170">Tree-shaking и sideEffects</h3><p id="vf25fc_176">Если модуль не имеет побочных эффектов при импорте, укажите <code class="code" id="vf25fc_178">&quot;sideEffects&quot;: false</code> в <code class="code" id="vf25fc_179">package.json</code>.</p><aside class="prompt" data-type="note" data-title="" id="vf25fc_177"><p>Это позволяет бандлерам выкидывать неиспользуемый код.</p></aside></section></section><div class="last-modified">25 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="nodejs.html" class="navigation-links__prev">NodeJS</a><a href="v8.html" class="navigation-links__next">Движок V8</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

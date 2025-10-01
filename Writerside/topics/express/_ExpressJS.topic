@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="ExpressJS" id="_ExpressJS" help-id="ExpressJS">
+    <chapter title="Что такое Express и зачем он нужен">
+        <p>
+            <tooltip term="Express">Express</tooltip>
+            — это минималистичный
+            <tooltip term="Фреймворк">фреймворк</tooltip>
+            для
+            <tooltip term="Node.js">Node.js</tooltip>
+            , который упрощает создание
+            <tooltip term="HTTP">HTTP</tooltip>
+            -серверов и веб-приложений. Он предоставляет удобные абстракции над низкоуровневым модулем <code>http</code>,
+            позволяя быстрее определять
+            <tooltip term="Маршрут">маршруты</tooltip>
+            , подключать
+            <tooltip term="Middleware">middleware</tooltip>
+            , обрабатывать файлы, параметры, заголовки и ошибки. На Express строят
+            <format style="bold">REST</format>
+            API, серверный рендеринг страниц и
+            <format style="bold">backend</format>
+            для SPA/мобильных приложений.
+        </p>
+        <list>
+            <li>Ускоряет разработку благодаря готовым примитивам: <code>app</code>, <code>Router</code>,
+                <code>req</code>/<code>res</code>, <code>next</code>.
+            </li>
+            <li>Гибко расширяется через экосистему пакетов: логирование,
+                <tooltip term="CORS">CORS</tooltip>
+                , куки, сессии, валидация, загрузка файлов.
+            </li>
+            <li>Не навязывает архитектуру — вы сами выбираете слои и структуру каталогов.</li>
+        </list>
+        <tip>Express отлично подходит как для учебных проектов, так и для продакшн-систем, если соблюдаются базовые
+            практики качества кода, безопасности и наблюдаемости.
+        </tip>
+    </chapter>
+
+    <chapter title="Как работают серверные приложения и основные концепции">
+        <p>Серверное приложение «слушает» порт и принимает входящие
+            <tooltip term="Запрос">запросы</tooltip>
+            . Каждый запрос проходит через цепочку
+            <tooltip term="Middleware">middleware</tooltip>
+            — маленьких функций, которые могут читать/изменять <code>req</code> (запрос), <code>res</code> (ответ), либо
+            завершать обработку, либо передавать управление дальше через <code>next()</code>. Когда найден подходящий
+            <tooltip term="Маршрут">маршрут</tooltip>
+            , вызывается его обработчик, формирующий ответ.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Приложение</format>
+                (<code>app</code>) — центральный объект, к которому «подвешивают» middleware и маршруты.
+            </li>
+            <li>
+                <format style="bold">Middleware</format>
+                — функции пред- и пост-обработки: парсинг тела, аутентификация, логирование, ограничения скорости.
+            </li>
+            <li>
+                <format style="bold">Маршрутизатор</format>
+                (<code>Router</code>) — модуль для группировки маршрутов по домену (например, <code>/users</code>).
+            </li>
+            <li>
+                <format style="bold">Обработчик ошибок</format>
+                — специальное middleware с сигнатурой <code>(err, req, res, next)</code>.
+            </li>
+        </list>
+        <note>Цепочка middleware позволяет добавлять функциональность небольшими независимыми блоками — это повышает
+            переиспользуемость и упрощает тестирование.
+        </note>
+    </chapter>
+
+    <chapter title="Правильная структура файлов">
+        <p>Express не навязывает структуру, но практично разделять слои и домены. Ниже — опорный шаблон для
+            <format style="bold">REST API</format>
+            со слоями
+            <tooltip term="Контроллер">контроллеров</tooltip>
+            ,
+            <tooltip term="Сервис">сервисов</tooltip>
+            ,
+            <tooltip term="Репозиторий">репозиториев</tooltip>
+            и утилит.
+        </p>
+        <code-block lang="text">
+            project/
+              src/
+                app.ts
+                server.ts
+                config/
+                  index.ts
+                modules/
+                  users/
+                    users.router.ts
+                    users.controller.ts
+                    users.service.ts
+                    users.repository.ts
+                    users.validators.ts
+                    users.types.ts
+                  auth/
+                    auth.router.ts
+                    auth.controller.ts
+                    auth.service.ts
+                middlewares/
+                  error.middleware.ts
+                  not-found.middleware.ts
+                  request-logger.middleware.ts
+                libs/
+                  db.ts
+                  http.ts
+                utils/
+                  env.ts
+                tests/
+                  users.e2e.test.ts
+              public/
+                index.html
+              .env
+              package.json
+              tsconfig.json
+    </code-block>
+        <list>
+            <li><code>app.ts</code> — сборка приложения: подключение middleware/маршрутов.</li>
+            <li><code>server.ts</code> — запуск HTTP-сервера, чтение порта из окружения.</li>
+            <li><code>modules/*</code> — доменная логика: роуты, контроллеры, сервисы, репозитории, валидация.</li>
+            <li><code>middlewares/*</code> — кросс-срезовые задачи: логирование, безопасность, обработка ошибок.</li>
+            <li><code>config/*</code> и <code>utils/*</code> — конфигурация и вспомогательные функции.</li>
+            <li><code>public/*</code> — статические файлы, если нужно раздавать их напрямую.</li>
+        </list>
+        <tip>Держите файлы короткими и целенаправленными: один файл — одна ответственность. Это облегчает обзор кода и
+            рефакторинг.
+        </tip>
+        <warning>Смешивание слоёв (SQL-запросы прямо в контроллерах, «толстые» маршруты) приводит к хрупкости и
+            дублированию логики. Разделяйте ответственность по слоям.
+        </warning>
+    </chapter>
+
+    <chapter title="Минимальное приложение: запуск и первый маршрут">
+        <code-block lang="bash">
+            npm init -y
+            npm i express
+            node src/server.js
+        </code-block>
+        <code-block lang="js">
+            /* src/server.js */
+            const express = require("express");
+
+            const app = express();
+            app.use(express.json());
+
+            app.get("/", (req, res) => {
+                res.status(200).send("Hello, Express!");
+            });
+
+            const PORT = process.env.PORT || 3000;
+            app.listen(PORT, () => {
+                console.log(`Server started on http://localhost:${PORT}`); // выведем адрес для проверки
+            });
+        </code-block>
+        <note>В продакшне предпочтительнее TypeScript и явные слои. Но даже базовый скелет уже демонстрирует концепции:
+            парсер тела, маршрут, статус-код и ответ.
+        </note>
+    </chapter>
+
+    <chapter title="Базовые сущности и инструменты Express">
+        <chapter title="Приложение и Router">
+            <p><code>app</code> — корневой объект. <code>Router()</code> позволяет группировать маршруты по доменам и
+                подключать локальные middleware.</p>
+            <code-block lang="ts">
+                // src/modules/users/users.router.ts
+                import { Router } from "express";
+                import * as controller from "./users.controller";
+
+                export const usersRouter = Router();
+
+                usersRouter.get("/", controller.list);
+                usersRouter.post("/", controller.create);
+                usersRouter.get("/:id", controller.getById);
+                usersRouter.patch("/:id", controller.update);
+                usersRouter.delete("/:id", controller.remove);
+            </code-block>
+            <code-block lang="ts">
+                // src/app.ts
+                import express from "express";
+                import { usersRouter } from "./modules/users/users.router";
+
+                export const app = express();
+
+                app.use(express.json());
+                app.use("/users", usersRouter);
+            </code-block>
+            <code-block lang="ts">
+                // src/server.ts
+                import { app } from "./app";
+
+                const PORT = Number(process.env.PORT) || 3000;
+                app.listen(PORT, () => {
+                    console.log(`Server on http://localhost:${PORT}`); // проверка, что сервер поднят
+                });
+            </code-block>
+            <tip>Маршрутизаторы помогают поддерживать порядок: каждый модуль инкапсулирует свои endpoint-ы, валидаторы и
+                обработку ошибок.
+            </tip>
+        </chapter>
+        <chapter title="Контроллеры, сервисы, репозитории">
+            <p>
+                <tooltip term="Контроллер">Контроллер</tooltip>
+                преобразует HTTP-запрос в вызовы доменной логики,
+                <tooltip term="Сервис">сервис</tooltip>
+                реализует бизнес-правила,
+                <tooltip term="Репозиторий">репозиторий</tooltip>
+                общается с БД/внешними системами.
+            </p>
+            <code-block lang="ts">
+                // src/modules/users/users.controller.ts
+                import { Request, Response, NextFunction } from "express";
+                import * as service from "./users.service";
+
+                export async function list(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const users = await service.list();
+                        res.status(200).json(users);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function create(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.create(req.body);
+                        res.status(201).json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function getById(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.getById(req.params.id);
+                        if (!user) return res.status(404).json({ error: "Not found" });
+                        res.json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function update(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.update(req.params.id, req.body);
+                        res.json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function remove(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        await service.remove(req.params.id);
+                        res.status(204).send();
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+            </code-block>
+            <code-block lang="ts">
+                // src/modules/users/users.service.ts
+                import * as repo from "./users.repository";
+                import {User} from "./users.types";
+
+                export async function list(): Promise&lt;User[]&gt; {
+                    return repo.findAll();
+                }
+
+                export async function create(data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    return repo.insert(data);
+                }
+
+                export async function getById(id: string): Promise&lt;User | undefined&gt; {
+                    return repo.findById(id);
+                }
+
+                export async function update(id: string, data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    return repo.update(id, data);
+                }
+
+                export async function remove(id: string): Promise&lt;void&gt; {
+                    return repo.remove(id);
+                }
+            </code-block>
+            <code-block lang="ts">
+                // src/modules/users/users.repository.ts
+                import {randomUUID} from "crypto";
+                import {User} from "./users.types";
+
+                const memory: User[] = [];
+
+                export async function findAll(): Promise&lt;User[]&gt; {
+                    return memory;
+                }
+
+                export async function insert(data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    const item: User = {id: randomUUID(), name: data.name ?? "", email: data.email ?? ""};
+                    memory.push(item);
+                    return item;
+                }
+
+                export async function findById(id: string): Promise&lt;User | undefined&gt; {
+                    return memory.find(u =&gt; u.id === id);
+                }
+
+                export async function update(id: string, data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    const idx = memory.findIndex(u =&gt; u.id === id);
+                    if (idx === -1) throw new Error("Not found");
+                    memory[idx] = {...memory[idx], ...data};
+                    return memory[idx];
+                }
+
+                export async function remove(id: string): Promise&lt;void&gt; {
+                    const idx = memory.findIndex(u =&gt; u.id === id);
+                    if (idx !== -1) memory.splice(idx, 1);
+                }
+            </code-block>
+            <note>Даже если сначала данные в памяти, сохраните слой репозитория — позже будет проще перейти на БД без
+                переписывания сервисов и контроллеров.
+            </note>
+        </chapter>
+
+        <chapter title="Middleware: общая пред-/пост-обработка">
+            <p>
+                <tooltip term="Middleware">Middleware</tooltip>
+                принимает <code>(req, res, next)</code>. Оно может завершить ответ или передать управление дальше
+                вызовом <code>next()</code>. Порядок подключения влияет на поведение.
+            </p>
+            <code-block lang="ts">
+                // src/middlewares/request-logger.middleware.ts
+                import { Request, Response, NextFunction } from "express";
+
+                export function requestLogger(req: Request, res: Response, next: NextFunction) {
+                    const started = Date.now();
+                    res.on("finish", () => {
+                        const ms = Date.now() - started;
+                        console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`); // лог запроса
+                    });
+                    next();
+                }
+            </code-block>
+            <code-block lang="ts">
+                // src/app.ts (фрагмент подключения логгера)
+                import { requestLogger } from "./middlewares/request-logger.middleware";
+                // ... после создания app
+                app.use(requestLogger);
+            </code-block>
+            <code-block lang="ts">
+                // src/middlewares/error.middleware.ts
+                import { Request, Response, NextFunction } from "express";
+
+                export function errorMiddleware(err: unknown, req: Request, res: Response, _next: NextFunction) {
+                    const status = 500;
+                    const message = err instanceof Error ? err.message : "Internal Server Error";
+                    res.status(status).json({ error: message });
+                }
+            </code-block>
+            <code-block lang="ts">
+                // src/app.ts (подключение обработчика ошибок в самом конце)
+                import { errorMiddleware } from "./middlewares/error.middleware";
+                // ... после всех маршрутов и middleware
+                app.use(errorMiddleware);
+            </code-block>
+            <tip>Проверяйте тип ошибки и не раскрывайте лишних деталей в продакшне. Трассировки сохраняйте в логи, а
+                пользователю отдавайте безопасное сообщение.
+            </tip>
+        </chapter>
+
+        <chapter title="Парсинг тела, статические файлы, CORS">
+            <p>Частые утилиты: <code>express.json()</code> для JSON-тел, <code>express.urlencoded()</code> для форм,
+                <code>express.static()</code> для статики, пакет <code>cors</code> для
+                <tooltip term="CORS">CORS</tooltip>
+                .
+            </p>
+            <code-block lang="ts">
+                // src/app.ts (фрагмент: парсинг, статика, CORS)
+                import cors from "cors";
+                import path from "path";
+                import express from "express";
+
+                app.use(cors());
+                app.use(express.json({ limit: "1mb" }));
+                app.use(express.urlencoded({ extended: true }));
+                app.use("/static", express.static(path.join(process.cwd(), "public")));
+            </code-block>
+            <warning>Не ставьте слишком большой <code>limit</code> на <code>json()</code> — это увеличит риск DoS и
+                потребление памяти. Раздачу статики ограничивайте только необходимыми директориями.
+            </warning>
+        </chapter>
+        <chapter title="Валидация входных данных">
+            <p>Проверяйте параметры, <code>req.body</code> и <code>req.query</code> до бизнес-логики. Можно использовать
+                <code>express-validator</code> или <code>zod</code>/<code>yup</code>.</p>
+            <code-block lang="ts">
+                // src/modules/users/users.validators.ts
+                import { body, param } from "express-validator";
+
+                export const createUserDto = [
+                    body("email").isEmail(),
+                    body("name").isString().isLength({ min: 2 })
+                ];
+
+                export const idParam = [ param("id").isUUID() ];
+            </code-block>
+            <code-block lang="ts">
+                // src/middlewares/validate.middleware.ts
+                import { validationResult } from "express-validator";
+                import { Request, Response, NextFunction } from "express";
+
+                export function validate(req: Request, res: Response, next: NextFunction) {
+                    const errors = validationResult(req);
+                    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+                    next();
+                }
+            </code-block>
+            <note>Валидация на границе контроллера защищает сервисный слой от «грязных» данных и упрощает отладку —
+                ошибки становятся предсказуемыми.
+            </note>
+        </chapter>
+
+        <chapter title="Асинхронные обработчики и ловля ошибок">
+            <p>Асинхронные контроллеры должны передавать ошибки в общий обработчик. Оберните их в небольшую утилиту.</p>
+            <code-block lang="ts">
+                import { Request, Response, NextFunction } from "express";
+
+                export const asyncHandler =
+                    (fn: (req: Request, res: Response, next: NextFunction) => unknown) =>
+                    (req: Request, res: Response, next: NextFunction) =>
+                        Promise.resolve(fn(req, res, next)).catch(next);
+            </code-block>
+            <code-block lang="ts">
+                // пример использования asyncHandler в роутере
+                import { Router } from "express";
+                import { asyncHandler } from "../../libs/http";
+
+                const router = Router();
+
+                router.get("/:id", asyncHandler(async (req, res) => {
+                    res.json({ id: req.params.id });
+                }));
+
+                export default router;
+            </code-block>
+            <tip>Единая обёртка избавляет от дублирования <code>try/catch</code> и гарантирует, что любая ошибка попадёт
+                в
+                <tooltip term="Обработчик ошибок">обработчик ошибок</tooltip>
+                .
+            </tip>
+        </chapter>
+
+        <chapter title="Конфигурация и переменные окружения">
+            <p>Чувствительные значения храните в окружении (<code>.env</code>) и валидируйте при старте.</p>
+            <code-block lang="ts">
+                // src/utils/env.ts
+                import * as dotenv from "dotenv";
+                dotenv.config();
+
+                export const env = {
+                    NODE_ENV: process.env.NODE_ENV || "development",
+                    PORT: Number(process.env.PORT || 3000)
+                };
+            </code-block>
+            <warning>Не коммитьте <code>.env</code> в репозиторий. В продакшне используйте секреты/хранилища параметров.
+            </warning>
+        </chapter>
+    </chapter>
+
+    <chapter title="Практические советы и подводные камни">
+        <list>
+            <li>Порядок
+                <tooltip term="Middleware-цепочка">middleware</tooltip>
+                важен: логирование и CORS — раньше маршрутизации; обработчик ошибок — в самом конце.
+            </li>
+            <li>Всегда возвращайте корректные
+                <tooltip term="HTTP статус-код">HTTP-статусы</tooltip>
+                и явные JSON-структуры ошибок.
+            </li>
+            <li>Ограничивайте размер тела запроса и время обработки, добавляйте таймауты и rate limiting.</li>
+            <li>Не смешивайте домены: держите отдельные <code>Router</code> для разных модулей.</li>
+            <li>Добавьте наблюдаемость: логирование запросов, корреляционные ID, метрики времени ответа.</li>
+        </list>
+        <warning>Игнорирование обработки ошибок и валидации ведёт к нестабильности и уязвимостям. Любая ошибка должна
+            проходить через централизованный обработчик.
+        </warning>
+        <tip>Начинайте с минимального, но «правильного» каркаса: слои, роутеры, middleware, обработчик ошибок, .env —
+            это окупится при росте проекта.
+        </tip>
+    </chapter>
+
+</topic>

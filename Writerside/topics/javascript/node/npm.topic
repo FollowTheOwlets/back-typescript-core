@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Импорт, экспорт. Пакеты" id="npm">
+
+    <chapter title="Зачем нужны import/export и npm">
+        <p>
+            В экосистеме
+            <tooltip term="Node.js">Node.js</tooltip>
+            и
+            <tooltip term="TypeScript">TypeScript</tooltip>
+            <format style="bold">модули</format>
+            позволяют разбивать код на изолированные части и переиспользовать их.
+            <format style="bold">npm</format>
+            — стандартный менеджер пакетов, который устанавливает внешние библиотеки, управляет зависимостями и
+            публикует ваши собственные пакеты.
+        </p>
+        <list>
+            <li>
+                <format style="bold">import/export</format>
+                — интерфейс модульности в ES-модулях (ESM).
+            </li>
+            <li>
+                <format style="bold">require/module.exports</format>
+                — интерфейс модульности в CommonJS (CJS).
+            </li>
+            <li>
+                <format style="bold">index.ts</format>
+                — «баррель» (barrel), агрегирующий экспорт из нескольких файлов.
+            </li>
+            <li>
+                <format style="bold">npm</format>
+                — установка, обновление, публикация пакетов и управление версиями.
+            </li>
+        </list>
+        <note>В новых проектах выбирайте ESM (import/export). CJS оставляйте для легаси.</note>
+    </chapter>
+
+    <chapter title="Базовая настройка ESM/TS">
+        <p>Чтобы <code>import/export</code> работали предсказуемо, согласуйте настройки <code>package.json</code> и
+            <code>tsconfig.json</code>.</p>
+        <code-block lang="json">
+{
+    "name": "my-app",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "start": "node dist/main.js"
+    },
+    "devDependencies": {
+        "typescript": "^5.6.0"
+    }
+}
+    </code-block>
+        <code-block lang="json">
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "outDir": "dist",
+        "rootDir": "src",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    },
+    "include": [
+        "src"
+    ]
+}
+    </code-block>
+        <tip>Если вы используете CJS, уберите поле <code>"type": "module"</code> и установите <code>"module":
+            "CommonJS"</code> в <code>tsconfig.json</code>.
+        </tip>
+        <warning>Смешивание ESM и CJS без понимания экспорта/импорта приводит к ошибкам вида &quot;ERR_REQUIRE_ESM&quot;
+            или &quot;Cannot use import statement outside a module&quot;.
+        </warning>
+    </chapter>
+
+    <chapter title="Экспорт и импорт в TypeScript (ESM)">
+        <chapter title="Именованный экспорт и импорт">
+            <code-block lang="ts">
+                // src/math/add.ts
+                export function add(a: number, b: number): number {
+                    return a + b;
+                }
+
+                // src/main.ts
+                // в ESM относительные пути должны включать расширение .js после компиляции
+                console.log(add(2, 3)); // 5
+            </code-block>
+            <note>При сборке TS в ESM указывайте в импортах суффикс .js для локальных путей, даже если исходник .ts. Это
+                соответствует выходному коду.
+            </note>
+        </chapter>
+        <chapter title="Экспорт по умолчанию (default)">
+                <code-block lang="ts">
+                // src/utils/logger.ts
+                export default function log(message: string): void {
+                    console.log(message); // демонстрация вывода
+                }
+
+                // src/main.ts
+                import log from "./utils/logger.js";
+
+                log("Hello");
+                </code-block>
+            <warning>Не смешивайте в одном модуле много
+                <format style="bold">default</format>
+                -логики. Часто понятнее использовать именованные экспорты для явности.
+            </warning>
+        </chapter>
+        <chapter title="Переэкспорт (re-export) и index.ts (barrel)">
+            <p>
+                <format style="bold">index.ts</format>
+                собирает и переэкспортирует сущности из подпакетов, упрощая импорт в потребителях.
+            </p>
+            <code-block lang="ts">
+            // src/math/index.ts
+            export * from "./add.js";
+            export * from "./mul.js";
+
+            // src/main.ts
+            import {add, mul} from "./math";
+            // или короче:
+            import {add, mul} from "./math";
+            </code-block>
+            <warning>«Баррели» могут скрыть циклические зависимости. Если при сборке/рантайме вы видите
+                <code>undefined</code> вместо функций — проверьте циклы импорта.
+            </warning>
+            <tip>Ограничивайте «barrel» только публичными API. Внутренние утилиты не реэкспортируйте.</tip>
+        </chapter>
+    </chapter>
+
+    <chapter title="CommonJS кратко (для легаси)">
+    <code-block lang="ts">
+        // add.cjs
+        function add(a, b) {
+            return a + b;
+        }
+
+        module.exports = {add};
+
+        // main.cjs
+        const {add} = require("./add.cjs");
+        console.log(add(2, 3)); // 5
+
+    </code-block>
+        <note>В TypeScript под CJS используйте <code>"module": "CommonJS"</code> и не задавайте <code>"type":
+            "module"</code> в package.json.
+        </note>
+    </chapter>
+
+    <chapter title="Работа с пакетами (npm)">
+        <chapter title="Инициализация проекта и базовые команды">
+      <code-block lang="bash">
+            npm init -y
+            npm install lodash         # зависимость для runtime
+            npm install -D typescript  # dev-зависимость
+            npx tsc --init             # создать tsconfig.json
+      </code-block>
+            <list>
+                <li>
+                    <tooltip term="dependency">dependencies</tooltip>
+                    — то, что нужно в рантайме.
+                </li>
+                <li>
+                    <tooltip term="devDependency">devDependencies</tooltip>
+                    — инструменты разработки.
+                </li>
+                <li>
+                    <tooltip term="peerDependency">peerDependencies</tooltip>
+                    — ожидаемые версии пакетов у потребителя.
+                </li>
+            </list>
+            <tip>Скрипты в <code>package.json</code> стандартизируют команды: <code>build</code>, <code>lint</code>,
+                <code>test</code>, <code>start</code>.
+            </tip>
+        </chapter>
+
+        <chapter title="Семантическое версионирование и диапазоны">
+            <p>
+                <format style="bold">SemVer</format>
+                : MAJOR.MINOR.PATCH.
+            </p>
+            <list>
+                <li><code>^1.2.3</code> — обновляет MINOR и PATCH (1.x.x).</li>
+                <li><code>~1.2.3</code> — обновляет только PATCH (1.2.x).</li>
+                <li>Точный пин: <code>1.2.3</code>.</li>
+            </list>
+            <warning>Широкие диапазоны (<code>^</code>) на критичных пакетах могут привезти непредсказуемые изменения.
+                Для продакшена чаще фиксируйте версии и полагайтесь на <code>package-lock.json</code>.
+            </warning>
+            <note>Команда <code>npm ci</code> устанавливает зависимости строго по <code>package-lock.json</code>, это
+                идеальный режим для CI/CD.
+            </note>
+        </chapter>
+
+        <chapter title="Установка внешних модулей и импорт">
+            <p>После установки вы импортируете пакет по имени:</p>
+            <code-block lang="ts">
+                import _ from "lodash";
+
+                console.log(_.capitalize("hello")); // Hello
+            </code-block>
+            <tip>Для TS проверьте наличие тайпингов: либо пакет включает их, либо установите
+                <code>@types/&lt;имя&gt;</code>.
+            </tip>
+        </chapter>
+
+
+        <chapter title="Структура node_modules и lock-файлы">
+            <p><code>node_modules</code> хранит дерево зависимостей. <code>package-lock.json</code> фиксирует точные
+                версии.</p>
+            <warning>Не коммитьте <code>node_modules</code>. Добавьте в <code>.gitignore</code>. Никогда не редактируйте
+                файлы прямо в <code>node_modules</code>.
+            </warning>
+        </chapter>
+
+        <chapter title="Рабочие области (workspaces) кратко">
+            <p>Монорепозитории с несколькими пакетами:</p>
+            <code-block lang="json">
+                {
+                    "name": "my-monorepo",
+                    "private": true,
+                    "workspaces": [
+                        "packages\*"
+                    ]
+                }
+            </code-block>
+            <note>Workspaces упрощают локальную разработку и сквозные изменения без публикации.</note>
+        </chapter>
+    </chapter>
+
+    <chapter title="Импорт модулей: относительные пути, алиасы, типы">
+        <chapter title="Относительные и абсолютные пути">
+      <code-block lang="ts">
+            import {add} from &quot;../math/add.js&quot;;         // относительный импорт
+            import {parse} from &quot;node:path&quot;;              // встроенный модуль Node.js
+            import express from &quot;express&quot;;                  // внешний пакет
+      </code-block>
+        </chapter>
+        <chapter title="Пути-алиасы в TypeScript">
+            <p>Алиасы уменьшают &quot;../../../&quot; и делают импорты стабильнее.</p>
+            <code-block lang="json">
+                {
+                    "compilerOptions": {
+                        "baseUrl": "./src",
+                        "paths": {
+                            "@core/*": [
+                                "core/*"
+                            ],
+                            "@features/*": [
+                                "features/*"
+                            ]
+                        }
+                    }
+                }
+              </code-block>
+            <warning>Node не понимает TS-алиасы без резолвера. Используйте бандлер (Vite/Webpack/TS-Path-Register) или
+                пост-обработку путей при сборке.
+            </warning>
+        </chapter>
+        <chapter title="Типы при импорте (type-only imports)">
+            <code-block lang="ts">
+                import type {Request, Response} from &quot;express&quot;;
+
+                export function handler(req: Request, res: Response) {
+                    res.send("ok");
+                }
+            </code-block>
+            <note><code>import type</code> удаляется при компиляции и не тянет runtime-зависимости.</note>
+        </chapter>
+    </chapter>
+
+    <chapter title="Реализация собственного модуля (пакета)">
+        <chapter title="Структура и экспорты">
+            <p>Минимальный пакет на TS с ESM и типами:</p>
+            <code-block lang="text">
+                my-lib/
+                  src/
+                    index.ts
+                    sum.ts
+                  package.json
+                  tsconfig.json
+                  README.md
+                  LICENSE
+                  .npmignore
+                </code-block>
+            <code-block lang="ts">
+                // src/sum.ts
+                export function sum(a: number, b: number): number {
+                    return a + b;
+                }
+
+                // src/index.ts (barrel)
+                export * from "./sum.js";
+                </code-block>
+            <code-block lang="json">
+{
+    "name": "@scope/my-lib",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    // для CJS-потребителей (опционально)
+    "module": "./dist/index.js",
+    // для ESM-бандлеров (исторически)
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        }
+    },
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json && tsup src/index.ts --format cjs,esm --dts",
+        "prepublishOnly": "npm run build"
+    },
+    "devDependencies": {
+        "typescript": "^5.6.0",
+        "tsup": "^8.0.0"
+    }
+}
+            </code-block>
+            <tip><code>exports</code>-map делает ваш пакет "правильно" импортируемым в ESM и CJS. Поле <code>sideEffects=false</code>
+                включает tree-shaking.
+            </tip>
+        </chapter>
+
+
+        <chapter title="Локальная проверка пакета">
+            <code-block lang="bash">
+
+
+                # сборка
+
+                npm run build
+
+                # локальная ссылка
+
+                npm link
+
+                # в другом проекте:
+
+                npm link @scope/my-lib
+
+                # альтернатива без link:
+
+                npm pack               # создаст архив .tgz
+                npm install ./@scope-my-lib-1.0.0.tgz
+            </code-block>
+            <warning><code>npm link</code> может вести себя по-разному в CI и у разных ОС. Для репродьюсабельности
+                тестируйте через <code>npm pack</code>.
+            </warning>
+        </chapter>
+
+
+        <chapter title="Публикация пакета в npm">
+            <list>
+                <li>Добавьте README, LICENSE, корректные поля <code>name</code>, <code>version</code>,
+                    <code>exports</code>, <code>types</code>, <code>files</code>.
+                </li>
+                <li>Проверьте, что приватные файлы не попадут в публикацию: настройте <code>.npmignore</code> или поле
+                    <code>files</code>.
+                </li>
+                <li><code>npm login</code>, затем <code>npm publish</code> (для scoped пакетов по умолчанию — как
+                    приватные; для публичной публикации используйте <code>npm publish --access public</code>).
+                </li>
+                <li>Поддерживайте SemVer и ченджлог.</li>
+            </list>
+            <warning>Не публикуйте секреты (ключи, .env). Проверьте архив из <code>npm pack</code> перед публикацией.
+            </warning>
+            <note>Для организаций используйте
+                <format style="bold">@scope</format>
+                имена: <code>@company/pkg</code>. Так проще управлять правами и неймспейсом.
+            </note>
+        </chapter>
+
+
+    </chapter>
+
+    <chapter title="Лучшие практики и подводные камни">
+        <list>
+            <li>
+                <format style="bold">Единый стиль модулей:</format>
+                выбирайте ESM или CJS в проекте. Смешение — источник ошибок.
+            </li>
+            <li>
+                <format style="bold">Явные публичные API:</format>
+                в <code>index.ts</code> экспортируйте только то, что обещаете пользователю.
+            </li>
+            <li>
+                <format style="bold">Минимум побочных эффектов:</format>
+                не выполняйте код на верхнем уровне модуля, который что-то мутирует при импорте.
+            </li>
+            <li>
+                <format style="bold">Жёсткие версии в проде:</format>
+                фиксируйте версии ключевых зависимостей и используйте <code>npm ci</code>.
+            </li>
+            <li>
+                <format style="bold">Типы — часть контракта:</format>
+                актуальные <code>.d.ts</code> повышают DX и уменьшают баги у потребителей.
+            </li>
+            <li>
+                <format style="bold">Проверка на циклы:</format>
+                используйте анализаторы (madge и др.) для выявления циклических импортов.
+            </li>
+        </list>
+        <warning>Циклические импорты в ESM инициализируют частично загруженные модули: вы можете получить <code>undefined</code>
+            вместо функции при первом обращении.
+        </warning>
+        <warning>Неправильные диапазоны версий (например, <code>^</code> на критичных пакетах) могут ломать сборку после
+            невинного <code>npm install</code>.
+        </warning>
+        <tip>Автоматизируйте релизы (Changesets/semantic-release), чтобы поддерживать SemVer и генерировать ченджлоги.
+        </tip>
+    </chapter>
+
+    <chapter title="Короткие рецепты">
+        <chapter title="Совместимость ESM &amp; CJS для потребителей">
+            <code-block lang="ts">
+                // src/index.ts
+                export function hello(name: string) {
+                    return `Hello, ${name}!`;
+                }
+              </code-block>
+            <code-block lang="json">
+                    {
+                        "exports": {
+                            ".": {
+                                "types": "./dist/index.d.ts",
+                                "import": "./dist/index.js",
+                                "require": "./dist/index.cjs"
+                            }
+                        }
+                    }
+              </code-block>
+            <p>Теперь потребители могут делать и <code>import { hello } from &quot;@scope/my-lib&quot;</code>, и <code>const
+                { hello } = require(&quot;@scope/my-lib&quot;)</code>.</p>
+        </chapter>
+        <chapter title="Tree-shaking и sideEffects">
+            <p>Если модуль не имеет побочных эффектов при импорте, укажите <code>&quot;sideEffects&quot;: false</code> в
+                <code>package.json</code>.</p>
+            <note>Это позволяет бандлерам выкидывать неиспользуемый код.</note>
+        </chapter>
+    </chapter>
+
+</topic>

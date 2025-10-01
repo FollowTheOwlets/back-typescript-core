@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Redis" id="Redis">
+        <chapter title="Введение">
+            <p>
+                <format style="bold">Redis</format>
+                — это высокопроизводительное
+                <tooltip term="In-memory store">in-memory</tooltip>
+                хранилище ключ-значение с поддержкой богатого набора структур данных: строки, хэши, списки, множества,
+                отсортированные множества, битовые поля, гиперлоглоги, геоданные,
+                <tooltip term="Stream">стримы</tooltip>
+                и др. Redis может работать как кэш, как брокер сообщений (через
+                <tooltip term="Pub/Sub">Pub/Sub</tooltip>
+                ), как быстрый индекс или как основная база для задач, где важны миллионы операций в секунду и низкие
+                задержки.
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Архитектура</format>
+                    : однопоточный цикл событий с неблокирующими I/O, атомарность отдельных команд.
+                </li>
+                <li>
+                    <format style="bold">Скалирование</format>
+                    : вертикально (CPU/ОЗУ), горизонтально через
+                    <tooltip term="Sharding">шардинг</tooltip>
+                    —
+                    <tooltip term="Redis Cluster">Redis Cluster</tooltip>
+                    .
+                </li>
+                <li>
+                    <format style="bold">Отказоустойчивость</format>
+                    : репликация, автоматическое переключение через
+                    <tooltip term="Sentinel">Sentinel</tooltip>
+                    .
+                </li>
+                <li>
+                    <format style="bold">Долговечность</format>
+                    : снимки RDB, журнал AOF, комбинированные режимы,
+                    <tooltip term="Persistence">настройки персистентности</tooltip>
+                    .
+                </li>
+            </list>
+            <tip>
+                <p>Начинать проще всего с одиночного инстанса + RDB для dev и Sentinel/Cluster для
+                    продакшн-нагрузок.</p>
+            </tip>
+        </chapter>
+
+        <chapter title="Когда и зачем использовать Redis">
+            <list>
+                <li>
+                    <format style="bold">Кэш перед БД</format>
+                    : снижает нагрузку на основную СУБД, ускоряет ответы.
+                </li>
+                <li>
+                    <format style="bold">Сессии и токены</format>
+                    : хранение короткоживущих данных с TTL.
+                </li>
+                <li>
+                    <format style="bold">Очереди и события</format>
+                    : через <code>LPUSH</code>/<code>BRPOP</code>,
+                    <tooltip term="Stream">Streams</tooltip>
+                    и
+                    <tooltip term="Pub/Sub">Pub/Sub</tooltip>
+                    .
+                </li>
+                <li>
+                    <format style="bold">Рейтинг/лидерборды</format>
+                    : <code>ZADD/ZRANGE</code> по скору.
+                </li>
+                <li>
+                    <format style="bold">Счётчики и квоты</format>
+                    : атомарные <code>INCR</code>, <code>INCRBY</code>, скользящие окна.
+                </li>
+                <li>
+                    <format style="bold">Geo-поиск</format>
+                    : <code>GEOADD</code>, <code>GEORADIUS</code>.
+                </li>
+            </list>
+            <warning>
+                <p>Redis — не реляционная БД: нет join, транзакции ограничены набором ключей и
+                    <tooltip term="MULTI/EXEC">MULTI/EXEC</tooltip>
+                    . Для критичных к консистентности бизнес-транзакций используйте профильные СУБД.
+                </p>
+            </warning>
+        </chapter>
+
+        <chapter title="Базовые концепции и модели данных">
+            <list>
+                <li>
+                    <format style="bold">Ключи</format>
+                    : бинарно-безопасные строки, рекомендуются префиксы (<code>app:users:123</code>).
+                </li>
+                <li>
+                    <format style="bold">Строки</format>
+                    : до 512 МБ; поддержка битовых операций и инкрементов.
+                </li>
+                <li>
+                    <format style="bold">Хэши</format>
+                    : компактное хранение полей объекта (<code>HSET/HGETALL</code>).
+                </li>
+                <li>
+                    <format style="bold">Списки</format>
+                    : двусторонние очереди (<code>LPUSH/RPUSH/BLPOP</code>).
+                </li>
+                <li>
+                    <format style="bold">Множества</format>
+                    : уникальные элементы, операции теории множеств (<code>SADD/SMEMBERS</code>).
+                </li>
+                <li>
+                    <format style="bold">Отсортированные множества</format>
+                    : элементы с числовым скором для ранжирования (<code>ZADD/ZREVRANGE</code>).
+                </li>
+                <li>
+                    <format style="bold">Streams</format>
+                    : лог записей с идентификаторами; потребительские группы.
+                </li>
+                <li>
+                    <format style="bold">TTL</format>
+                    : истечение ключей (<code>EXPIRE/PEXPIRE</code>), пассивное и активное удаление.
+                </li>
+            </list>
+            <note>
+                <p>Выбор структуры данных влияет на сложность операций: <code>ZRANGE</code> и <code>HGETALL</code> имеют
+                    разные характеристики. Проектируйте ключи и структуры до начала разработки.</p>
+            </note>
+        </chapter>
+
+        <chapter title="Установка и запуск (локально)">
+    <code-block lang="bash">
+# Mac (Homebrew)
+brew install redis
+brew services start redis
+
+# Debian/Ubuntu
+
+sudo apt-get update
+sudo apt-get install -y redis
+sudo systemctl enable --now redis
+
+# Docker
+
+docker run -p 6379:6379 --name redis redis:7-alpine </code-block>
+            <tip>
+                <p>Для продакшна включите аутентификацию (<code>requirepass</code>), настройте <code>maxmemory</code> и
+                    политику удаления (
+                    <tooltip term="Eviction policy">eviction</tooltip>
+                    ), включите персистентность.
+                </p>
+            </tip>
+        </chapter>
+
+        <chapter title="Ключевые команды (быстрый справочник)">
+            <list>
+                <li>
+                    <format style="bold">Строки</format>
+                    : <code>SET key val EX 60</code>, <code>GET key</code>, <code>INCR cnt</code></li>
+                <li>
+                    <format style="bold">Хэши</format>
+                    : <code>HSET user:1 name "Ann" age 30</code>, <code>HGETALL user:1</code></li>
+                <li>
+                    <format style="bold">Списки</format>
+                    : <code>LPUSH q task1</code>, <code>BRPOP q 0</code></li>
+                <li>
+                    <format style="bold">Множества</format>
+                    : <code>SADD tags red blue</code>, <code>SINTER a b</code></li>
+                <li>
+                    <format style="bold">Отсортированные множества</format>
+                    : <code>ZADD board 100 user1</code>, <code>ZREVRANGE board 0 9 WITHSCORES</code></li>
+                <li>
+                    <format style="bold">Streams</format>
+                    : <code>XADD mystream * field1 val1</code>, <code>XREAD COUNT 10 STREAMS mystream 0-0</code></li>
+                <li>
+                    <format style="bold">Ключи и TTL</format>
+                    : <code>EXPIRE key 60</code>, <code>TTL key</code>, <code>DEL key</code></li>
+                <li>
+                    <format style="bold">Транзакции</format>
+                    : <code>MULTI</code> ... <code>EXEC</code>, <code>WATCH</code></li>
+                <li>
+                    <format style="bold">Скрипты</format>
+                    : <code>EVAL</code>, <code>EVALSHA</code></li>
+            </list>
+        </chapter>
+
+        <chapter title="Java: Lettuce (рекомендуется) и Jedis (популярно)">
+            <p>Пример на
+                <format style="bold">Lettuce</format>
+                (асинхронный/реактивный клиент). Покажем базовые операции, транзакции, Pub/Sub.
+            </p>
+            <code-block lang="xml">
+<!-- Maven -->
+                &lt;dependency&gt;
+  &lt;groupId&gt;io.lettuce&lt;/groupId&gt;
+  &lt;artifactId&gt;lettuce-core&lt;/artifactId&gt;
+  &lt;version&gt;6.3.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+    </code-block>
+            <code-block lang="java">
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+
+public class RedisLettuceExample {
+public static void main(String[] args) throws Exception {
+RedisURI uri = RedisURI.Builder.redis("localhost", 6379)
+//.withPassword("secret".toCharArray())
+.build();
+RedisClient client = RedisClient.create(uri);
+
+
+// Синхронные команды
+try (StatefulRedisConnection&lt;String, String&gt; conn = client.connect()) {
+  RedisCommands&lt;String, String&gt; cmd = conn.sync();
+  cmd.setex("app:sess:123", 60, "user=42");
+  String v = cmd.get("app:sess:123");
+  System.out.println("GET: " + v); // демонстрация
+
+  // Транзакция
+  cmd.multi();
+  cmd.incr("counter");
+  cmd.incrby("counter", 5);
+  cmd.exec();
+  System.out.println("Counter=" + cmd.get("counter"));
+}
+
+client.shutdown();
+
+
+}
+} </code-block>
+            <tip><p>Для высокой пропускной способности используйте пайплайнинг (в Lettuce — async API) и
+                соединения-пулы.</p></tip>
+        </chapter>
+
+        <chapter title="Go: go-redis v9">
+            <p>Go-клиент
+                <format style="bold">redis/go-redis</format>
+                поддерживает кластеры, Sentinel, контекст, пайплайнинг и транзакции.
+            </p>
+            <code-block lang="bash">
+go get github.com/redis/go-redis/v9
+    </code-block>
+            <code-block lang="go">
+package main
+
+import (
+"context"
+"fmt"
+"time"
+
+"github.com/redis/go-redis/v9"
+)
+
+var ctx = context.Background()
+
+func main() {
+    rdb := redis.NewClient(&redis.Options{
+        Addr: "localhost:6379",
+        // Password: "secret",
+        DB: 0,
+    })
+    defer rdb.Close()
+
+    // SET/GET + TTL
+    if err := rdb.Set(ctx, "app:sess:123", "user=42", 60*time.Second).Err(); err != nil {
+        panic(err)
+    }
+    v, _ := rdb.Get(ctx, "app:sess:123").Result()
+    fmt.Println("GET:", v) // демонстрация
+} </code-block>
+            <note><p>Для кластера используйте <code>redis.NewClusterClient</code>, для Sentinel — <code>redis.NewFailoverClient</code>.
+                Старайтесь передавать в контексте таймауты.</p></note>
+        </chapter>
+
+        <chapter title="TypeScript/Node.js: ioredis (или node-redis)">
+            <p>
+                <format style="bold">ioredis</format>
+                стабилен, поддерживает кластер, Sentinel, пайплайны и скрипты. Ниже — базовые операции, Pub/Sub, Lua.
+            </p>
+            <code-block lang="bash">
+                npm i ioredis
+            </code-block>
+                <code-block lang="ts">
+                    import Redis from "ioredis";
+                    
+                    async function main() {
+                        const redis = new Redis({
+                            host: "127.0.0.1",
+                            port: 6379,
+                            // password: "secret",
+                            // lazyConnect: true,
+                        });
+                    
+                        // SET с TTL, GET
+                        await redis.set("app:sess:123", "user=42", "EX", 60);
+                        const val = await redis.get("app:sess:123");
+                        console.log("GET", val); // демонстрация
+                    
+                        await redis.quit();
+                    }
+                    
+                    main().catch(console.error); 
+                </code-block>
+            <warning><p>Не храните большие бинарные блобы напрямую в Redis: это быстро «съест» память и приведёт к
+                эвикциям. Для крупных объектов используйте внешнее хранилище (например, S3/MinIO), а в Redis — только
+                индексы/метаданные.</p></warning>
+        </chapter>
+
+        <chapter title="TTL, эвикции и политика памяти">
+            <p>
+                Память в Redis конечна (<code>maxmemory</code>). При переполнении включается
+                <tooltip term="Eviction policy">политика удаления</tooltip>
+                : <code>noeviction</code>, <code>allkeys-lru</code>, <code>allkeys-lfu</code>, <code>volatile-lru</code>,
+                <code>volatile-ttl</code> и др. Ключи с TTL могут удаляться проактивно (active expire) и при обращении
+                (lazy expire).
+            </p>
+            <tip>
+                <p>Для кэшей стремитесь к <code>allkeys-lfu</code> или <code>allkeys-lru</code>. Обязательно задавайте
+                    TTL для кэш-ключей, чтобы избежать устаревших данных.</p>
+            </tip>
+            <warning>
+                <p>Политика <code>noeviction</code> приведёт к ошибкам записи при нехватке памяти. Для интерактивных
+                    систем это может проявляться как случайные падения при пиках.</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Персистентность: RDB/AOF и производительность">
+            <list>
+                <li>
+                    <format style="bold">RDB</format>
+                    : периодические снимки (быстрый рестарт, меньше размер, риск потери последних секунд/минут).
+                </li>
+                <li>
+                    <format style="bold">AOF</format>
+                    : журнал всех операций (минимальная потеря, больше размер, периодическая компрессия <code>BGREWRITEAOF</code>).
+                </li>
+                <li>
+                    <format style="bold">Смешанный режим</format>
+                    : оптимальный баланс старта, размера и надёжности.
+                </li>
+            </list>
+            <note>
+                <p>Для продакшна обычно включают AOF (<code>appendonly yes</code>, режим <code>everysec</code>) +
+                    регулярные RDB-снимки для быстрого восстановления.</p>
+            </note>
+        </chapter>
+
+        <chapter title="Репликация, Sentinel и Cluster">
+            <list>
+                <li>
+                    <format style="bold">Репликация</format>
+                    : <code>replicaof host port</code>, чтение с реплик (beware eventual consistency).
+                </li>
+                <li>
+                    <format style="bold">Sentinel</format>
+                    : мониторинг мастера, автоматическое переключение на реплику, выдача адреса мастера клиентам.
+                </li>
+                <li>
+                    <format style="bold">Cluster</format>
+                    : горизонтальное масштабирование, 16384 хэш-слотов, редиректы <code>MOVED</code>/<code>ASK</code>,
+                    шардирование по ключам.
+                </li>
+            </list>
+            <warning>
+                <p>В кластере избегайте операций над несколькими ключами с разными хэш-тегами. Используйте
+                    <code>{tag}</code> в ключе для принудительного ко-локирования (например,
+                    <code>cart:{userId}:items</code> и <code>cart:{userId}:meta</code>).</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Транзакции, скрипты и атомарность">
+            <p>
+                Команды Redis атомарны; батчи через <code>MULTI/EXEC</code> исполняются последовательно. Для условных
+                апдейтов используйте <code>WATCH</code> (оптимистическая блокировка). Сложную бизнес-логику можно
+                перенести в Lua-скрипты (<code>EVAL</code>), чтобы выполнить серию операций атомарно на сервере.
+            </p>
+            <code-block lang="Plain Text">
+            # Пример с WATCH
+            WATCH user:42:balance
+            val = GET user:42:balance
+            # если достаточно средств -> MULTI ... DECRBY ... EXEC
+             </code-block>
+            <tip>
+                <p>Lua-скрипты кэшируйте через <code>SCRIPT LOAD</code> + <code>EVALSHA</code> и ограничивайте по
+                    времени, чтобы не блокировать event-loop.</p>
+            </tip>
+        </chapter>
+
+        <chapter title="Паттерны использования и лучшие практики">
+            <list>
+                <li>
+                    <format style="bold">Именование ключей</format>
+                    : префиксы по доменам (<code>app:module:entity:id</code>), единый регистр, документируйте схемы.
+                </li>
+                <li>
+                    <format style="bold">Кэш-стратегии</format>
+                    : cache-aside (сперва БД → кэш), write-through, write-behind; выбирайте с учётом
+                    консистентности/нагрузки.
+                </li>
+                <li>
+                    <format style="bold">Избегайте горячих ключей</format>
+                    : распределяйте нагрузку (<code>shardId</code> в ключе), используйте батчи/пайплайны.
+                </li>
+                <li>
+                    <format style="bold">Обсервабилити</format>
+                    : <code>INFO</code>, <code>MONITOR</code>, экспортеры Prometheus, трейсинг клиентов.
+                </li>
+                <li>
+                    <format style="bold">Безопасность</format>
+                    : аутентификация, ACL, защищённая сеть, TLS, firewall; не выставляйте Redis в интернет.
+                </li>
+            </list>
+            <warning>
+                <p>Команда <code>KEYS *</code> в продакшне опасна — блокирует сервер. Для сканирования используйте
+                    <code>SCAN</code> итеративно.</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Примеры шаблонов задач">
+            <list>
+                <li>
+                    <format style="bold">Rate limiting</format>
+                    : счётчики с TTL или Lua со скользящим окном.
+                </li>
+                <li>
+                    <format style="bold">Лидерборды</format>
+                    : <code>ZADD</code> + <code>ZRANGE</code>/<code>ZREVRANGE</code> по очкам.
+                </li>
+                <li>
+                    <format style="bold">Очереди</format>
+                    : списки с <code>BRPOPLPUSH</code> для «надёжного» потребления или Streams с группами.
+                </li>
+                <li>
+                    <format style="bold">Сеансы</format>
+                    : <code>SETEX</code> и ротация ключей, вторичная индексация по пользователю (множества/хэши).
+                </li>
+            </list>
+        </chapter>
+</topic>

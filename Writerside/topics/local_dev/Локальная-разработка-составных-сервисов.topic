@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Локальная разработка составных сервисов" id="Локальная-разработка-составных-сервисов">
+
+    <chapter title="Что такое Docker">
+        <p>Docker — это платформа для упаковки, распределения и запуска приложений в изолированных средах, называемых
+            <tooltip term="Контейнер">контейнерами</tooltip>
+            . Контейнер содержит приложение и все его зависимости (библиотеки, системные утилиты, конфигурацию), что
+            обеспечивает одинаковое поведение на любых машинах, где установлен Docker.
+        </p>
+        <p>В отличие от
+            виртуальных машин
+            , контейнеры используют ядро хостовой операционной системы и запускаются значительно быстрее, занимают
+            меньше ресурсов и легче масштабируются. Основные сущности Docker:
+            <format style="bold">образ</format>
+            (шаблон файловой системы и метаданные),
+            <format style="bold">контейнер</format>
+            (запущенный экземпляр образа),
+            <format style="bold">Dockerfile</format>
+            (рецепт сборки образа),
+            <format style="bold">реестр</format>
+            (хранилище образов, например Docker Hub),
+            <format style="bold">том</format>
+            (персистентное хранилище данных) и
+            <format style="bold">сеть</format>
+            (логическая связность контейнеров).
+        </p>
+        <tip>Контейнеры идеальны для микросервисной архитектуры, т.к. каждую службу можно изолировать, версионировать и
+            разворачивать независимо.
+        </tip>
+        <warning>Не путайте контейнер с образом: образ — неизменяемый шаблон, контейнер — изменяемый процесс/экземпляр,
+            созданный из образа.
+        </warning>
+    </chapter>
+    <chapter title="Как установить"><p>Установка Docker зависит от ОС. Ниже — основные шаги для популярных систем. Перед
+        установкой убедитесь, что у вас есть права администратора.</p>
+        <chapter title="Windows 10/11 (Docker Desktop)">
+            <list>
+                <li>Включите поддержку виртуализации в BIOS/UEFI и включите Hyper-V или WSL2 (рекомендуется WSL2).</li>
+                <li>Скачайте Docker Desktop с официального сайта и установите, выбрав backend WSL2.</li>
+                <li>После установки запустите Docker Desktop — значок кита должен показывать «Running».</li>
+            </list>
+            <note>Для разработчиков на Windows оптимально настроить
+                <tooltip term="WSL2">WSL2</tooltip>
+                , создать дистрибутив Ubuntu и хранить проектные файлы внутри файловой системы Linux для высокой
+                производительности.
+            </note>
+        </chapter>
+
+        <chapter title="macOS (Docker Desktop)">
+            <list>
+                <li>Скачайте Docker Desktop для macOS (Apple Silicon/Intel — соответствующий дистрибутив).</li>
+                <li>Перетащите приложение в Applications, запустите и пройдите первичную настройку.</li>
+            </list>
+            <tip>На Apple Silicon (M1/M2/M3) используйте образы для архитектуры arm64 или мультиархитектурные (manifest
+                list). Это уменьшит проблемы совместимости и ускорит запуск.
+            </tip>
+        </chapter>
+
+        <chapter title="Linux (Engine + CLI)">
+            <p>На Linux обычно устанавливают собственно Docker Engine и CLI.</p>
+            <a href="https://timeweb.cloud/tutorials/docker/kak-ustanovit-docker-na-ubuntu-22-04">Подробная
+                инструкция</a>
+            <warning>Не запускайте Docker daemon с нестандартными флагами безопасности без понимания последствий.
+                Использование группы docker даёт её членам права, сопоставимые с root, поэтому добавляйте в неё только
+                доверенных пользователей.
+            </warning>
+        </chapter>
+
+    </chapter>
+    <chapter title="Как использовать"><p>Работа с Docker делится на несколько типичных задач: поиск и загрузка образов,
+        запуск контейнеров, сборка собственных образов, управление томами и сетями, логирование и отладка.</p>
+        <chapter title="Базовые команды">
+            <p>Проверить версию</p>
+            <code-block lang="bash">
+              docker version
+            </code-block>
+            <p>Поиск образа в реестре</p>
+            <code-block lang="bash">
+              docker search nginx
+            </code-block>
+            <p>Загрузка образа</p>
+            <code-block lang="bash">
+              docker pull nginx:1.27
+            </code-block>
+            <p>Список образов и контейнеров</p>
+            <code-block lang="bash">
+              docker images
+              docker ps # только запущенные
+              docker ps -a # все (включая завершённые)
+            </code-block>
+            <p>Запуск контейнера (первый опыт)</p>
+            <code-block lang="bash">
+              docker run --name my-nginx -p 8080:80 -d nginx:1.27
+            </code-block>
+            <p>Просмотр логов и состояния</p>
+            <code-block lang="bash">
+              docker logs -f my-nginx
+              docker exec -it my-nginx sh
+            </code-block>
+            <p>Остановка и удаление</p>
+            <code-block lang="bash">
+              docker stop my-nginx
+              docker rm my-nginx
+            </code-block>
+            <p>Очистка "мусора"</p>
+            <code-block lang="bash">
+              docker system prune -f
+            </code-block>
+            <tip>Флаг -p 8080:80 пробрасывает порт 80 контейнера на 8080 хоста. После запуска откройте
+                http://localhost:8080
+                .
+            </tip>
+            <warning>Не используйте latest без необходимости: фиксируйте версию образа (например, nginx:1.27) для
+                воспроизводимости.
+            </warning>
+        </chapter>
+
+        <chapter title="Сборка собственных образов (Dockerfile)">
+            <p>Dockerfile описывает шаги сборки: базовый образ, копирование файлов, установка зависимостей, команда
+                запуска. Каждый шаг кэшируется слоями, что ускоряет повторные сборки.</p>
+            <code-block lang="Docker">
+                # --- build stage ---
+                FROM node:20-slim AS builder
+                WORKDIR /app
+
+                # Установим все зависимости (включая dev) для сборки
+                COPY package*.json ./
+                RUN npm ci
+
+                # Скопируем конфиги и исходники
+                COPY tsconfig*.json ./
+                # Если есть nest-cli.json — тоже скопируйте:
+                # COPY nest-cli.json ./
+                COPY src ./src
+
+                # Сборка (не требует nest CLI, если скрипт ниже на tsc)
+                RUN npm run build
+
+                # --- runtime stage ---
+                FROM node:20-slim AS runner
+                WORKDIR /app
+
+                # Только прод-зависимости
+                COPY package*.json ./
+                RUN npm ci --omit=dev
+
+                # Готовые артефакты
+                COPY --from=builder /app/dist ./dist
+                COPY data_for_llm ./data_for_llm
+                COPY config ./config
+
+                ENV NODE_ENV=production
+                EXPOSE 3000
+                CMD ["node", "dist/main.js"]
+
+            </code-block>
+            <code-block lang="bash">
+                #Сборка и запуск
+
+                docker build -t myapp:1.0.0 .
+                docker run --name myapp -p 3000:3000 -d myapp:1.0.0
+            </code-block>
+            <note>Использование multi-stage сборки уменьшает финальный размер образа и исключает сборочные инструменты
+                из итогового слоя.
+            </note>
+            <warning>Не копируйте секреты в образ (ключи, .env с чувствительными данными). Используйте переменные
+                окружения, секреты оркестратора или временные монтирования.
+            </warning>
+        </chapter>
+
+        <chapter title="Работа с томами и монтированием">
+            <p>
+                <format style="bold">Том</format>
+                (volume) — это управляемое Docker персистентное хранилище. Оно удобно для баз данных и пользовательских
+                данных, переживает пересоздание контейнера.
+            </p>
+            <p>Создать и использовать том</p>
+            <code-block lang="bash">
+                docker volume create pgdata
+                docker run --name pg -e POSTGRES_PASSWORD=secret -v pgdata:/var/lib/postgresql/data -p 5432:5432 -d postgres:16
+            </code-block>
+            <p>Применить bind mount (локальная папка)</p>
+            <code-block lang="bash">
+                docker run --name web -v $(pwd)/public:/usr/share/nginx/html:ro -p 8080:80 -d nginx:1.27
+            </code-block>
+            <tip>Используйте :ro для read-only монтирования, когда запись не требуется — это повышает безопасность.
+            </tip>
+            <warning>Bind mount зависит от структуры файлов на хосте и прав доступа. Для переносимости в CI/CD отдавайте
+                предпочтение томам и копированию в образ.
+            </warning>
+        </chapter>
+
+        <chapter title="Сети и связь контейнеров">
+            <p>По умолчанию контейнеры в одной пользовательской сети могут обращаться друг к другу по имени сервиса.
+                Создание отдельной сети повышает изоляцию.</p>
+            <p>Создать сеть</p>
+            <code-block lang="bash">
+                docker network create app-net
+            </code-block>
+            <p>Запустить два контейнера в одной сети</p>
+            <code-block lang="bash">
+                docker run --name redis --network app-net -d redis:7
+                docker run --name api --network app-net -e REDIS_HOST=redis -p 3000:3000 -d myapp:1.0.0
+            </code-block>
+            <note>Внутри сети адрес redis будет доступен по DNS-имени "redis" без указания IP.</note>
+        </chapter>
+
+        <chapter title="Логи, ресурсы и здоровье">
+            <code-block lang="bash">
+
+                #Логи и статистика
+
+                docker logs -f api
+                docker stats
+
+                #Ограничения ресурсов
+
+                docker run --cpus="1.5" --memory="512m" -d myapp:1.0.0
+
+                #Проверка здоровья (healthcheck) через Dockerfile
+                #Пример (в Dockerfile):
+                HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localhost:3000/health
+                 || exit 1
+            </code-block>
+            <tip>Healthcheck полезен для оркестраторов и перезапуска контейнеров при деградации приложения.</tip>
+            <warning>Слишком агрессивные лимиты CPU/RAM могут привести к OOM kill и деградации производительности.
+                Тестируйте ограничения в средах, близких к продакшену.
+            </warning>
+        </chapter>
+
+        <chapter title="Лучшие практики">
+            <list>
+                <li>Фиксируйте версии образов и базовых слоёв (например, node:20-alpine), чтобы сборки были
+                    детерминированы.
+                </li>
+                <li>Используйте .dockerignore для исключения лишних файлов (node_modules, .git, локальные артефакты) —
+                    это ускорит сборку и уменьшит контекст.
+                </li>
+                <li>Запускайте процессы от непривилегированного пользователя (USER), минимизируйте attack surface.</li>
+                <li>Стройте образы как можно меньше (alpine, multi-stage), следите за регулярными обновлениями
+                    безопасности.
+                </li>
+                <li>Не храните секреты в образах. Применяйте переменные окружения, секреты CI/CD, внешние хранилища.
+                </li>
+            </list>
+        </chapter>
+
+    </chapter>
+    <chapter title="Docker Compose"><p>Docker Compose — инструмент описания и запуска многоконтейнерных приложений с
+        помощью файла декларативной конфигурации (обычно compose.yml или docker-compose.yml). Он позволяет определить
+        сервисы, сети, тома и зависимости, а затем запускать всё одной командой.</p>
+        <chapter title="Минимальный пример">
+  <code-block lang="yaml">
+
+
+services:
+web:
+image: nginx:1.27
+ports:
+    - "8080:80"
+</code-block>
+            <code-block lang="bash">
+
+                #Запуск и остановка
+
+                docker compose up -d
+                docker compose ps
+                docker compose logs -f
+                docker compose down
+            </code-block>
+            <tip>Команда docker compose up -d запускает все определённые сервисы в фоне. Без -d — в foreground с выводом
+                логов.
+            </tip>
+        </chapter>
+
+        <chapter title="API + БД (типовой стек)">
+  <code-block lang="yaml">
+
+
+services:
+    db:
+        image: postgres:16
+        environment:
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: app
+            POSTGRES_USER: app
+        volumes:
+            - dbdata:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U app" ]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+
+    api:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+        environment:
+            DATABASE_URL: postgres://app:secret@db:5432/app
+            NODE_ENV: production
+        depends_on:
+            db:
+                condition: service_healthy
+        ports:
+            - "3000:3000"
+        deploy:
+            resources:
+                limits:
+                    cpus: "1.5"
+                    memory: "512M"
+
+volumes:
+    dbdata:
+</code-block>
+            <note>Секция depends_on с condition: service_healthy позволяет дождаться готовности БД согласно healthcheck
+                перед запуском api.
+            </note>
+        </chapter>
+
+        <chapter title="Сети, профили, override">
+            <p>Compose автоматически создаёт сеть для проекта. Можно явно задавать несколько сетей и подключать сервисы
+                выборочно. Профили (profiles) позволяют включать/выключать группы сервисов для разных сценариев
+                (локальная разработка, CI, прод).</p>
+            <code-block lang="yaml">
+
+
+services:
+    cache:
+        image: redis:7
+        networks: [ backend ]
+
+    api:
+        build: ..
+        networks: [ backend ]
+        profiles: [ dev ]
+
+networks:
+    backend:
+</code-block>
+            <code-block lang="bash">
+
+#Включить профиль dev
+docker compose --profile dev up -d
+</code-block>
+            <tip>Для разных окружений удобно хранить дополнительные файлы compose.override.yml, которые будут
+                автоматически подхватываться и переопределять базовые значения.
+            </tip>
+        </chapter>
+
+        <chapter title="Распространённые приёмы и подводные камни">
+            <list>
+                <li>Храните переменные окружения в .env рядом с compose-файлом, но не кладите чувствительные секреты в
+                    git.
+                </li>
+                <li>Для hot-reload в разработке используйте bind mount исходников: - ./:/app, а в продакшене — только
+                    собранные артефакты внутри образа.
+                </li>
+                <li>Следите за несовместимостью архитектур (amd64 vs arm64). Используйте мультиарх образы или задайте
+                    --platform при сборке/запуске.
+                </li>
+                <li>Проверяйте healthchecks — без них depends_on не гарантирует готовность сервиса на уровне
+                    приложения.
+                </li>
+            </list>
+            <warning>Не используйте :latest в продакшене и не давайте контейнерам избыточные привилегии — это риск
+                безопасности. Также избегайте запуска от root, если это не требуется.
+            </warning>
+        </chapter>
+
+        <chapter title="Пара советов от автора">
+            <note>
+                Чтобы не хламить свой нутбук или ПК разными базами, утилитами и не устанавливать все подряд, проще запустить это в докере.
+            </note>
+            <note>
+                Не стесняйтесь запускать через докер даже admin панели
+            </note>
+            <p>Вот пример, чтобы поиграть. Скопируйте его в любую папку в файл docker-compose.yaml</p>
+
+            <code-block lang="docker">
+                version: '3.8'
+
+                services:
+                  minio:
+                    image: quay.io/minio/minio:latest
+                    ports:
+                      - "9000:9000"
+                      - "9090:9090"
+                    entrypoint: >
+                      sh -c "
+                        minio server /data --console-address ':9090' &
+                        sleep 5 &&
+                        mc alias set local http://localhost:9000 minioadmin minioadmin &&
+                        mc mb --region=ru-central1 local/rolf-dev || true &&
+                        tail -f /dev/null
+                      "
+                    environment:
+                      MINIO_ROOT_USER: minioadmin
+                      MINIO_ROOT_PASSWORD: minioadmin
+                    volumes:
+                      - ./data/minio_cache_1:/data1
+                      - ./data/minio_cache_2:/data2
+
+                  jaeger:
+                    image: jaegertracing/all-in-one:1.62.0
+                    environment:
+                      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+                      COLLECTOR_OTLP_ENABLED: 'true'
+                    ports:
+                      - '6831:6831/udp' # Thrift UDP (agent)
+                      - '6832:6832/udp' # Thrift UDP (agent)
+                      - '5778:5778' # Configuration (agent)
+                      - '16686:16686' # Jaeger UI
+                      - '4317:4317' # OTLP gRPC
+                      - '4318:4318' # OTLP HTTP
+                      - '14250:14250' # Collector gRPC
+                      - '14268:14268' # Collector HTTP
+                      - '14269:14269' # Collector Admin
+                      - '9411:9411' # Zipkin
+                    restart: unless-stopped
+                    volumes:
+                      - ./data/jaeger:/tmp
+
+                  redis:
+                    image: redis/redis-stack:latest
+                    volumes:
+                      - ./data/redis:/data
+                    environment:
+                      REDIS_ARGS: "--requirepass redispass"
+                    ports:
+                      - '6379:6379'
+
+                  kafka:
+                    image: apache/kafka:latest
+                    ports:
+                      - "9092:9092"
+                    expose:
+                      - "29092"
+                    environment:
+                      KAFKA_NODE_ID: 1
+                      KAFKA_PROCESS_ROLES: broker,controller
+                      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://localhost:9093
+                      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,INTERNAL://crm-host-kafka:29092
+                      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+                      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+                      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+                      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+                      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+                      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+                      KAFKA_NUM_PARTITIONS: 1
+                      KAFKA_CREATE_TOPICS: "topic-test:1:1"
+
+
+                  kafka-ui:
+                    image: provectuslabs/kafka-ui:latest
+                    ports:
+                      - "8080:8080"
+                    depends_on:
+                      - kafka
+                    environment:
+                      KAFKA_CLUSTERS_0_NAME: local-kafka
+                      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+
+                  postgres:
+                    image: postgres
+                    environment:
+                      - POSTGRES_PASSWORD=mypassword
+                      - POSTGRES_USER=myuser
+                      - POSTGRES_DB=default_nest_database
+                    ports:
+                      - '5433:5432'
+                    volumes:
+                      - ./data/postgres:/var/lib/postgresql/data
+
+                  pgadmin:
+                    image: dpage/pgadmin4:latest
+                    environment:
+                      PGADMIN_DEFAULT_EMAIL: admin@domain.com
+                      PGADMIN_DEFAULT_PASSWORD: adminpassword
+                    ports:
+                      - '8082:80'
+                    depends_on:
+                      - postgres
+                    restart: unless-stopped
+
+
+                  mongo:
+                    image: 'mongo:latest'
+                    ports:
+                      - '27017:27017'
+                    volumes:
+                      - ./data/mongo:/data/db
+                    environment:
+                      - MONGODB_DATABASE=db_billing_navigator
+                    restart: unless-stopped
+
+                  mongo-express:
+                    image: mongo-express:latest
+                    ports:
+                      - '8081:8081'
+                    environment:
+                      # подключаемся к сервису mongodb по его имени в сети
+                      ME_CONFIG_MONGODB_SERVER: mongo
+                      ME_CONFIG_MONGODB_PORT: 27017
+                      ME_CONFIG_BASICAUTH_USERNAME: admin
+                      ME_CONFIG_BASICAUTH_PASSWORD: secret
+                      ME_CONFIG_MONGODB_ADMINUSERNAME: ''      # если у вас нет аутентификации, оставьте пустым
+                      ME_CONFIG_MONGODB_ADMINPASSWORD: ''
+                      ME_CONFIG_MONGODB_AUTH_DATABASE: 'db_billing_navigator'
+                      ME_CONFIG_OPTIONS_EDITORTHEME: 'default'
+                    depends_on:
+                      - mongo
+                    restart: unless-stopped
+
+            </code-block>
+        </chapter>
+    </chapter>
+</topic>

@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="NestJS" id="_NestJS" help-id="NestJS">
+
+    <chapter title="NestJS — Установка зависимостей, создание и запуск первого проекта">
+        <chapter title="Что такое NestJS и зачем он нужен">
+            <p>
+                <format style="bold">NestJS</format>
+                — это
+                <tooltip term="Фреймворк">фреймворк</tooltip>
+                на
+                <tooltip term="Node.js">Node.js</tooltip>
+                и
+                <tooltip term="TypeScript">TypeScript</tooltip>
+                для написания серверных приложений по принципам
+                <tooltip term="Модульность">модульности</tooltip>
+                ,
+                <tooltip term="Инверсия зависимостей">инверсии зависимостей</tooltip>
+                и
+                <tooltip term="SOLID">SOLID</tooltip>
+                . Он помогает структурировать код, упрощает тестирование и масштабирование, а также даёт единые подходы
+                к контроллерам, сервисам, фильтрам ошибок, пайпам валидации, интерцепторам и middleware.
+            </p>
+            <tip>
+                <p>Если вы знакомы с Angular
+                    , вы быстро узнаете знакомые концепции:
+                    <tooltip term="Декоратор">декораторы</tooltip>
+                    ,
+                    <tooltip term="Провайдер">провайдеры</tooltip>
+                    ,
+                    <tooltip term="Инжектор зависимостей">DI-контейнер</tooltip>
+                    , модули и пайпы.
+                </p>
+            </tip>
+        </chapter>
+
+        <chapter title="Подготовка окружения">
+            <list>
+                <li>
+                    <p>Установите
+                        <tooltip term="Node.js">Node.js</tooltip>
+                        версии LTS (рекомендуется >= 20.x) — это гарантирует поддержку современных возможностей
+                        платформы и стабильность.
+                    </p>
+                </li>
+                <li>
+                    <p>Пакетный менеджер: подойдёт
+                        <tooltip term="npm">npm</tooltip>, yarn или pnpm
+                        . Для начала можно использовать npm, поставляемый вместе с Node.js.
+                    </p>
+                </li>
+                <li><p>Проверьте, что ваш терминал видит node и npm:</p>
+                    <code-block lang="bash">
+node -v
+npm -v
+        </code-block>
+                </li>
+            </list>
+            <note>
+                <p>Версии Node.js и пакетного менеджера могут влиять на работу зависимостей. Если у вас несколько
+                    проектов с разными требованиями, используйте
+                    <tooltip term="nvm">nvm</tooltip>
+                    для управления версиями Node.js.
+                </p>
+            </note>
+            <warning><p>Слишком старая версия Node.js приведёт к ошибкам установки или выполнении кода (например,
+                отсутствие поддерживаемых API). Обновите Node.js, если видите ошибки синтаксиса или несовместимости.</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Установка Nest CLI и создание проекта">
+            <p>Существует два подхода: установить CLI глобально или запускать через npx. Для новичка проще использовать
+                npx — так вы всегда получите актуальную версию генератора.</p>
+            <chapter title="Вариант 1: через npx (рекомендовано)">
+      <code-block lang="bash">
+npx @nestjs/cli new my-app
+# Далее мастер спросит менеджер пакетов — выберите npm для простоты
+      </code-block>
+                <p>Команда создаст скелет проекта, настроит TypeScript и добавит базовые скрипты.</p>
+            </chapter>
+            <chapter title="Вариант 2: глобальная установка CLI">
+      <code-block lang="bash">
+npm i -g @nestjs/cli
+nest new my-app
+      </code-block>
+                <warning><p>Глобально установленный CLI может отставать от актуальной версии. Если вы столкнулись с
+                    несовместимостью шаблонов, выполните обновление глобального пакета.</p></warning>
+            </chapter>
+        </chapter>
+
+        <chapter title="Структура базового проекта">
+            <p>После генерации вы увидите минимальный каркас с модулем приложения, контроллером и сервисом. Ниже
+                показаны ключевые файлы и их назначение.</p>
+            <list>
+                <li>
+                    <p><code>src/main.ts</code> — точка входа. Создаёт
+                        <tooltip term="NestFactory">NestFactory</tooltip>
+                        и запускает HTTP-сервер.
+                    </p>
+                </li>
+                <li><p><code>src/app.module.ts</code> — корневой модуль. Подключает контроллеры, провайдеры и другие
+                    модули.</p></li>
+                <li><p><code>src/app.controller.ts</code> — пример контроллера с HTTP-эндпоинтом.</p></li>
+                <li><p><code>src/app.service.ts</code> — пример сервиса с бизнес-логикой.</p></li>
+                <li><p><code>package.json</code> — скрипты и зависимости проекта.</p></li>
+                <li>
+                    <p><code>tsconfig.json</code> — конфигурация
+                        <tooltip term="TypeScript">TypeScript</tooltip>
+                        .
+                    </p>
+                </li>
+                <li><p><code>nest-cli.json</code> — конфигурация генератора и сборки Nest.</p></li>
+            </list>
+            <note><p>Генератор также может добавить файлы тестов. На старте вы можете их не трогать, но позже вернитесь
+                к ним, чтобы закрепить практику написания тестов.</p></note>
+        </chapter>
+
+        <chapter title="Первый запуск приложения">
+            <list>
+                <li><p>Перейдите в каталог проекта и установите зависимости:</p>
+                    <code-block lang="bash">
+cd my-app
+npm install
+        </code-block>
+                </li>
+                <li><p>Запустите в режиме разработки с автоматической перезагрузкой:</p>
+                    <code-block lang="bash">
+npm run start:dev
+        </code-block>
+                </li>
+                <li><p>Откройте в браузере адрес:</p>
+                    <code-block lang="bash">
+http://localhost:3000
+        </code-block>
+                </li>
+            </list>
+            <tip><p>Если вы видите текстовую строку в ответе — значит контроллер работает. Попробуйте изменить текст в
+                сервисе и убедиться, что при сохранении приложение пересобирается и отдаёт обновлённый ответ.</p></tip>
+            <warning><p>Если порт 3000 занят другой программой, вы получите ошибку привязки порта. Освободите порт или
+                укажите другой порт в настройках приложения при запуске.</p></warning>
+        </chapter>
+
+        <chapter title="Минимальные файлы для старта — примеры">
+            <chapter title="src/main.ts">
+                <p>Точка входа в приложение. Здесь включим глобальную валидацию запросов, чтобы сразу получить
+                    корректную обработку входных данных.</p>
+                <code-block lang="ts">
+import {NestFactory} from '@nestjs/core';
+import {AppModule} from './app.module';
+import {ValidationPipe} from '@nestjs/common';
+
+async function bootstrap() {
+    const app = await NestFactory.create(AppModule);
+    app.useGlobalPipes(new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true
+    }));
+    await app.listen(3000);
+// Выведем в консоль адрес сервера
+// console.log будет показан в терминале
+    console.log('Server is running on [http://localhost:3000](http://localhost:3000)');
+}
+
+bootstrap(); </code-block>
+                <note>
+                    <p>
+                        <tooltip term="ValidationPipe">ValidationPipe</tooltip>
+                        автоматически проверяет DTO по декораторам class-validator. Это избавляет от рутинных проверок
+                        входных данных в каждом контроллере.
+                    </p>
+                </note>
+            </chapter>
+
+            
+            <chapter title="src/app.module.ts">
+  <code-block lang="ts">
+
+
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+@Module({
+    imports: [],
+    controllers: [AppController],
+    providers: [AppService]
+})
+export class AppModule {} </code-block>
+            </chapter>
+
+            
+            <chapter title="src/app.controller.ts">
+  <code-block lang="ts">
+
+
+import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service';
+
+@Controller()
+export class AppController {
+    constructor(private readonly appService: AppService) {}
+
+    @Get()
+    getRoot() {
+        return this.appService.getHello();
+    }
+} </code-block>
+            </chapter>
+
+            
+            <chapter title="src/app.service.ts">
+  <code-block lang="ts">
+
+
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+    getHello() {
+        // Это сообщение увидите в браузере
+        return { message: 'Hello from NestJS' };
+    }
+} </code-block>
+            </chapter>
+
+            
+            <chapter title="package.json — важные скрипты">
+  <code-block lang="json">
+
+
+{
+    "name": "my-app",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "nest start",
+        "start\:dev": "nest start --watch",
+        "build": "nest build",
+        "start\:prod": "node dist/main.js",
+        "lint": "eslint ."
+    }
+} </code-block>
+                <tip><p><code>start\:dev</code> перезапускает сервер при изменениях исходников. Это ускоряет разработку.
+                </p></tip>
+            </chapter>
+        </chapter>
+
+        <chapter title="Правильная структура проекта (пример из реального приложения)">
+            <p>Ниже приводится пример разбиения кода по слоям и доменам. Такая структура облегчает навигацию,
+                поддерживаемость и масштабирование.</p>
+            
+            <chapter title="Пояснение по слоям и папкам">
+                <list>
+                    <li>
+                        <p>
+                            <format style="bold">src/http</format>
+                            — слой транспортного интерфейса: контроллеры, декораторы, фильтры ошибок, интерсепторы,
+                            middleware, пайпы и типы, связанные с HTTP. Это «край» системы, принимающий запросы и
+                            возвращающий ответы.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/logic</format>
+                            — прикладная логика и
+                            <tooltip term="Use Case">Use Cases</tooltip>
+                            . Здесь нет HTTP-специфики, только бизнес-операции. Такой подход упрощает тестирование и
+                            повторное использование.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/data</format>
+                            — доступ к данным: доменные модули, репозитории,
+                            <tooltip term="ORM">ORM</tooltip>
+                            -сущности, интеграции с БД и внешними хранилищами (
+                            <tooltip term="PostgreSQL">PostgreSQL</tooltip>
+                            ,
+                            <tooltip term="MongoDB">MongoDB</tooltip>
+                            ,
+                            <tooltip term="Redis">Redis</tooltip>
+                            ,
+                            <tooltip term="S3">S3</tooltip>
+                            ).
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/events</format>
+                            — события домена, эмиттеры, декораторы для публикации и подписки. Это основа для
+                            <tooltip term="Event-driven architecture">событийной архитектуры</tooltip>
+                            и интеграций.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/schedule</format>
+                            — планировщики задач (cron, интервальные задания), абстракции и реестр задач.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/telemetry</format>
+                            — трассировка, метрики и логи: конфигурация
+                            <tooltip term="OpenTelemetry">OpenTelemetry</tooltip>
+                            , экспортёры, обработчики спанов, инструментация.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/utils</format>
+                            — утилиты и функции общего назначения: дата-вспомогалки, преобразования строк,
+                            вспомогательные функции для
+                            <tooltip term="TypeORM">TypeORM</tooltip>
+                            и т. п.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <format style="bold">src/system</format>
+                            — системные настройки и общие конфигурации приложения, которые не относятся к конкретному
+                            слою.
+                        </p>
+                    </li>
+                </list>
+                <note><p>Такое разделение помогает держать границы между слоями, чтобы HTTP-детали не «протекали» в
+                    бизнес-логику, а операции с данными оставались изолированными от контроллеров. Это упрощает
+                    тестирование и масштабирование.</p></note>
+                <warning>
+                    <p>Смешивание слоёв приводит к
+                        <tooltip term="Зацепление">сильному зацеплению</tooltip>
+                        кода и делает изменения дорогостоящими. Например, если в <code>src/logic</code> начнут
+                        появляться
+                        <tooltip term="Express">Express</tooltip>
+                        -специфичные типы, вы потеряете переносимость логики на другой транспорт (gRPC, очередь
+                        сообщений).
+                    </p>
+                </warning>
+            </chapter>
+            
+
+        </chapter>
+
+        <chapter title="Подключение типичной инфраструктуры шаг за шагом">
+            <chapter title="Валидация и трансформация DTO">
+                <p>Сразу включите глобальную валидацию и используйте
+                    class-validator и class-transformer для безопасной обработки входных данных.
+                </p>
+                <code-block lang="bash">
+npm i class-validator class-transformer
+      </code-block>
+                <code-block lang="ts">
+import {IsString, IsOptional} from 'class-validator';
+
+export class CreateItemDto {
+    @IsString()
+    title: string;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
+} </code-block>
+                <note><p>С <code>whitelist: true</code> лишние поля будут удалены, что защищает от неожиданных свойств в
+                    теле запроса.</p></note>
+            </chapter>
+
+            
+            <chapter title="Глобальная обработка ошибок">
+                <p>Используйте
+                    <tooltip term="Exception Filter">фильтр исключений</tooltip>
+                    , чтобы возвращать единый формат ошибок клиентам.
+                </p>
+                    <code-block lang="ts">
+                        import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
+
+                        @Catch(HttpException)
+                        export class HttpExceptionFilter implements ExceptionFilter {
+                            catch(exception: HttpException, host: ArgumentsHost) {
+                                const ctx = host.switchToHttp();
+                                const res = ctx.getResponse();
+                                const status = exception.getStatus();
+                                const body = {
+                                    error: true,
+                                    statusCode: status,
+                                    message: exception.message
+                                };
+                                res.status(status).json(body);
+                            }
+                        }
+                    </code-block>
+                <code-block lang="ts">
+                    import {NestFactory} from '@nestjs/core';
+                    import {AppModule} from './app.module';
+                    import {HttpExceptionFilter} from './http/filter/http-exception.filter';
+
+                    async function bootstrap() {
+                        const app = await NestFactory.create(AppModule);
+                        app.useGlobalFilters(new HttpExceptionFilter());
+                        await app.listen(3000);
+                        console.log('Server is running on http://localhost:3000');
+                    }
+
+                    bootstrap();
+                </code-block>
+                <tip><p>Единый формат ошибок ускоряет фронтенд-разработку и дебаг.</p></tip>
+            </chapter>
+
+            
+            <chapter title="Логирование запросов и трассировка">
+                <p>Минимальный middleware для логирования и интерцептор для добавления
+                    <tooltip term="Trace Id">trace id</tooltip>
+                    :
+                </p>
+                <code-block lang="ts">
+                    import { Injectable, NestMiddleware } from '@nestjs/common';
+                    import { Request, Response, NextFunction } from 'express';
+
+                    @Injectable()
+                    export class RequestLogMiddleware implements NestMiddleware {
+                        use(req: Request, res: Response, next: NextFunction) {
+                            console.log(`${req.method} ${req.originalUrl}`);
+                            next();
+                        }
+                    }
+                </code-block>
+                <code-block lang="ts">
+                import {Injectable, NestInterceptor, ExecutionContext, CallHandler} from '@nestjs/common';
+                import {Observable} from 'rxjs';
+
+                @Injectable()
+                export class TracingInterceptor implements NestInterceptor {
+                    intercept(context: ExecutionContext, next: CallHandler): Observable&lt;any&gt; {
+                        return next.handle();
+                    }
+                }
+                </code-block>
+                <note>
+                    <p>Дальше вы сможете заменить <code>console.log</code> на полноценный логгер и подключить
+                        <tooltip term="OpenTelemetry">OpenTelemetry</tooltip>
+                        для распределённой трассировки.
+                    </p>
+                </note>
+            </chapter>
+        </chapter>
+
+        <chapter title="Сборка и запуск в продакшене">
+            <list>
+                <li><p>Соберите проект:</p>
+                    <code-block lang="bash">
+npm run build
+        </code-block>
+                </li>
+                <li><p>Запустите собранную версию:</p>
+                    <code-block lang="bash">
+npm run start:prod
+        </code-block>
+                </li>
+            </list>
+            <warning><p>В продакшене не используйте режим <code>start:dev</code>. Он медленнее, потребляет больше памяти
+                и не предназначен для боевой эксплуатации.</p></warning>
+        </chapter>
+
+        <chapter title="Частые проблемы и как их избежать">
+            <list>
+                <li>
+                    <p>
+                        <format style="bold">Несовместимость версий</format>
+                        : при ошибках установки удалите <code>node_modules</code> и файл <code>package-lock.json</code>,
+                        затем выполните установку заново.
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <format style="bold">Конфликт портов</format>
+                        : измените порт в <code>main.ts</code> методом <code>listen</code> или через переменную
+                        окружения.
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <format style="bold">Ошибки типов</format>
+                        : убедитесь, что <code>tsconfig.json</code> настроен корректно, а зависимости @types
+                        установлены.
+                    </p>
+                </li>
+            </list>
+        </chapter>
+
+        <chapter title="Итоги">
+            <p>Вы установили окружение, сгенерировали каркас проекта
+                <tooltip term="NestJS">NestJS</tooltip>
+                , запустили сервер, включили валидацию и базовую обработку ошибок, а также разобрались с рекомендуемой
+                структурой для масштабируемых приложений. Дальше вы сможете добавлять модули домена, интеграции с БД,
+                события, планировщики задач, телеметрию и выстраивать зрелую архитектуру.
+            </p>
+        </chapter>
+    </chapter>
+</topic>

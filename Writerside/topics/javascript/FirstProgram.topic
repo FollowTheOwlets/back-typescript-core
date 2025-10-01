@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Первая программа на JavaScript и запуск ее на NodeJS" id="FirstProgram">
+
+    <chapter title="Введение">
+        <p>
+            В этом разделе вы создадите свою первую программу на <tooltip term="JavaScript">JavaScript</tooltip> и запустите её в среде <tooltip term="Node.js">Node.js</tooltip>. Мы разберём минимально необходимую структуру проекта, способы запуска, передачу аргументов, чтение переменных окружения и базовые приёмы вывода логов.
+        </p>
+        <p>
+            <format style="bold">Цель</format> — получить рабочее понимание цикла: «написал скрипт → запустил через <tooltip term="CLI">CLI</tooltip> → увидел результат → зафиксировал настройки в <tooltip term="package.json">package.json</tooltip>».
+        </p>
+        <note>
+            Для серверной разработки рекомендуется использовать <tooltip term="LTS">LTS</tooltip>-версию Node.js и менеджер версий <tooltip term="nvm">nvm</tooltip>, чтобы легко переключаться между версиями.
+        </note>
+    </chapter>
+
+    <chapter title="Подготовка окружения">
+        <chapter title="Проверка установки Node.js и npm">
+            <p>
+                Убедитесь, что установлены <code>node</code> и <code>npm</code> — стандартный менеджер пакетов Node.js.
+            </p>
+            <code-block lang="bash">
+node -v
+# Вывод: v22.0.0
+npm -v
+# Вывод: 10.0.0
+      </code-block>
+            <tip>
+                Если команды недоступны, установите LTS-версию Node.js. Для удобного управления версиями используйте <tooltip term="nvm">nvm</tooltip>.
+            </tip>
+        </chapter>
+
+        <chapter title="Создание рабочей директории и инициализация проекта">
+            <p>
+                Создайте папку проекта, инициализируйте <tooltip term="package.json">package.json</tooltip> и откройте проект в любимом редакторе.
+            </p>
+            <code-block lang="bash">
+mkdir hello-node
+cd hello-node
+npm init -y
+# Вывод: создан файл package.json со значениями по умолчанию
+      </code-block>
+            <note>
+                <tooltip term="package.json">package.json</tooltip> хранит имя проекта, версии, скрипты и зависимости. Его наличие делает запуск и поддержку проекта предсказуемыми.
+            </note>
+        </chapter>
+    </chapter>
+
+    <chapter title="Первая программа (CommonJS по умолчанию)">
+        <p>
+            По умолчанию Node.js использует систему модулей <tooltip term="CommonJS">CommonJS</tooltip> (если в <code>package.json</code> не указано иное). Создадим файл <code>index.js</code> и выведем текст.
+        </p>
+        <code-block lang="js">
+console.log('Hello, Node.js!');
+// Вывод: Hello, Node.js!
+    </code-block>
+        <p>
+            Запустите файл командой:
+        </p>
+        <code-block lang="bash">
+node index.js
+# Вывод: Hello, Node.js!
+    </code-block>
+        <tip>
+            Команда <code>node &lt;файл&gt;</code> запускает JavaScript-файл в среде Node.js, минуя браузер.
+        </tip>
+    </chapter>
+
+    <chapter title="Запуск как исполняемого скрипта (shebang)">
+        <p>
+            Скрипт можно сделать исполняемым в Unix-системах при помощи строки <tooltip term="shebang">shebang</tooltip>. Добавьте её в начало файла и дайте права на исполнение:
+        </p>
+        <code-block lang="js">
+#!/usr/bin/env node
+console.log('Hello from executable!');
+// Вывод: Hello from executable!
+    </code-block>
+        <code-block lang="bash">
+chmod +x index.js
+./index.js
+# Вывод: Hello from executable!
+    </code-block>
+        <warning>
+            На Windows прямой запуск <code>./index.js</code> без <code>node</code> обычно недоступен. Используйте <code>node index.js</code> или скрипты в <code>package.json</code>.
+        </warning>
+    </chapter>
+
+    <chapter title="Аргументы командной строки">
+        <p>
+            Доступ к аргументам запуска осуществляется через <code>process.argv</code>. Первые два элемента — путь к Node и путь к скрипту; полезные аргументы начинаются с индекса 2.
+        </p>
+        <code-block lang="js">
+const args = process.argv.slice(2);
+console.log('Args:', args.join(', '));
+// Вывод (пример): Args: --name, Alex
+    </code-block>
+        <code-block lang="bash">
+node index.js --name Alex
+# Вывод: Args: --name, Alex
+    </code-block>
+        <note>
+            Для реальных CLI используйте специализированные парсеры аргументов (например, <code>yargs</code>), но для первой программы достаточно базовой работы с <code>process.argv</code>.
+        </note>
+    </chapter>
+
+    <chapter title="Переменные окружения">
+        <p>
+            Конфигурацию удобно передавать через <tooltip term="Переменная окружения">переменные окружения</tooltip>, доступные как <code>process.env</code>. Используйте «разумные значения по умолчанию».
+        </p>
+        <code-block lang="js">
+const port = process.env.PORT ?? 3000;
+console.log(`PORT = ${port}`);
+// Вывод (пример): PORT = 3000
+    </code-block>
+        <code-block lang="bash">
+PORT=8080 node index.js
+# Вывод: PORT = 8080
+    </code-block>
+        <warning>
+            Не хардкодьте секреты (токены, пароли) в коде. Передавайте их через окружение или секрет-хранилища. Это снижает риск утечки данных.
+        </warning>
+    </chapter>
+
+    <chapter title="Логи и коды возврата">
+        <p>
+            Для информационных сообщений используйте <code>console.log</code> (пишет в <tooltip term="stdout">stdout</tooltip>), для ошибок — <code>console.error</code> (пишет в <tooltip term="stderr">stderr</tooltip>). Код возврата процесса задаётся <code>process.exit()</code>.
+        </p>
+        <code-block lang="js">
+console.log('info');
+// Вывод: info
+console.error('error');
+// Вывод: error
+process.exit(0);
+    </code-block>
+        <note>
+            Нулевой <tooltip term="Код возврата">код возврата</tooltip> обычно означает успех. Ненулевой — ошибку. Это важно для CI/CD и оболочек.
+        </note>
+    </chapter>
+
+    <chapter title="Скрипты npm для запуска">
+        <p>
+            Добавьте скрипты в <tooltip term="package.json">package.json</tooltip>, чтобы унифицировать команды запуска.
+        </p>
+        <code-block lang="json">
+{
+    "name": "hello-node",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "node --watch index.js"
+    }
+}
+    </code-block>
+        <code-block lang="bash">
+npm run start
+# Вывод: Hello, Node.js!
+npm run dev
+# Вывод: автоматически перезапускает скрипт при изменениях файла
+    </code-block>
+        <tip>
+            Скрипты стандартизируют команды в команде разработчиков и на серверах. Избегайте длинных одноразовых команд в документации — лучше додавайте их как npm-скрипты.
+        </tip>
+        <warning>
+            Флаг <code>--watch</code> требует современной версии Node.js. Если недоступен, используйте сторонние инструменты (например, <code>nodemon</code>) как <code>devDependency</code>.
+        </warning>
+    </chapter>
+
+    <chapter title="ES Modules vs CommonJS (кратко)">
+        <p>
+            Node.js поддерживает <tooltip term="CommonJS">CommonJS</tooltip> и <tooltip term="ES Module">ES Module</tooltip> (ESM). Режим определяется расширением файла и/или полем <code>"type"</code> в <code>package.json</code>.
+        </p>
+
+        <chapter title="CommonJS (require/module.exports)">
+      <code-block lang="js">
+const os = require('os');
+console.log(os.platform());
+// Вывод (пример): linux
+      </code-block>
+        </chapter>
+
+        <chapter title="ESM (import/export)">
+            <p>
+                Включите ESM, указав <code>"type": "module"</code> в <code>package.json</code>, или используйте расширение <code>.mjs</code>.
+            </p>
+            <code-block lang="json">
+{
+    "name": "hello-node",
+    "version": "1.0.0",
+    "type": "module"
+}
+      </code-block>
+            <code-block lang="js">
+import { cpus } from 'os';
+console.log(cpus().length);
+// Вывод (пример): 8
+      </code-block>
+            <warning>
+                Не смешивайте <code>require</code> и <code>import</code> в одном и том же модуле. Это приводит к путанице загрузчиков и ошибкам запуска.
+            </warning>
+            <note>
+                В ESM доступен top-level <code>await</code>, что упрощает инициализацию асинхронных ресурсов без дополнительных обёрток.
+            </note>
+        </chapter>
+    </chapter>
+</topic>

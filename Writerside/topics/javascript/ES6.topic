@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Изменения в ES6 после ES5" id="ES6">
+
+    <chapter title="Введение">
+        <p>
+            С выходом
+            <tooltip term="ES6">ECMAScript 2015</tooltip>
+            язык
+            <tooltip term="JavaScript">JavaScript</tooltip>
+            получил множество новых возможностей, которые значительно расширили его применение в разработке, в том
+            числе на стороне сервера. Эти изменения упростили написание кода, сделали его более читаемым и
+            приблизили язык к современным стандартам промышленной разработки.
+        </p>
+        <note>
+            ES6 стал переломным моментом, после которого JavaScript окончательно укрепился не только как язык для
+            браузеров, но и как основа для
+            <tooltip term="Backend">серверных приложений</tooltip>
+            , например, через платформу Node.js.
+        </note>
+    </chapter>
+
+    <chapter title="Новые возможности объявления переменных">
+        <p>
+            В ES5 существовало только ключевое слово <code>var</code>, которое имело проблемы с областью видимости.
+            В ES6 добавлены новые способы:
+        </p>
+        <list>
+            <li><code>let</code> — переменные с блочной областью видимости.</li>
+            <li><code>const</code> — переменные-константы, значение которых нельзя переопределить.</li>
+        </list>
+        <code-block lang="js">
+      // Пример использования let и const
+      let count = 10;
+      const PI = 3.14;
+
+      if (true) {
+          let inner = "hello";
+          console.log(inner); // hello
+      }
+      // console.log(inner); // Ошибка, переменная недоступна
+    </code-block>
+        <warning>
+            Использование <code>var</code> может привести к трудноуловимым ошибкам из-за всплытия переменных
+            (hoisting). Для серверного кода предпочтительно использовать <code>let</code> и <code>const</code>.
+        </warning>
+    </chapter>
+
+    <chapter title="Стрелочные функции">
+        <p>
+            ES6 ввёл
+            <tooltip term="Стрелочная функция">стрелочные функции</tooltip>
+            , которые являются сокращённой формой записи функций и наследуют <code>this</code> из внешнего
+            контекста.
+        </p>
+        <code-block lang="js">
+      // Обычная функция
+      function sum(a, b) {
+          return a + b;
+      }
+
+      // Стрелочная функция
+      const sumArrow = (a, b) =&gt; a + b;
+
+      console.log(sum(2, 3));      // 5
+      console.log(sumArrow(2, 3)); // 5
+    </code-block>
+        <note>
+            Стрелочные функции особенно полезны при работе с методами массивов (<code>map</code>,
+            <code>filter</code>, <code>reduce</code>), где важно сохранить контекст.
+        </note>
+    </chapter>
+
+    <chapter title="Шаблонные строки">
+        <p>
+            В ES6 появились
+            <tooltip term="Шаблонные строки">шаблонные строки</tooltip>
+            , которые упрощают работу со строками и позволяют использовать выражения внутри строки.
+        </p>
+        <code-block lang="js">
+      const name = "Alex";
+      const age = 25;
+      console.log(`Имя: ${name}, Возраст: ${age}`);
+      // Имя: Alex, Возраст: 25
+    </code-block>
+        <note>
+            Такой синтаксис особенно удобен для формирования сообщений и логов на сервере, где требуется выводить
+            динамическую информацию.
+        </note>
+    </chapter>
+
+    <chapter title="Деструктуризация">
+        <p>
+            ES6 позволяет извлекать значения из массивов и объектов с помощью
+            <tooltip term="Деструктуризация">деструктуризации</tooltip>
+            .
+        </p>
+        <code-block lang="js">
+      const user = {id: 1, name: "Ivan"};
+      const {id, name} = user;
+      console.log(id);   // 1
+      console.log(name); // Ivan
+
+      const arr = [10, 20, 30];
+      const [first, second] = arr;
+      console.log(first, second); // 10 20
+    </code-block>
+        <tip>
+            Деструктуризация делает код более компактным и читабельным, особенно при работе с
+            <tooltip term="DTO">DTO</tooltip>
+            и объектами конфигураций.
+        </tip>
+    </chapter>
+
+    <chapter title="Оператор распространения (Spread) и Rest">
+        <p>
+            ES6 добавил синтаксис <code>...</code>, который может использоваться для объединения или копирования
+            массивов и объектов.
+        </p>
+        <code-block lang="js">
+      const arr1 = [1, 2, 3];
+      const arr2 = [...arr1, 4, 5];
+      console.log(arr2); // [1, 2, 3, 4, 5]
+
+      function sum(...numbers) {
+          return numbers.reduce((a, b) =&gt; a + b, 0);
+      }
+
+      console.log(sum(1, 2, 3)); // 6
+    </code-block>
+        <note>
+            Эти возможности часто используются в Node.js для обработки параметров функций и объединения данных из
+            разных источников.
+        </note>
+    </chapter>
+
+    <chapter title="Классы">
+        <p>
+            В ES6 появились
+            <tooltip term="Классы">классы</tooltip>
+            — синтаксический сахар над прототипным наследованием.
+        </p>
+        <code-block lang="js">
+      class User {
+          constructor(name) {
+              this.name = name;
+          }
+
+          sayHello() {
+              console.log(`Привет, я ${this.name}`);
+          }
+      }
+
+      const user = new User("Alex");
+      user.sayHello(); // Привет, я Alex
+    </code-block>
+        <note>
+            Использование классов облегчает переход к объектно-ориентированным принципам и делает код более
+            структурированным, что особенно полезно в больших проектах на Backend.
+        </note>
+    </chapter>
+
+    <chapter title="Модули">
+        <p>
+            ES6 ввёл
+            <tooltip term="Модуль">модули</tooltip>
+            с ключевыми словами <code>import</code> и <code>export</code>.
+        </p>
+        <code-block lang="js">
+      // user.js
+      export class User {
+          constructor(name) {
+              this.name = name;
+          }
+      }
+
+      // app.js
+      import {User} from "./user.js";
+
+      const user = new User("Ivan");
+    </code-block>
+        <warning>
+            В Node.js изначально поддерживалась система модулей CommonJS (<code>require</code> /
+            <code>module.exports</code>),
+            но современные версии Node.js уже поддерживают ES-модули. Важно выбрать одну систему и придерживаться её
+            в проекте.
+        </warning>
+    </chapter>
+
+    <chapter title="Заключение">
+        <p>
+            ES6 принесло множество улучшений, которые сделали JavaScript мощным инструментом для создания серверных
+            приложений. Новые возможности позволяют писать более надёжный, структурированный и читаемый код.
+        </p>
+    </chapter>
+</topic>

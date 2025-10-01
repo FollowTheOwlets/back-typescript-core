@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Методы массивов и строк в JavaScript" id="ArrayStringJs">
+
+        <p>
+            В JavaScript (ES5) для работы с
+            <tooltip term="Массив">массивами</tooltip>
+            и
+            <tooltip term="Строка">строками</tooltip>
+            доступен богатый набор методов. Важно понимать, какие методы изменяют исходные данные (
+            <tooltip term="Мутабельность">мутабельные</tooltip>
+            ), а какие возвращают новое значение (
+            <tooltip term="Немутируемость">немутирующие</tooltip>
+            ), чтобы избегать скрытых ошибок и побочных эффектов.
+        </p>
+
+        <chapter title="База: массивы и строки">
+            <p>
+                <format style="bold">Массив</format>
+                — упорядоченная коллекция значений с
+                <tooltip term="Индекс">индексацией</tooltip>
+                с нуля, размер в свойстве <code>length</code>. Элементы можно изменять по индексу.
+            </p>
+            <p>
+                <format style="bold">Строка</format>
+                — последовательность символов в
+                <tooltip term="UTF-16">UTF-16</tooltip>
+                . Строки
+                <format style="bold">немутируемые</format>
+                : любые «изменяющие» операции возвращают новую строку.
+            </p>
+            <note>
+                <p>Если нужно изменить строку «по месту», фактически создаётся новая строка. Это важно учитывать при
+                    работе с большими текстами.</p>
+            </note>
+        </chapter>
+
+        <chapter title="Как отличать мутабельные и немутирующие методы">
+            <list>
+                <li>У массивов мутабельные: <code>push</code>, <code>pop</code>, <code>shift</code>,
+                    <code>unshift</code>, <code>splice</code>, <code>sort</code>, <code>reverse</code>.
+                </li>
+                <li>У массивов немутирующие: <code>slice</code>, <code>concat</code>, <code>map</code>,
+                    <code>filter</code>, <code>reduce</code>/<code>reduceRight</code>, <code>every</code>,
+                    <code>some</code>, <code>indexOf</code>/<code>lastIndexOf</code>, <code>join</code>,
+                    <code>forEach</code> (не меняет сам массив, если не делать этого явно).
+                </li>
+                <li>У строк все методы возвращают новую строку: <code>slice</code>, <code>substring</code>,
+                    <code>substr</code>, <code>toUpperCase</code>/<code>toLowerCase</code>, <code>trim</code>, <code>replace</code>,
+                    <code>split</code> и др.
+                </li>
+            </list>
+            <tip>
+                <p>Если поведение метода сомнительно, проверьте, возвращает ли он новое значение и что происходит с
+                    исходными данными.</p>
+            </tip>
+        </chapter>
+
+        <chapter title="Массивы: мутабельные методы (изменяют исходный массив)">
+            <list>
+                <li><code>push(value1, ...)</code> — добавить в конец, вернуть новую длину.</li>
+                <li><code>pop()</code> — удалить последний элемент, вернуть удалённый.</li>
+                <li><code>unshift(value1, ...)</code> — добавить в начало, вернуть новую длину.</li>
+                <li><code>shift()</code> — удалить первый элемент, вернуть удалённый.</li>
+                <li><code>splice(start, deleteCount, item1, ...)</code> — удалить/вставить по индексу.</li>
+                <li><code>sort(compareFn)</code> — сортировать по месту.</li>
+                <li><code>reverse()</code> — развернуть порядок элементов.</li>
+            </list>
+
+
+            <code-block>
+
+
+var a = [3, 1, 2];
+a.push(4);
+console.log(a); // [3, 1, 2, 4]
+
+a.splice(1, 1, "x");
+console.log(a); // [3, "x", 2, 4]
+
+var b = [10, 2, 5];
+b.sort();
+// лексикографическая сортировка как строк
+console.log(b); // [10, 2, 5]
+
+b.sort(function (x, y) { return x - y; });
+console.log(b); // [2, 5, 10] </code-block>
+
+
+            <warning>
+                <p><code>sort()</code> без
+                    <tooltip term="Сравнивающая функция">сравнивающей функции</tooltip>
+                    сортирует
+                    <tooltip term="Лексикографическая сортировка">лексикографически</tooltip>
+                    . Для чисел почти всегда пишите <code>function (a, b) { return a - b; }</code>.
+                </p>
+            </warning>
+            <warning>
+                <p><code>splice()</code> меняет исходный массив. Если нужна копия без изменения источника — применяйте
+                    <code>slice()</code>.</p>
+            </warning>
+            <warning>
+                <p>Не используйте <code>delete arr[i]</code> для удаления: останется
+                    <tooltip term="Пустой элемент массива">пустой элемент</tooltip>
+                    , длина не уменьшится. Правильно — <code>splice()</code>.
+                </p>
+            </warning>
+
+
+        </chapter>
+
+        <chapter title="Массивы: немутирующие методы (возвращают новый результат)">
+            <list>
+                <li><code>slice(begin, end)</code> — диапазон [begin, end), поддерживает отрицательные индексы; без
+                    аргументов — поверхностная копия.
+                </li>
+                <li><code>concat(valueOrArray, ...)</code> — склеивает, возвращает новый массив.</li>
+                <li><code>indexOf(value, fromIndex)</code> / <code>lastIndexOf(value, fromIndex)</code> — поиск,
+                    возвращает индекс или <code>-1</code>.
+                </li>
+                <li><code>join(separator)</code> — массив → строка с разделителем.</li>
+            </list>
+
+
+            <code-block>
+
+
+var src = [{ n: 1 }, { n: 2 }];
+var copy = src.slice();
+console.log(copy === src); // false
+copy[0].n = 99;
+console.log(src[0].n); // 99 // поверхностная копия
+
+console.log(["a", "b", "c"].join("-")); // "a-b-c"
+console.log([1, 2, 3].indexOf(2)); // 1 </code-block>
+
+
+            <tip>
+                <p>
+                    <tooltip term="Поверхностная копия">Поверхностная копия</tooltip>
+                    сохраняет общие ссылки на вложенные объекты. Меняя вложенный объект, вы меняете его во всех
+                    массивах-копиях.
+                </p>
+            </tip>
+
+
+        </chapter>
+
+        <chapter title="Перебор массивов и свёртка (ES5)">
+            <list>
+                <li><code>forEach(callback, thisArg)</code> — перебрать элементы ради
+                    <tooltip term="Побочный эффект">побочных эффектов</tooltip>
+                    .
+                </li>
+                <li><code>map(callback, thisArg)</code> — преобразовать каждый элемент, вернуть новый массив.</li>
+                <li><code>filter(callback, thisArg)</code> — оставить элементы, где
+                    <tooltip term="Предикат">предикат</tooltip>
+                    вернул <code>true</code>.
+                </li>
+                <li><code>every(callback, thisArg)</code> — проверка «все соответствуют условию».</li>
+                <li><code>some(callback, thisArg)</code> — проверка «хотя бы один соответствует».</li>
+                <li><code>reduce(callback, initialValue)</code> / <code>reduceRight(...)</code> — свёртка к одному
+                    значению через
+                    <tooltip term="Аккумулятор">аккумулятор</tooltip>
+                    .
+                </li>
+            </list>
+
+
+            <code-block>
+
+
+var arr = [1, 2, 3, 4];
+arr.forEach(function (x) { console.log(x); }); // 1 2 3 4
+
+var squares = arr.map(function (x) { return x \* x; });
+console.log(squares); // [1, 4, 9, 16]
+
+var evens = arr.filter(function (x) { return x % 2 === 0; });
+console.log(evens); // [2, 4]
+
+console.log(arr.every(function (x) { return x > 0; })); // true
+console.log(arr.some(function (x) { return x > 3; })); // true
+
+var sum = arr.reduce(function (acc, x) { return acc + x; }, 0);
+console.log(sum); // 10 </code-block>
+
+
+            <warning>
+                <p><code>reduce()</code> без <code>initialValue</code> бросит ошибку на пустом массиве. Всегда задавайте
+                    начальное значение (например, <code>0</code> для суммы).</p>
+            </warning>
+            <note>
+                <p><code>forEach()</code> нельзя прервать <code>return</code>/<code>break</code>. Нужен ранний выход —
+                    используйте обычный <code>for</code> или <code>some()</code>/<code>every()</code>.</p>
+            </note>
+
+
+        </chapter>
+
+        <chapter title="Строки: поиск и извлечение">
+            <list>
+                <li><code>indexOf(substr, fromIndex)</code> / <code>lastIndexOf(substr, fromIndex)</code> — поиск
+                    подстроки, регистр учитывается.
+                </li>
+                <li><code>slice(begin, end)</code> — подстрока [begin, end), поддерживает отрицательные индексы.</li>
+                <li><code>substring(begin, end)</code> — подстрока, отрицательные считаются как 0; если begin &gt; end —
+                    аргументы меняются местами.
+                </li>
+                <li><code>substr(start, length)</code> — подстрока по старту и длине (доступно в ES5).</li>
+                <li><code>charAt(index)</code> / <code>charCodeAt(index)</code> — символ и его код (0–65535).</li>
+            </list>
+
+
+            <code-block>
+
+
+var s = "JavaScript";
+console.log(s.indexOf("Script")); // 4
+console.log(s.slice(4)); // "Script"
+console.log(s.substring(4, 10)); // "Script"
+console.log(s.substr(4, 6)); // "Script"
+console.log(s.charAt(0)); // "J"
+console.log(s.charCodeAt(0)); // 74 </code-block>
+
+
+            <warning>
+                <p><code>slice()</code> и <code>substring()</code> по-разному трактуют отрицательные индексы. Нужны
+                    отрицательные — используйте <code>slice()</code>.</p>
+            </warning>
+
+
+        </chapter>
+
+        <chapter title="Строки: преобразование, замена и разбиение">
+            <list>
+                <li><code>toUpperCase()</code> / <code>toLowerCase()</code> — изменение регистра (возвращают новую
+                    строку).
+                </li>
+                <li><code>trim()</code> — удаляет пробелы по краям.</li>
+                <li><code>replace(search, replacement)</code> — заменяет первое вхождение; для глобальной замены
+                    используйте
+                    <tooltip term="Регулярное выражение">регулярное выражение</tooltip>
+                    с флагом <code>g</code>.
+                </li>
+                <li><code>split(separator, limit)</code> — разбивает строку в массив по
+                    <tooltip term="Разделитель">разделителю</tooltip>
+                    .
+                </li>
+            </list>
+
+
+            <code-block>
+
+
+var s = "  hello, world  ";
+console.log(s.trim()); // "hello, world"
+
+console.log("a,b,c".split(",")); // ["a", "b", "c"]
+
+console.log("foo foo".replace(/foo/g, "bar")); // "bar bar" </code-block>
+
+
+            <note>
+                <p>«Перевернуть» строку можно так: <code>split("")</code> → <code>reverse()</code> →
+                    <code>join("")</code>.</p>
+            </note>
+
+            <code-block>
+
+
+var t = "abc";
+var r = t.split("").reverse().join("");
+console.log(r); // "cba" </code-block>
+
+
+            <warning>
+                <p>Разворот через <code>split("")</code> ломает символы, кодирующиеся как
+                    <tooltip term="Суррогатная пара">суррогатные пары</tooltip>
+                    в UTF-16 (некоторые эмодзи, иероглифы). В ES5 нет простого безопасного решения.
+                </p>
+            </warning>
+
+
+        </chapter>
+
+        <chapter title="Массивы ↔ строки: конвертация">
+            <p>
+                <code>split()</code> превращает строку в массив, а <code>join()</code> — массив в строку. Следите за
+                выбранным разделителем, чтобы корректно собирать/разбирать данные.
+            </p>
+            <code-block>
+var csv = "1;2;3";
+var arr = csv.split(";");
+console.log(arr); // ["1", "2", "3"]
+
+var back = arr.join(";");
+console.log(back); // "1;2;3" </code-block>
+        </chapter>
+
+        <chapter title="Практические рецепты (ES5)">
+            <list>
+                <li>
+                    <format style="bold">Удалить дубликаты</format>
+                    простым способом:
+                </li>
+            </list>
+            <code-block>
+var a = [1, 2, 2, 3];
+var unique = a.filter(function (x, i) { return a.indexOf(x) === i; });
+console.log(unique); // [1, 2, 3]
+    </code-block>
+
+
+            <list>
+                <li>
+                    <format style="bold">Безопасная сортировка чисел</format>
+                    :
+                </li>
+            </list>
+            <code-block>
+
+
+var nums = [10, 1, 5];
+nums.sort(function (a, b) { return a - b; });
+console.log(nums); // [1, 5, 10] </code-block>
+
+
+            <list>
+                <li>
+                    <format style="bold">Сумма значений через reduce</format>
+                    (с начальными значениями):
+                </li>
+            </list>
+            <code-block>
+
+
+var empty = [];
+var s = empty.reduce(function (acc, x) { return acc + x; }, 0);
+console.log(s); // 0 </code-block>
+        </chapter>
+
+        <chapter title="Частые ошибки и лучшие практики">
+            <warning>
+                <p>Удаление через <code>delete arr[i]</code> создаёт «дырки». Правильно удалять элементы массивов —
+                    <code>splice()</code>.</p>
+            </warning>
+            <warning>
+                <p>Сортировка без компаратора приводит к лексикографическому порядку. Для чисел задавайте <code>function
+                    (a, b) { return a - b; }</code>.</p>
+            </warning>
+            <warning>
+                <p><code>reduce()</code> без <code>initialValue</code> падает на пустых массивах. Всегда задавайте
+                    начальное значение.</p>
+            </warning>
+            <note>
+                <p>Для проверки наличия значения в массиве в ES5 используйте <code>indexOf(x) !== -1</code>. Метод
+                    <code>includes()</code> появился позже.</p>
+            </note>
+            <note>
+                <p>Для производительности в «горячих» циклах предпочтителен обычный <code>for</code>, но для читаемости
+                    используйте <code>map</code>/<code>filter</code>/<code>reduce</code>, когда это уместно.</p>
+            </note>
+        </chapter>
+
+
+</topic>

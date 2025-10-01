@@ -1,0 +1,201 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:35.0918311"><title>TypeScript | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"-fvhjra_3","level":0,"title":"Что добавляет TypeScript поверх JavaScript","anchor":"#-fvhjra_3"},{"id":"-fvhjra_4","level":0,"title":"Базовые типы и аннотации","anchor":"#-fvhjra_4"},{"id":"-fvhjra_5","level":0,"title":"Структурная типизация и контракты","anchor":"#-fvhjra_5"},{"id":"-fvhjra_6","level":0,"title":"Интерфейсы и type-алиасы","anchor":"#-fvhjra_6"},{"id":"-fvhjra_7","level":0,"title":"Объединения, пересечения, литеральные и перечислимые типы","anchor":"#-fvhjra_7"},{"id":"-fvhjra_8","level":0,"title":"Сужение типов (type narrowing) и проверки","anchor":"#-fvhjra_8"},{"id":"-fvhjra_9","level":0,"title":"Дженерики (обобщения)","anchor":"#-fvhjra_9"},{"id":"-fvhjra_10","level":0,"title":"Полезные утилитные типы","anchor":"#-fvhjra_10"},{"id":"-fvhjra_11","level":0,"title":"Функции, this и перегрузки","anchor":"#-fvhjra_11"},{"id":"-fvhjra_12","level":0,"title":"Классы, модификаторы и поля","anchor":"#-fvhjra_12"},{"id":"-fvhjra_13","level":0,"title":"Строгий режим и работа с null/undefined","anchor":"#-fvhjra_13"},{"id":"-fvhjra_14","level":0,"title":"Переезд с серверного JS на TypeScript — практическая стратегия","anchor":"#-fvhjra_14"},{"id":"-fvhjra_15","level":0,"title":"Лучшие практики для серверного TypeScript","anchor":"#-fvhjra_15"},{"id":"-fvhjra_16","level":0,"title":"Мини-проект: пример и как запустить","anchor":"#-fvhjra_16"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="TypeScript | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/typescript.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="TypeScript | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/typescript.html#webpage",
+    "url": "writerside-documentation//1.0.0/typescript.html",
+    "name": "TypeScript | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="TypeScript" data-main-title="TypeScript" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs="_JavaScript.topic|JavaScript"><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="TypeScript" id="TypeScript.topic">TypeScript</h1><p id="-fvhjra_2"><span class="tooltip" id="-fvhjra_17" title="Надстройка над JavaScript с системой типов, компилируемая в JS">TypeScript</span> &mdash; это надстройка над <span class="tooltip" id="-fvhjra_18" title="Язык программирования, используемый для создания веб-приложений">JavaScript</span>, добавляющая статическую систему <span class="tooltip" id="-fvhjra_19" title="Форма и ограничения значения, используемые компилятором для проверки корректности кода">типов</span>, инструменты для проверки кода на этапе разработки и улучшенную поддержку крупных проектов. Он компилируется в обычный JS, поэтому запускается везде, где работает JS: в Node.js и в браузере. Ниже &mdash; что именно добавляет TS и как стажёру, знакомому только с серверным JS, грамотно на него перейти.</p><section class="chapter"><h2 id="-fvhjra_3" data-toc="-fvhjra_3">Что добавляет TypeScript поверх JavaScript</h2><ul class="list _bullet" id="-fvhjra_20"><li class="list__item" id="-fvhjra_22"><p><span id="-fvhjra_28"><b>Статическая типизация</b></span>: объявление типов для переменных, параметров, возвращаемых значений функций и структур данных.</p></li><li class="list__item" id="-fvhjra_23"><p><span id="-fvhjra_29"><b>Инференс типов</b></span>: TS умеет выводить типы автоматически, не требуя аннотаций везде.</p></li><li class="list__item" id="-fvhjra_24"><p><span id="-fvhjra_30"><b>Проверка на этапе компиляции</b></span>: ловит опечатки, несоответствия контрактам и потенциальные ошибки ещё до запуска.</p></li><li class="list__item" id="-fvhjra_25"><p><span id="-fvhjra_31"><b>Современный синтаксис</b></span>: поддержка последних возможностей JS (ESNext), включая <code class="code" id="-fvhjra_32">import/export</code>, <code class="code" id="-fvhjra_33">async/await</code>, декораторы (экспериментально) и т. п.</p></li><li class="list__item" id="-fvhjra_26"><p><span id="-fvhjra_34"><b>Инструменты для больших кодовых баз</b></span>: <span class="tooltip" id="-fvhjra_35" title="Контракт, определяющий набор доступных методов без реализации">интерфейсы</span>, <span class="tooltip" id="-fvhjra_36" title="Параметризованный тип/функция/класс, сохраняющий информацию о типах">дженерики</span>, <span class="tooltip" id="-fvhjra_37" title="Объединение нескольких вариантов типов через оператор «|»">объединения типов</span>, <span class="tooltip" id="-fvhjra_38" title="Комбинация нескольких типов в один через «&amp;amp;»">пересечения типов</span>, <span class="tooltip" id="-fvhjra_39" title="Готовые обобщённые преобразователи типов (Partial, Pick, Omit и др.)">утилитные типы</span>.</p></li><li class="list__item" id="-fvhjra_27"><p><span id="-fvhjra_40"><b>Более умный редакторский опыт</b></span>: автодополнение, навигация по коду, рефакторинги и подсказки становятся точнее благодаря типам.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="-fvhjra_21"><p>TS не меняет рантайм Node.js. Он лишь добавляет проверку и подсказки до запуска. В рантайме остаётся обычный JS.</p></aside></section><section class="chapter"><h2 id="-fvhjra_4" data-toc="-fvhjra_4">Базовые типы и аннотации</h2><p id="-fvhjra_41">Самые часто используемые типы: <code class="code" id="-fvhjra_45">string</code>, <code class="code" id="-fvhjra_46">number</code>, <code class="code" id="-fvhjra_47">boolean</code>, <code class="code" id="-fvhjra_48">null</code>, <code class="code" id="-fvhjra_49">undefined</code>, <code class="code" id="-fvhjra_50">symbol</code>, <code class="code" id="-fvhjra_51">bigint</code>, <code class="code" id="-fvhjra_52">unknown</code>, <code class="code" id="-fvhjra_53">any</code>, <code class="code" id="-fvhjra_54">never</code>, а также <code class="code" id="-fvhjra_55">object</code>, массивы <code class="code" id="-fvhjra_56">T[]</code> и кортежи <code class="code" id="-fvhjra_57">[T1, T2]</code>.</p><div class="code-block" data-lang="ts">
+                // Явные аннотации типов
+                let message: string = &quot;Hello&quot;;
+                let count: number = 42;
+                let ok: boolean = true;
+
+                // Массивы и кортежи
+                const nums: number\[] = \[1, 2, 3];
+                const pair: \[string, number] = \[&quot;id&quot;, 10];
+
+                // Объекты и интерфейсы
+                interface User {
+                    id: string;
+                    email?: string; // вопросительный знак — поле необязательно
+                }
+
+                const u: User = {id: &quot;u1&quot;};
+            </div><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_43"><p>Аннотации нужны не везде &mdash; компилятор часто сам выводит тип: <code class="code" id="-fvhjra_58">const x = 1</code> означает, что <code class="code" id="-fvhjra_59">x</code> &mdash; <code class="code" id="-fvhjra_60">number</code>.</p></aside><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_44"><p>Тип <code class="code" id="-fvhjra_61">any</code> отключает проверки по месту использования. Избыточное применение <code class="code" id="-fvhjra_62">any</code> лишает преимуществ TS.</p></aside></section><section class="chapter"><h2 id="-fvhjra_5" data-toc="-fvhjra_5">Структурная типизация и контракты</h2><p id="-fvhjra_63">TS использует <span class="tooltip" id="-fvhjra_66" title="Совместимость по форме объекта (набор полей), а не по имени типа">структурную типизацию</span>: совместимость определяется формой объекта (набором полей), а не именем типа.</p><div class="code-block" data-lang="ts">
+                interface HasId {
+                    id: string;
+                }
+
+                type WithIdAndName = {
+                    id: string;
+                    name: string;
+                };
+
+                const w: WithIdAndName = {id: &quot;1&quot;, name: &quot;Alice&quot;};
+                const h: HasId = w; // ОК: у w есть поле id\:string
+            </div><aside class="prompt" data-type="note" data-title="" id="-fvhjra_65"><p>Благодаря структурности проще исполнять принцип подстановки: объект &laquo;богаче по полям&raquo; можно передать туда, где требуется &laquo;беднее&raquo;.</p></aside></section><section class="chapter"><h2 id="-fvhjra_6" data-toc="-fvhjra_6">Интерфейсы и type-алиасы</h2><p id="-fvhjra_67">И <code class="code" id="-fvhjra_70">interface</code>, и <code class="code" id="-fvhjra_71">type</code> объявляют формы типов. <code class="code" id="-fvhjra_72">interface</code> поддерживает декларативное расширение (merging), <code class="code" id="-fvhjra_73">type</code> &mdash; более универсален (можно описывать объединения, пересечения и пр.).</p><div class="code-block" data-lang="ts">
+                interface A {
+                    x: number;
+                }
+
+                interface A {
+                    y: number;
+                } // merging: теперь A имеет x и y
+
+                type B = { x: number } &amp; { y: number }; // пересечение даёт { x; y }
+            </div><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_69"><p>В доменных контрактах чаще используют <code class="code" id="-fvhjra_74">interface</code>, для сложных композиционных типов &mdash; <code class="code" id="-fvhjra_75">type</code>.</p></aside></section><section class="chapter"><h2 id="-fvhjra_7" data-toc="-fvhjra_7">Объединения, пересечения, литеральные и перечислимые типы</h2><div class="code-block" data-lang="ts">
+                type Id = string | number; // объединение
+                type Point2D = { x: number } &amp; { y: number }; // пересечение
+
+                // Литеральные типы и сужение
+                type Direction = &quot;up&quot; | &quot;down&quot; | &quot;left&quot; | &quot;right&quot;;
+
+                enum Role {
+                    Admin = &quot;admin&quot;,
+                    User = &quot;user&quot;,
+                }
+            </div><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_77"><p>С <code class="code" id="-fvhjra_78">enum</code> аккуратно: строковые литералы чаще проще и легче для tree-shaking. Рассмотрите <code class="code" id="-fvhjra_79">as const</code> объекты как альтернативу.</p></aside></section><section class="chapter"><h2 id="-fvhjra_8" data-toc="-fvhjra_8">Сужение типов (type narrowing) и проверки</h2><p id="-fvhjra_80">TS анализирует ветвления и проверки, чтобы &laquo;сузить&raquo; тип к более конкретному.</p><div class="code-block" data-lang="ts">
+                    function printId(id: string | number) {
+                        if (typeof id === &quot;string&quot;) {
+                            console.log(id.toUpperCase());
+                        } else {
+                            console.log(id.toFixed(2));
+                        }
+                    }
+
+                    function isUser(x: unknown): x is { id: string } {
+                        return typeof x === &quot;object&quot; &amp;&amp; x !== null &amp;&amp; &quot;id&quot; in x;
+                    }
+                </div><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_82"><p>Пользовательские type guards (<code class="code" id="-fvhjra_83">x is ...</code>) помогают описать безопасные проверки сложных структур.</p></aside></section><section class="chapter"><h2 id="-fvhjra_9" data-toc="-fvhjra_9">Дженерики (обобщения)</h2><p id="-fvhjra_84">Дженерики позволяют писать переиспользуемый код, сохраняющий информацию о типах.</p><div class="code-block" data-lang="ts">
+                    function wrap&lt;T&gt;(value: T) {
+                        return {value};
+                    }
+
+                    const x = wrap&lt;number&gt;(42);      // x: { value: number }
+                    const y = wrap(&quot;str&quot;);            // инференс T = string
+                </div><aside class="prompt" data-type="note" data-title="" id="-fvhjra_86"><p>Добавляйте ограничения: <code class="code" id="-fvhjra_87">&lt;T extends { id: string }&gt;</code>, чтобы сужать область допустимых типов.</p></aside></section><section class="chapter"><h2 id="-fvhjra_10" data-toc="-fvhjra_10">Полезные утилитные типы</h2><ul class="list _bullet" id="-fvhjra_88"><li class="list__item" id="-fvhjra_90"><p><code class="code" id="-fvhjra_93">Partial&lt;T&gt;</code>, <code class="code" id="-fvhjra_94">Required&lt;T&gt;</code>, <code class="code" id="-fvhjra_95">Readonly&lt;T&gt;</code></p></li><li class="list__item" id="-fvhjra_91"><p><code class="code" id="-fvhjra_96">Pick&lt;T, K&gt;</code>, <code class="code" id="-fvhjra_97">Omit&lt;T, K&gt;</code></p></li><li class="list__item" id="-fvhjra_92"><p><code class="code" id="-fvhjra_98">Record&lt;K, T&gt;</code>, <code class="code" id="-fvhjra_99">NonNullable&lt;T&gt;</code>, <code class="code" id="-fvhjra_100">ReturnType&lt;F&gt;</code></p></li></ul><div class="code-block" data-lang="ts">
+                type User = { id: string; email?: string };
+                type UserPatch = Partial&lt;User&gt;;          // все поля необязательны
+                type UserRequired = Required&lt;User&gt;;      // все обязательны
+                type OnlyId = Pick&lt;User, &quot;id&quot;&gt;;
+            </div></section><section class="chapter"><h2 id="-fvhjra_11" data-toc="-fvhjra_11">Функции, this и перегрузки</h2><p id="-fvhjra_101">Аннотируйте параметры и возвращаемые значения. Для разных сигнатур используйте перегрузки.</p><div class="code-block" data-lang="ts">
+                function len(x: string): number;
+                function len(x: any[]): number;
+                function len(x: string | any[]) {
+                    return x.length;
+                }
+            </div><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_103"><p>Не злоупотребляйте перегрузками &mdash; иногда достаточно объединений типов и сужения внутри тела функции.</p></aside></section><section class="chapter"><h2 id="-fvhjra_12" data-toc="-fvhjra_12">Классы, модификаторы и поля</h2><p id="-fvhjra_104">TS добавляет модификаторы <code class="code" id="-fvhjra_107">public</code>, <code class="code" id="-fvhjra_108">private</code>, <code class="code" id="-fvhjra_109">protected</code>, <code class="code" id="-fvhjra_110">readonly</code>, а также поля инициализации прямо в сигнатуре конструктора.</p><div class="code-block" data-lang="ts">
+                class Repo {
+                    constructor(private readonly url: string) {
+                    }
+
+                    connect(): void { /* ... */
+                    }
+                }
+
+                const r = new Repo(&quot;postgres://...&quot;);
+            </div><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_106"><p>Приватные поля помогают формализовать инкапсуляцию и не полагаться лишь на соглашения.</p></aside></section><section class="chapter"><h2 id="-fvhjra_13" data-toc="-fvhjra_13">Строгий режим и работа с null/undefined</h2><p id="-fvhjra_111">Включите строгий режим, чтобы компилятор помогал больше: <code class="code" id="-fvhjra_114">&quot;strict&quot;: true</code>, включая <code class="code" id="-fvhjra_115">strictNullChecks</code>.</p><div class="code-block" data-lang="ts">
+                    function findEmail(u?: { email?: string }) {
+                        // Опциональная последовательность и оператор объединения с null
+                        return u?.email ?? &quot;no-email@example.com&quot;;
+                    }
+                </div><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_113"><p>Осторожнее с утверждениями (<code class="code" id="-fvhjra_116">as</code>) и небезопасными операторами (<code class="code" id="-fvhjra_117">!</code>): они выключают проверки и могут скрыть ошибки.</p></aside></section><section class="chapter"><h2 id="-fvhjra_14" data-toc="-fvhjra_14">Переезд с серверного JS на TypeScript &mdash; практическая стратегия</h2><section class="chapter"><h3 id="-fvhjra_118" data-toc="-fvhjra_118">Шаг 1. Подготовка окружения</h3><ul class="list _bullet" id="-fvhjra_123"><li class="list__item" id="-fvhjra_125"><p>Добавьте TS в проект: <code class="code" id="-fvhjra_128">npm i -D typescript</code>.</p></li><li class="list__item" id="-fvhjra_126"><p>Инициализируйте конфиг: <code class="code" id="-fvhjra_129">npx tsc --init</code>.</p></li><li class="list__item" id="-fvhjra_127"><p>Рекомендуемые опции для Node.js-проекта: </p><div class="code-block" data-lang="json">
+                        {
+                            &quot;compilerOptions&quot;: {
+                                &quot;target&quot;: &quot;ES2020&quot;,
+                                &quot;module&quot;: &quot;NodeNext&quot;,
+                                &quot;moduleResolution&quot;: &quot;NodeNext&quot;,
+                                &quot;strict&quot;: true,
+                                &quot;esModuleInterop&quot;: true,
+                                &quot;skipLibCheck&quot;: true,
+                                &quot;outDir&quot;: &quot;dist&quot;,
+                                &quot;rootDir&quot;: &quot;src&quot;,
+                                &quot;resolveJsonModule&quot;: true,
+                                &quot;forceConsistentCasingInFileNames&quot;: true
+                            },
+                            &quot;include&quot;: [
+                                &quot;src&quot;
+                            ]
+                        }
+                      </div></li></ul><aside class="prompt" data-type="note" data-title="" id="-fvhjra_124"><p><code class="code" id="-fvhjra_131">module</code>/<code class="code" id="-fvhjra_132">moduleResolution</code> выбирайте под ваш стиль импортов (ESM или CJS). Для современного Node лучше ESM: <code class="code" id="-fvhjra_133">&quot;type&quot;: &quot;module&quot;</code> в <code class="code" id="-fvhjra_134">package.json</code> и <code class="code" id="-fvhjra_135">NodeNext</code> в TS.</p></aside></section><section class="chapter"><h3 id="-fvhjra_119" data-toc="-fvhjra_119">Шаг 2. Мягкая типизация существующего кода</h3><ul class="list _bullet" id="-fvhjra_136"><li class="list__item" id="-fvhjra_138"><p>Включите поддержку JS-файлов в сборке: <code class="code" id="-fvhjra_141">&quot;allowJs&quot;: true</code> и, по желанию, <code class="code" id="-fvhjra_142">&quot;checkJs&quot;: true</code> для постепенной проверки JSDoc-типов.</p></li><li class="list__item" id="-fvhjra_139"><p>Начните добавлять JSDoc-типы в JS-файлы, не переименовывая их в <code class="code" id="-fvhjra_143">.ts</code>. Это даст подсказки без резкого порога.</p></li><li class="list__item" id="-fvhjra_140"><p>Постепенно переименовывайте файлы из <code class="code" id="-fvhjra_144">.js</code> в <code class="code" id="-fvhjra_145">.ts</code>, начиная с листовых модулей (не переиспользуемых другими).</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_137"><p>JSDoc-комментарии типа <code class="code" id="-fvhjra_146">@param</code>, <code class="code" id="-fvhjra_147">@returns</code> и <code class="code" id="-fvhjra_148">@typedef</code> помогают TS без смены расширения файла.</p></aside></section><section class="chapter"><h3 id="-fvhjra_120" data-toc="-fvhjra_120">Шаг 3. Типизация внешних зависимостей</h3><ul class="list _bullet" id="-fvhjra_149"><li class="list__item" id="-fvhjra_151"><p>Если пакет не имеет встроенных типов, установите их: <code class="code" id="-fvhjra_153">npm i -D @types/&lt;pkg&gt;</code>.</p></li><li class="list__item" id="-fvhjra_152"><p>Пишите собственные декларации для внутренних библиотек: <code class="code" id="-fvhjra_154">*.d.ts</code> в папке <code class="code" id="-fvhjra_155">types</code> и добавьте её в <code class="code" id="-fvhjra_156">typeRoots</code>, если нужно.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_150"><p>Старайтесь избегать <code class="code" id="-fvhjra_157">any</code> в декларациях. Лучше описать минимально нужный контракт (например, <code class="code" id="-fvhjra_158">interface</code> с используемыми полями).</p></aside></section><section class="chapter"><h3 id="-fvhjra_121" data-toc="-fvhjra_121">Шаг 4. Ужесточение конфигурации</h3><ul class="list _bullet" id="-fvhjra_159"><li class="list__item" id="-fvhjra_161"><p>Включайте строгие флаги постепенно: <code class="code" id="-fvhjra_163">noImplicitAny</code>, <code class="code" id="-fvhjra_164">noImplicitThis</code>, <code class="code" id="-fvhjra_165">strictNullChecks</code>, <code class="code" id="-fvhjra_166">noUncheckedIndexedAccess</code>.</p></li><li class="list__item" id="-fvhjra_162"><p>Наводите порядок: устраняйте <code class="code" id="-fvhjra_167">any</code>, вводите интерфейсы/типы, покрывайте участки кода тестами.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="-fvhjra_160"><p>Итеративный подход снижает риски: усилили правила &mdash; поправили ошибки &mdash; закрепили результат.</p></aside></section><section class="chapter"><h3 id="-fvhjra_122" data-toc="-fvhjra_122">Шаг 5. Сборка и запуск</h3><ul class="list _bullet" id="-fvhjra_168"><li class="list__item" id="-fvhjra_170"><p>В разработке удобно использовать <code class="code" id="-fvhjra_172">tsx</code> или <code class="code" id="-fvhjra_173">ts-node</code>: </p><div class="code-block" data-lang="bash">
+                            npm i -D tsx
+
+                            # или
+
+                            npm i -D ts-node
+                        </div></li><li class="list__item" id="-fvhjra_171"><p>В продакшн собирайте в JS: </p><div class="code-block" data-lang="bash">
+                            npx tsc
+                            node dist/index.js 
+                        </div></li></ul><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_169"><p>Не запускайте продакшн-приложение через транспайлер на лету без необходимости &mdash; это усложняет отладку и может замедлять запуск.</p></aside></section></section><section class="chapter"><h2 id="-fvhjra_15" data-toc="-fvhjra_15">Лучшие практики для серверного TypeScript</h2><ul class="list _bullet" id="-fvhjra_176"><li class="list__item" id="-fvhjra_179"><p>С самого начала включите <code class="code" id="-fvhjra_184">&quot;strict&quot;: true</code> и <code class="code" id="-fvhjra_185">&quot;skipLibCheck&quot;: true</code> (ускоряет сборку, не проверяя внешние типы).</p></li><li class="list__item" id="-fvhjra_180"><p>Фиксируйте интерфейсы доменных сущностей в <code class="code" id="-fvhjra_186">types/</code> или <code class="code" id="-fvhjra_187">domain/</code>. Поддерживайте их как &laquo;контракты&raquo; между модулями.</p></li><li class="list__item" id="-fvhjra_181"><p>Предпочитайте <code class="code" id="-fvhjra_188">unknown</code> вместо <code class="code" id="-fvhjra_189">any</code> на границах ввода (например, при парсинге JSON), затем выполняйте проверку и сужение.</p></li><li class="list__item" id="-fvhjra_182"><p>Используйте утилитные типы для DTO: <code class="code" id="-fvhjra_190">Pick</code>, <code class="code" id="-fvhjra_191">Omit</code>, <code class="code" id="-fvhjra_192">Partial</code>, чтобы не дублировать поля.</p></li><li class="list__item" id="-fvhjra_183"><p>Поддерживайте единый стиль импорта/экспорта (ESM или CJS) и настройте линтер (ESLint) + форматтер (Prettier).</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="-fvhjra_177"><p>Не превращайте все сущности в классы. Простые <code class="code" id="-fvhjra_193">type</code>/<code class="code" id="-fvhjra_194">interface</code> и функции часто лучше классов для чистой бизнес-логики.</p></aside><aside class="prompt" data-type="tip" data-title="" id="-fvhjra_178"><p>Добавьте sourcemaps (<code class="code" id="-fvhjra_195">&quot;sourceMap&quot;: true</code>) &mdash; стек-трейсы укажут на строки исходного TS-кода при ошибках.</p></aside></section><section class="chapter"><h2 id="-fvhjra_16" data-toc="-fvhjra_16">Мини-проект: пример и как запустить</h2><p id="-fvhjra_196">Создадим минимальный сервер на Node.js с TypeScript.</p><div class="code-block" data-lang="bash">
+                # 1) Инициализируем проект
+                npm init -y
+                
+                # 2) Ставим зависимости для TS-разработки
+                
+                npm i -D typescript tsx @types/node
+                
+                # 3) Инициализируем tsconfig
+                
+                npx tsc --init 
+            </div><p id="-fvhjra_198">Отредактируем <code class="code" id="-fvhjra_206">tsconfig.json</code> (минимально необходимое):</p><div class="code-block" data-lang="json">
+                {
+                    &quot;compilerOptions&quot;: {
+                        &quot;target&quot;: &quot;ES2020&quot;,
+                        &quot;module&quot;: &quot;NodeNext&quot;,
+                        &quot;moduleResolution&quot;: &quot;NodeNext&quot;,
+                        &quot;strict&quot;: true,
+                        &quot;esModuleInterop&quot;: true,
+                        &quot;skipLibCheck&quot;: true,
+                        &quot;rootDir&quot;: &quot;src&quot;,
+                        &quot;outDir&quot;: &quot;dist&quot;
+                    },
+                    &quot;include&quot;: [
+                        &quot;src&quot;
+                    ]
+                } 
+            </div><p id="-fvhjra_200">Создадим файл <code class="code" id="-fvhjra_207">src/index.ts</code>:</p><div class="code-block" data-lang="ts">
+                // Мини-сервер HTTP без фреймворков
+                import http from &quot;node:http&quot;;
+
+                const port: number = Number(process.env.PORT ?? 3000);
+
+                const server = http.createServer((req, res) =&gt; {
+                    if (req.url === &quot;/health&quot;) {
+                        res.statusCode = 200;
+                        res.setHeader(&quot;Content-Type&quot;, &quot;application/json; charset=utf-8&quot;);
+                        res.end(JSON.stringify({ok: true, ts: new Date().toISOString()}));
+                        return;
+                    }
+
+                    res.statusCode = 200;
+                    res.setHeader(&quot;Content-Type&quot;, &quot;text/plain; charset=utf-8&quot;);
+                    res.end(&quot;Hello from TypeScript!&quot;);
+                });
+
+                server.listen(port, () =&gt; {
+                    console.log(`Server is listening on http://localhost:${port}`);
+                }); 
+            </div><p id="-fvhjra_202">Добавим скрипты в <code class="code" id="-fvhjra_208">package.json</code>:</p><div class="code-block" data-lang="json">
+                {
+                    &quot;type&quot;: &quot;module&quot;,
+                    &quot;scripts&quot;: {
+                        &quot;dev&quot;: &quot;tsx watch src/index.ts&quot;,
+                        &quot;build&quot;: &quot;tsc&quot;,
+                        &quot;start&quot;: &quot;node dist/index.js&quot;
+                    }
+                } 
+            </div><p id="-fvhjra_204">Запуск:</p><ul class="list _bullet" id="-fvhjra_205"><li class="list__item" id="-fvhjra_209"><p><span id="-fvhjra_211"><b>Режим разработки</b></span>: горячий перезапуск </p><div class="code-block" data-lang="bash">
+                npm run dev
+            </div></li><li class="list__item" id="-fvhjra_210"><p><span id="-fvhjra_213"><b>Сборка и продакшн-запуск</b></span>: </p><div class="code-block" data-lang="bash">
+                npm run build
+                npm start
+            </div></li></ul></section><div class="last-modified">01 октября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="threads.html" class="navigation-links__prev">Многопоточность в JS</a><a href="nodejs.html" class="navigation-links__next">NodeJS</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

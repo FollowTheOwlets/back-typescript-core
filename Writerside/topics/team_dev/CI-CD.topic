@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="CI/CD" id="CI-CD">
+        <chapter title="Введение в CI/CD">
+            <p>
+                <format style="bold">CI/CD</format>
+                — это совокупность практик, инструментов и автоматизаций, которые помогают командам быстро и безопасно
+                доставлять изменения в продукт. Аббревиатура состоит из двух частей:
+                <tooltip term="CI">CI</tooltip>
+                (непрерывная интеграция) и
+                <tooltip term="CD">CD</tooltip>
+                (непрерывная доставка/развёртывание). Главная идея — превращать частые маленькие изменения кода в
+                надёжный, повторяемый и проверяемый поток поставки ценности пользователю.
+            </p>
+            <note><p>Старайтесь мыслить пайплайнами: каждое изменение должно автоматически пройти те же шаги проверки и
+                доставки. Это снижает «человеческий фактор» и делает процесс предсказуемым.</p></note>
+        </chapter>
+
+        <chapter title="Что такое CI (Continuous Integration)">
+            <p>
+                <format style="bold">Непрерывная интеграция (CI)</format>
+                — это практика частого слияния изменений в основную ветку репозитория с обязательным автоматическим
+                запуском проверок: сборка, линтинг, тесты, анализ качества кода, проверка безопасности. Цель —
+                обнаруживать дефекты как можно раньше, пока они малы и дешевы в исправлении.
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Сборка</format>
+                    : проверяем, что проект вообще компилируется/собирается.
+                </li>
+                <li>
+                    <format style="bold">Статический анализ</format>
+                    : линтеры, типизация, SAST для поиска уязвимостей.
+                </li>
+                <li>
+                    <format style="bold">Тесты</format>
+                    : unit/integration/e2e, измерение покрытия, проверка регрессий.
+                </li>
+                <li>
+                    <format style="bold">Артефакты</format>
+                    : публикация собранных пакетов/образов в реестры.
+                </li>
+            </list>
+            <tip>
+                <p>Интегрируйте изменения маленькими порциями (малые
+                    <tooltip term="Pull Request">PR</tooltip>
+                    ), чтобы ускорить обратную связь и упростить ревью.
+                </p>
+            </tip>
+            <warning><p>Редкие «крупные слияния» приводят к «адскому интеграционному дню»: сложно найти причину поломки
+                и долго чинить конфликты. Делайте частые короткие итерации.</p></warning>
+        </chapter>
+
+        <chapter title="Что такое CD (Continuous Delivery/Deployment)">
+            <p>
+                <format style="bold">Непрерывная доставка (Continuous Delivery)</format>
+                — автоматизация пути от собранного артефакта до подготовленного релиза, который можно одним действием
+                выкатить в прод.
+                <format style="bold">Непрерывное развёртывание (Continuous Deployment)</format>
+                — следующий шаг, когда выкатывание в прод тоже автоматизировано и происходит сразу после прохождения
+                всех проверок (может включать
+                <tooltip term="Canary">канареечные</tooltip>
+                и
+                <tooltip term="Blue-Green">blue/green</tooltip>
+                стратегии).
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Delivery</format>
+                    : артефакт готов к релизу, но «кнопка» у человека.
+                </li>
+                <li>
+                    <format style="bold">Deployment</format>
+                    : релиз «без кнопки» — автоматом по правилам и сигналам качества.
+                </li>
+            </list>
+            <note><p>Часто компании начинают с Continuous Delivery (ручное подтверждение), а затем, накопив доверие к
+                метрикам качества, переходят к Continuous Deployment для безопасных сервисов.</p></note>
+        </chapter>
+
+        <chapter title="Преимущества CI/CD">
+            <list>
+                <li>
+                    <format style="bold">Быстрая обратная связь</format>
+                    : дефекты ловятся «на входе», а не «на выходе».
+                </li>
+                <li>
+                    <format style="bold">Повторяемость</format>
+                    : один и тот же процесс для каждой ветки/релиза.
+                </li>
+                <li>
+                    <format style="bold">Снижение рисков</format>
+                    : маленькие релизы простее откатывать и тестировать.
+                </li>
+                <li>
+                    <format style="bold">Прозрачность</format>
+                    : статусы пайплайнов, артефактов и окружений видны команде.
+                </li>
+                <li>
+                    <format style="bold">Скорость вывода на рынок</format>
+                    : меньше «ручных» задержек и координации.
+                </li>
+            </list>
+            <tip>
+                <p>Определите
+                    <tooltip term="Quality Gate">Quality Gate</tooltip>
+                    — набор обязательных проверок (тесты, линтер, безопасность), без которых артефакт не попадёт «дальше
+                    по трубе».
+                </p>
+            </tip>
+        </chapter>
+
+        <chapter title="Контейнеры и среды выполнения">
+            <p>CI/CD тесно связан с контейнерами (
+                <tooltip term="Docker">Docker</tooltip>
+                ) и оркестраторами (например,
+                <tooltip term="Kubernetes">Kubernetes</tooltip>
+                ). Контейнеры обеспечивают одинаковое окружение на этапах сборки, тестирования и в проде. Это снижает
+                «работает у меня/не работает у тебя».
+            </p>
+            <code-block lang="Docker">
+# Пример минимального Dockerfile для Node.js
+FROM node:20-alpine
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY .. .
+RUN npm run build
+
+# Запускаем как non-root пользователя
+
+USER node
+EXPOSE 3000
+CMD ["node", "dist/main.js"] </code-block>
+            <note><p>Использование <code>npm ci</code> делает сборки детерминированными (строго по <code>package-lock.json</code>).
+                Это повышает воспроизводимость пайплайна.</p></note>
+        </chapter>
+
+        <chapter title="Пример: GitLab CI + Kubernetes + Argo CD">
+            <p>Частый стек: GitLab хранит код и запускает пайплайны CI; артефакты (образы) публикуются в реестр;
+                манифесты Kubernetes хранятся как код;
+                <tooltip term="Argo CD">Argo CD</tooltip>
+                следит за репозиторием манифестов и приводит кластеры в желаемое состояние (
+                <tooltip term="GitOps">GitOps</tooltip>
+                ).
+            </p>
+
+
+            <chapter title="GitLab CI: базовый .gitlab-ci.yml">
+  <code-block lang="yaml">
+
+
+stages:
+    * lint
+    * test
+    * build
+    * push
+    * release
+
+variables:
+    DOCKER_DRIVER: overlay2
+    IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+lint:
+    stage: lint
+    image: node:20-alpine
+    script:
+        - npm ci
+        - npm run lint
+    artifacts:
+        when: always
+    reports:
+        junit: reports/lint-junit.xml
+
+test:
+    stage: test
+    image: node:20-alpine
+    script:
+        - npm ci
+        - npm run test:ci # выводит junit/coverage
+    artifacts:
+        when: always
+    reports:
+        junit: reports/junit.xml
+    paths:
+        - coverage
+
+build:
+    stage: build
+    image: docker:24
+    services:
+        - docker:24-dind
+    script:
+        - docker build -t "$IMAGE_TAG" .
+    artifacts:
+        paths:
+            - image-info.txt
+        after_script:
+            - docker inspect "$IMAGE_TAG" --format='{{json .}}' > image-info.txt
+
+push:
+    stage: push
+    image: docker:24
+    services:
+        - docker:24-dind
+    script:
+        - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+        - docker push "$IMAGE_TAG"
+
+release:
+    stage: release
+    image: alpine/git
+    script:
+        - git tag "v$CI_PIPELINE_IID"
+        - git push origin "v$CI_PIPELINE_IID"
+    when: manual # ручное подтверждение релиза
+  </code-block>
+                <tip><p>Разделяйте стадии: ранний фейл (на <code>lint/test</code>) дешевле, чем на
+                    <code>build/push</code>.</p></tip>
+                <warning>
+                    <p>Не храните пароли и ключи в переменных окружения открытым текстом. Используйте
+                        <tooltip term="Secret">Secret</tooltip>
+                        -хранилища (GitLab CI Variables с защитой, HashiCorp Vault и т.д.).
+                    </p>
+                </warning>
+            </chapter>
+
+
+            <chapter title="Kubernetes: Deployment и Service">
+                <code-block lang="yaml">
+                apiVersion: apps/v1
+                kind: Deployment
+                metadata:
+                    name: myapp
+                    labels:
+                        app: myapp
+                spec:
+                    replicas: 3
+                    selector:
+                        matchLabels:
+                            app: myapp
+                    template:
+                        metadata:
+                            labels:
+                                app: myapp
+                        spec:
+                            containers:
+                                - name: myapp
+                                  image: registry.example.com/group/myapp:1.0.0
+                                  ports:
+                                      - containerPort: 3000
+                                  readinessProbe:
+                                      httpGet:
+                                          path: /health
+                                          port: 3000
+                                      initialDelaySeconds: 5
+                                      periodSeconds: 10
+                                  resources:
+                                      requests:
+                                          cpu: "100m"
+                                          memory: "128Mi"
+                                      limits:
+                                          cpu: "500m"
+                                          memory: "512Mi"
+                </code-block>
+                <code-block lang="yaml">
+                apiVersion: v1
+                kind: Service
+                metadata:
+                    name: myapp
+                spec:
+                    selector:
+                        app: myapp
+                    ports:
+                        - port: 80
+                          targetPort: 3000
+                    type: ClusterIP
+                </code-block>
+
+                <note><p>Пробы <code>readiness</code>/<code>liveness</code> и разумные <code>resources</code> — часть
+                    «качества» развёртывания. Без них автоскейлеры и балансировка работают хуже.</p></note>
+            </chapter>
+
+
+            <chapter title="Argo CD: GitOps-приложение">
+                <p>
+                    <tooltip term="Argo CD">Argo CD</tooltip>
+                    отслеживает Git-репозиторий с манифестами и синхронизирует кластер с «истиной в Git». Любое
+                    изменение манифестов проходит через ревью и пайплайн, после чего Argo CD применит его в кластере.
+                </p>
+                <code-block lang="yaml">
+                apiVersion: argoproj.io/v1alpha1
+                kind: Application
+                metadata:
+                    name: myapp
+                    namespace: argocd
+                spec:
+                    project: default
+                    source:
+                        repoURL: https://git.example.com/infra/myapp-manifests.git
+                        targetRevision: main
+                        path: k8s/overlays/prod
+                    destination:
+                        server: https://kubernetes.default.svc
+                        namespace: production
+                    syncPolicy:
+                        automated:
+                            prune: true
+                            selfHeal: true
+                        syncOptions:
+                            - CreateNamespace=true
+                </code-block>
+
+                <tip>
+                    <p>Держите «инфру как код» (манифесты,
+                        <tooltip term="Helm">Helm</tooltip>
+                        чарты,
+                        <tooltip term="Kustomize">Kustomize</tooltip>
+                        ) в отдельных репозиториях: это упрощает контроль доступа и аудит.
+                    </p>
+                </tip>
+            </chapter>
+        </chapter>
+
+        <chapter title="Пример: Gitea + Docker Compose">
+            <p>
+                <tooltip term="Gitea">Gitea</tooltip>
+                — лёгкий self-hosted Git-сервер. Для CI можно использовать
+                <tooltip term="Gitea Actions">Gitea Actions</tooltip>
+                (совместимы с GitHub Actions) и разворачивать сервисы через
+                <tooltip term="Docker Compose">Docker Compose</tooltip>
+                в небольших проектах или на edge/стендах.
+            </p>
+
+
+            <chapter title="docker-compose.yml для приложения и базы">
+                <code-block lang="yaml">
+                version: "3.9"
+
+                services:
+                    app:
+                        build: ..
+                        image: myorg/myapp:latest
+                        environment:
+                            - NODE_ENV=production
+                            - DATABASE_URL=postgres://app:app@db:5432/app
+                        ports:
+                            - "3000:3000"
+                        depends_on:
+                            - db
+                        restart: unless-stopped
+
+                    db:
+                        image: postgres:16-alpine
+                        environment:
+                            - POSTGRES_DB=app
+                            - POSTGRES_USER=app
+                            - POSTGRES_PASSWORD=app
+                        volumes:
+                            - db-data:/var/lib/postgresql/data
+                        restart: unless-stopped
+
+                volumes:
+                    db-data:
+                </code-block>
+
+                <note><p><code>restart: unless-stopped</code> повышает устойчивость стенда. Для прод-среды лучше
+                    Kubernetes, но для малого проекта Compose подходит.</p></note>
+            </chapter>
+
+
+            <chapter title="Gitea Actions: .github/workflows/ci.yml">
+                <p>Gitea поддерживает
+                    <tooltip term="Workflow">workflow</tooltip>
+                    -файлы в формате GitHub Actions. Это упрощает перенос знаний и шаблонов.
+                </p>
+                <code-block lang="yaml">
+                    name: CI
+
+                    on:
+                        push:
+                            branches: [ main ]
+                        pull_request:
+
+                    jobs:
+                        build-test:
+                            runs-on: docker
+                            steps:
+                                - name: Checkout
+                                  uses: actions/checkout@v4
+
+                                - name: Use Node.js 20
+                                  uses: actions/setup-node@v4
+                                  with:
+                                      node-version: "20"
+
+                                - name: Install deps
+                                  run: npm ci
+
+                                - name: Lint
+                                  run: npm run lint
+
+                                - name: Test
+                                  run: npm run test:ci
+
+                                - name: Build
+                                  run: npm run build
+
+                </code-block>
+
+                <tip><p>Для публикации образов добавьте шаги с <code>docker build</code> и <code>docker push</code>,
+                    передав токены реестра через секреты Gitea.</p></tip>
+                <warning><p>Не используйте публичные экшены без ревью их исходного кода и закрепления версий (pin @sha).
+                    Это вопрос безопасности цепочки поставки.</p></warning>
+            </chapter>
+
+
+        </chapter>
+
+        <chapter title="Стратегии развёртывания и откатов">
+            <list>
+                <li>
+                    <format style="bold">Recreate</format>
+                    : остановить старое, запустить новое — просто, но даунтайм.
+                </li>
+                <li>
+                    <format style="bold">Rolling update</format>
+                    : постепенная замена подов — без даунтайма при корректных пробах.
+                </li>
+                <li>
+                    <format style="bold">Blue/Green</format>
+                    : параллельные окружения; быстрое переключение трафика.
+                </li>
+                <li>
+                    <format style="bold">Canary</format>
+                    : малая доля трафика на новый релиз, затем постепенное увеличение.
+                </li>
+            </list>
+            <code-block lang="yaml">
+# Фрагмент стратегии rollingUpdate в Deployment
+spec:
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxUnavailable: 0
+            maxSurge: 1
+    </code-block>
+            <note>
+                <p>Для Canary/Blue-Green используйте
+                    <tooltip term="Ingress">Ingress</tooltip>
+                    контроллеры/сетевые политики,
+                    <tooltip term="Service Mesh">mesh</tooltip>
+                    (Istio/Linkerd) или Argo Rollouts для управления трафиком и метриками.
+                </p>
+            </note>
+        </chapter>
+
+        <chapter title="Качество, безопасность и наблюдаемость в пайплайне">
+            <list>
+                <li>
+                    <format style="bold">SAST/DAST/Dependency Scan</format>
+                    : ищите уязвимости до релиза.
+                </li>
+                <li>
+                    <format style="bold">Подпись артефактов</format>
+                    : Cosign/Sigstore — подтверждение происхождения образов.
+                </li>
+                <li>
+                    <format style="bold">Политики</format>
+                    :
+                    <tooltip term="OPA Gatekeeper">OPA/Gatekeeper</tooltip>
+                    и
+                    <tooltip term="Kyverno">Kyverno</tooltip>
+                    для валидирования манифестов.
+                </li>
+                <li>
+                    <format style="bold">Наблюдаемость</format>
+                    :
+                    <tooltip term="OpenTelemetry">OTel</tooltip>
+                    трейсы/метрики/логи встроены в сборку и проверки.
+                </li>
+            </list>
+            <code-block lang="yaml">
+                # Пример шага Snyk Trivy в GitLab CI
+                security_scan:
+                    stage: test
+                    image: aquasec/trivy:0.55.0
+                    script:
+                        - trivy image --exit-code 1 --severity CRITICAL,HIGH "$IMAGE_TAG"
+                    needs: [ "build" ]
+          </code-block>
+            <warning><p>Игнорирование «красных» отчётов безопасности ведёт к уязвимым релизам. Фиксируйте политики: при
+                критических уязвимостях релиз должен блокироваться.</p></warning>
+        </chapter>
+
+        <chapter title="Секреты и конфигурация">
+            <p>Разделяйте код и конфигурацию. Секреты храните в безопасных системах (Vault, Secrets менеджеры облаков,
+                зашифрованные переменные CI/CD). Не коммитьте ключи в репозиторий.</p>
+            <code-block lang="yaml">
+                # Kubernetes Secret из внешнего менеджера (пример с External Secrets Operator)
+                apiVersion: external-secrets.io/v1beta1
+                kind: ExternalSecret
+                metadata:
+                    name: myapp-secrets
+                spec:
+                    refreshInterval: 1h
+                    secretStoreRef:
+                        name: vault-backend
+                        kind: ClusterSecretStore
+                    target:
+                        name: myapp-secrets
+                    data:
+                        - secretKey: DATABASE_URL
+                          remoteRef:
+                              key: kv/myapp
+                              property: DATABASE_URL
+            </code-block>
+            <tip><p>В CI используйте «protected» секреты, доступные только из «protected» веток/тагированных
+                релизов.</p></tip>
+        </chapter>
+
+        <chapter title="Паттерны ветвления и релизов">
+            <list>
+                <li>
+                    <format style="bold">Trunk-Based</format>
+                    : короткие ветки, частые merge в main, фичи за флагами.
+                </li>
+                <li>
+                    <format style="bold">GitFlow</format>
+                    : отдельные <code>develop/release/hotfix</code>; больше контроля, медленнее поток.
+                </li>
+                <li>
+                    <format style="bold">Release by tag</format>
+                    : выпуск по аннотированным тегам и автогенерации релиз-нот.
+                </li>
+            </list>
+            <code-block lang="yaml">
+# Фрагмент GitLab CI для публикации по тэгу
+publish:
+    stage: release
+    rules:
+        - if: '$CI_COMMIT_TAG'
+    script:
+        - echo "Publishing version $CI_COMMIT_TAG"
+        - ./scripts/publish.sh "$CI_COMMIT_TAG"
+    </code-block>
+            <note><p>Для быстрых команд — Trunk-Based + фичефлаги. Для регулируемых отраслей — GitFlow с жёсткими
+                quality gates.</p></note>
+        </chapter>
+
+        <chapter title="Локальная разработка и воспроизводимость">
+            <p>Локально разработчики могут повторять части пайплайна с помощью Docker и Compose, чтобы быстрее
+                воспроизводить ошибки. Это соответствует принципу «одинаковые окружения от ноутбука до продакшена».</p>
+            <code-block lang="yaml">
+# docker-compose.dev.yml
+version: "3.9"
+services:
+    app:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+        environment:
+            - NODE_ENV=development
+        volumes:
+            - ./:/app
+        command: npm run start:dev
+        ports:
+            - "3000:3000"
+        depends_on:
+            - db
+    db:
+        image: postgres:16-alpine
+        environment:
+            - POSTGRES_DB=app
+            - POSTGRES_USER=app
+            - POSTGRES_PASSWORD=app
+    </code-block>
+            <tip><p>Собирайте одинаковый <code>Dockerfile</code> для dev/ci/prod, меняйте лишь параметры/команды. Это
+                уменьшает классы ошибок «в CI не собирается».</p></tip>
+        </chapter>
+
+        <chapter title="Практические рекомендации (Best Practices)">
+            <list>
+                <li>
+                    <format style="bold">Делайте пайплайны быстрыми</format>
+                    : кэш, параллельные джобы, селективные триггеры по путям.
+                </li>
+                <li>
+                    <format style="bold">Метризируйте пайплайн</format>
+                    : время стадий, частота падений, MTTR; вешайте SLO.
+                </li>
+                <li>
+                    <format style="bold">Обновляйте базовые образы</format>
+                    : регулярные патчи безопасности.
+                </li>
+                <li>
+                    <format style="bold">Шифруйте и подписывайте</format>
+                    : supply chain security — не «опция», а стандарт.
+                </li>
+                <li>
+                    <format style="bold">Документируйте</format>
+                    : README для запуска локально/в CI, схемы окружений, on-call инструкции.
+                </li>
+            </list>
+            <warning><p>«Снежинки»-окружения (ручные, уникальные настройки) ломают воспроизводимость. Храните всё как
+                код, применяйте автоматом через CI/CD.</p></warning>
+        </chapter>
+</topic>

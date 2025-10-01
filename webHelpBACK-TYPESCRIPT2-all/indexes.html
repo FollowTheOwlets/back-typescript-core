@@ -1,0 +1,139 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:35.0611743"><title>Индексы | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"cmk3zh_2","level":0,"title":"Зачем нужны индексы","anchor":"#cmk3zh_2"},{"id":"cmk3zh_3","level":0,"title":"Типы индексов и их особенности","anchor":"#cmk3zh_3"},{"id":"cmk3zh_4","level":0,"title":"Как планировщик выбирает индекс","anchor":"#cmk3zh_4"},{"id":"cmk3zh_5","level":0,"title":"Базовые рецепты: создать, проверить, удалить","anchor":"#cmk3zh_5"},{"id":"cmk3zh_6","level":0,"title":"Сложные и полезные приёмы","anchor":"#cmk3zh_6"},{"id":"cmk3zh_7","level":0,"title":"Сканирования и как их читать в EXPLAIN","anchor":"#cmk3zh_7"},{"id":"cmk3zh_8","level":0,"title":"Стоимость индексов при записи и как её снизить","anchor":"#cmk3zh_8"},{"id":"cmk3zh_9","level":0,"title":"Обслуживание: VACUUM, ANALYZE, REINDEX","anchor":"#cmk3zh_9"},{"id":"cmk3zh_10","level":0,"title":"Конкурентное создание и блокировки","anchor":"#cmk3zh_10"},{"id":"cmk3zh_11","level":0,"title":"Практические шаблоны (рецепты)","anchor":"#cmk3zh_11"},{"id":"cmk3zh_12","level":0,"title":"Диагностика и мониторинг","anchor":"#cmk3zh_12"},{"id":"cmk3zh_13","level":0,"title":"Частые ошибки и анти-паттерны","anchor":"#cmk3zh_13"},{"id":"cmk3zh_14","level":0,"title":"Чек-лист перед созданием индекса","anchor":"#cmk3zh_14"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Индексы | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/indexes.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Индексы | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/indexes.html#webpage",
+    "url": "writerside-documentation//1.0.0/indexes.html",
+    "name": "Индексы | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="Indexes" data-main-title="Индексы" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs="_Data.topic|Хранение данных"><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="Indexes" id="Indexes.topic">Индексы</h1><section class="chapter"><h2 id="cmk3zh_2" data-toc="cmk3zh_2">Зачем нужны индексы</h2><p id="cmk3zh_15">Индекс &mdash; это дополнительная структура данных, которая ускоряет поиск строк в таблице, уменьшая число чтений со страницы диска. Вместо полного просмотра таблицы база использует указатели из индекса, чтобы быстро найти нужные строки. При этом индекс занимает место на диске и замедляет операции записи, поэтому важно понимать, когда и какие индексы применять.</p><p id="cmk3zh_16"><span id="cmk3zh_18"><b>Ключевая идея:</b></span> индексы улучшают скорость чтения, но увеличивают стоимость вставок, обновлений и удалений. Цель &mdash; найти баланс между скоростью запросов и издержками на обслуживание.</p><aside class="prompt" data-type="note" data-title="" id="cmk3zh_17"><p>Думайте об индексе как о &laquo;содержании&raquo; книги: он не хранит полные страницы, но знает, где искать нужную информацию.</p></aside></section><section class="chapter"><h2 id="cmk3zh_3" data-toc="cmk3zh_3">Типы индексов и их особенности</h2><ul class="list _bullet" id="cmk3zh_19"><li class="list__item" id="cmk3zh_21"><p><span id="cmk3zh_27"><b>B-Tree</b></span> &mdash; индекс по умолчанию; подходит для операторов =, &lt;, &lt;=, &gt;, &gt;=, BETWEEN, ORDER BY. Эффективен для <span class="tooltip" id="cmk3zh_28" title="Доля строк, удовлетворяющих условию; высокая селективность означает мало подходящих строк">селективных</span> условий, хорошо поддерживает сортировку.</p></li><li class="list__item" id="cmk3zh_22"><p><span id="cmk3zh_29"><b>Hash</b></span> &mdash; для равенства (=). Узкая специализация; сегодня надёжен, но редко выигрывает у B-Tree.</p></li><li class="list__item" id="cmk3zh_23"><p><span id="cmk3zh_30"><b>GIN</b></span> &mdash; <span class="tooltip" id="cmk3zh_31" title="Индекс, сопоставляющий «терм → список документов/строк», как в полнотекстовом поиске">инвертированный</span> индекс для множественных значений внутри поля (массива, jsonb, tsvector). Идеален для <code class="code" id="cmk3zh_32">jsonb</code> и полнотекстового поиска.</p></li><li class="list__item" id="cmk3zh_24"><p><span id="cmk3zh_33"><b>GiST</b></span> &mdash; обобщённый сбалансированный индекс для &laquo;похожести&raquo; и геоданных (поиск ближайших, пересечения областей). Используется PostGIS.</p></li><li class="list__item" id="cmk3zh_25"><p><span id="cmk3zh_34"><b>BRIN</b></span> &mdash; компактный индекс по диапазонам страниц. Отлично работает на очень больших, &laquo;почти отсортированных&raquo; по времени таблицах (журналы событий).</p></li><li class="list__item" id="cmk3zh_26"><p><span id="cmk3zh_35"><b>SP-GiST</b></span> &mdash; для разреженных данных и специальных разбиений пространства (квадродеревья и т. п.).</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="cmk3zh_20"><p>Если вы не уверены, начинайте с B-Tree. Переходите к GIN/GiST/BRIN при специфических паттернах данных и запросов.</p></aside></section><section class="chapter"><h2 id="cmk3zh_4" data-toc="cmk3zh_4">Как планировщик выбирает индекс</h2><p id="cmk3zh_36">Планировщик оценивает <span class="tooltip" id="cmk3zh_40" title="Число уникальных значений в столбце; влияет на выбор плана">кардинальность</span> и <span class="tooltip" id="cmk3zh_41" title="Доля строк, удовлетворяющих условию; высокая селективность означает мало подходящих строк">селективность</span> условий, используя статистику из <code class="code" id="cmk3zh_42">ANALYZE</code>. Если ожидания выигрыша превышают стоимость доступа к индексу и последующего чтения строк, будет выбран <span class="tooltip" id="cmk3zh_43" title="Доступ к строкам через индекс по одним или нескольким ключам">Index Scan</span> или <span class="tooltip" id="cmk3zh_44" title="Построение битовой карты подходящих строк по индексу с последующим чтением страниц">Bitmap Index Scan</span> вместо <span class="tooltip" id="cmk3zh_45" title="Последовательное сканирование всей таблицы без индекса">Seq Scan</span>.</p><div class="code-block" data-lang="sql"> EXPLAIN ANALYZE
+        SELECT *
+        FROM orders
+        WHERE customer_id = 42;
+</div><div class="code-block" data-lang="none">
+            Index Scan using orders_customer_id_idx on orders (cost=... rows=... width=...)
+        </div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_39"><p>После крупных изменений данных запускайте <code class="code" id="cmk3zh_46">ANALYZE</code> (или ждите autovacuum), чтобы планировщик видел актуальную картину распределения значений.</p></aside></section><section class="chapter"><h2 id="cmk3zh_5" data-toc="cmk3zh_5">Базовые рецепты: создать, проверить, удалить</h2><div class="code-block" data-lang="sql">
+-- Создание простого индекса
+    CREATE INDEX orders_customer_id_idx ON public.orders (customer_id);
+
+-- Проверка использования (через объяснение плана)
+    EXPLAIN ANALYZE
+    SELECT *
+    FROM public.orders
+    WHERE customer_id = 42;
+
+-- Удаление индекса (если не нужен)
+    DROP INDEX IF EXISTS public.orders_customer_id_idx;
+</div><aside class="prompt" data-type="warning" data-title="" id="cmk3zh_48"><p>Слишком много индексов на таблице приводит к заметному замедлению INSERT/UPDATE/DELETE, так как каждый индекс нужно поддерживать при изменении строки.</p></aside></section><section class="chapter"><h2 id="cmk3zh_6" data-toc="cmk3zh_6">Сложные и полезные приёмы</h2><section class="chapter"><h3 id="cmk3zh_49" data-toc="cmk3zh_49">Составные индексы и порядок столбцов</h3><p id="cmk3zh_56">Порядок столбцов важен: условие по <span id="cmk3zh_59"><b>левым</b></span> префиксам использует индекс лучше. Например, индекс <code class="code" id="cmk3zh_60">(customer_id, created_at)</code> отлично подходит для <code class="code" id="cmk3zh_61">WHERE customer_id = ? AND created_at &gt;= ?</code> и для сортировки по <code class="code" id="cmk3zh_62">created_at</code> в рамках одного <code class="code" id="cmk3zh_63">customer_id</code>.</p><div class="code-block" data-lang="sql"> CREATE INDEX idx_orders_customer_created ON public.orders (customer_id, created_at DESC); </div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_58"><p>Добавляйте <code class="code" id="cmk3zh_64">DESC</code> в определение индекса, если часто сортируете по убыванию &mdash; это улучшит планы без дополнительных сортировок.</p></aside></section><section class="chapter"><h3 id="cmk3zh_50" data-toc="cmk3zh_50">Частичные индексы (partial)</h3><p id="cmk3zh_65">Позволяют индексировать только нужное подмножество строк, уменьшая размер и ускоряя операции записи. Хорошо подходят для &laquo;активных&raquo; данных.</p><div class="code-block" data-lang="sql">
+
+
+CREATE INDEX idx_orders_active
+    ON public.orders (customer_id)
+    WHERE status = 'active';
+</div><aside class="prompt" data-type="warning" data-title="" id="cmk3zh_67"><p>Условие в запросе должно точно совпадать с предикатом индекса, иначе он не будет использован.</p></aside></section><section class="chapter"><h3 id="cmk3zh_51" data-toc="cmk3zh_51">Индексы по выражению</h3><p id="cmk3zh_68">Индексирует результат функции/выражения. Пригодно для кейс-инсенситив поиска и предобработки значений.</p><div class="code-block" data-lang="sql">
+
+
+CREATE INDEX idx_users_lower_email ON public.users (lower(email));
+SELECT *
+FROM public.users
+WHERE lower(email) = 'foo@bar.com
+';
+</div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_70"><p>Выражение в запросе должно совпадать с выражением индекса по синтаксису и функциям.</p></aside></section><section class="chapter"><h3 id="cmk3zh_52" data-toc="cmk3zh_52">Покрывающие индексы (INCLUDE)</h3><p id="cmk3zh_71">Позволяют добавить &laquo;включённые&raquo; столбцы, которые не участвуют в упорядочивании, но доступны для <span class="tooltip" id="cmk3zh_74" title="Чтение только индекса без обращения к таблице, если нужные столбцы покрыты и карта видимости актуальна">Index Only Scan</span>.</p><div class="code-block" data-lang="sql">
+
+
+CREATE INDEX idx_orders_customer_created_inc
+    ON public.orders (customer_id, created_at) INCLUDE (amount, status);
+</div><aside class="prompt" data-type="tip" data-title="" id="cmk3zh_73"><p>Используйте INCLUDE, когда часто выбираете несколько дополнительных полей вместе с условием по индексируемым столбцам.</p></aside></section><section class="chapter"><h3 id="cmk3zh_53" data-toc="cmk3zh_53">GIN для jsonb и массивов</h3><p id="cmk3zh_75">Для <code class="code" id="cmk3zh_78">jsonb</code> и массивов индекс GIN значительно ускоряет проверки &laquo;содержит&raquo;, поиск по ключам и полнотекст.</p><div class="code-block" data-lang="sql">
+CREATE INDEX idx_docs_jsonb_gin ON public.docs USING GIN (data jsonb_path_ops);
+
+SELECT *
+FROM public.docs
+WHERE data @&gt; '{&quot;user&quot;:{&quot;id&quot;:42}}';
+</div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_77"><p>Опции операторных классов (<code class="code" id="cmk3zh_79">jsonb_ops</code>, <code class="code" id="cmk3zh_80">jsonb_path_ops</code>) влияют на размер и покрываемые операции. Выбирайте под свой паттерн запросов.</p></aside></section><section class="chapter"><h3 id="cmk3zh_54" data-toc="cmk3zh_54">Полнотекстовый поиск (tsvector + GIN)</h3><div class="code-block" data-lang="sql">
+
+
+ALTER TABLE public.articles
+    ADD COLUMN fts tsvector;
+
+UPDATE public.articles
+    SET fts = to_tsvector('russian', title || ' ' || body);
+
+CREATE INDEX idx_articles_fts ON public.articles USING GIN (fts);
+
+SELECT id
+FROM public.articles
+WHERE fts @@ plainto_tsquery('russian', 'индексы постгрес');
+</div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_82"><p>Автоматизируйте обновление <code class="code" id="cmk3zh_83">fts</code> через триггер, чтобы индекс оставался актуальным.</p></aside></section><section class="chapter"><h3 id="cmk3zh_55" data-toc="cmk3zh_55">BRIN для огромных таблиц логов</h3><p id="cmk3zh_84">Если таблица растёт по времени, а запросы фильтруют по диапазонам дат, BRIN даст значительный выигрыш при минимальном размере индекса.</p><div class="code-block" data-lang="sql">
+
+
+CREATE INDEX idx_events_time_brin ON public.events
+    USING BRIN (event_time) WITH (pages_per_range = 64);
+</div><aside class="prompt" data-type="tip" data-title="" id="cmk3zh_86"><p>Экспериментируйте с <code class="code" id="cmk3zh_87">pages_per_range</code>: больше &mdash; компактнее индекс, меньше &mdash; точнее.</p></aside></section></section><section class="chapter"><h2 id="cmk3zh_7" data-toc="cmk3zh_7">Сканирования и как их читать в EXPLAIN</h2><ul class="list _bullet" id="cmk3zh_88"><li class="list__item" id="cmk3zh_91"><p><span id="cmk3zh_95"><b>Seq Scan</b></span> &mdash; последовательное сканирование всей таблицы. Нормально для маленьких таблиц или низкой селективности.</p></li><li class="list__item" id="cmk3zh_92"><p><span id="cmk3zh_96"><b>Index Scan</b></span> &mdash; прямой доступ по индексу к строкам. Хорошо при высокой селективности.</p></li><li class="list__item" id="cmk3zh_93"><p><span id="cmk3zh_97"><b>Bitmap Index Scan</b></span> + <span id="cmk3zh_98"><b>Bitmap Heap Scan</b></span> &mdash; эффективно при средней селективности и объединении нескольких индексов.</p></li><li class="list__item" id="cmk3zh_94"><p><span id="cmk3zh_99"><b>Index Only Scan</b></span> &mdash; чтение только индекса без обращения к таблице при наличии актуальной <span class="tooltip" id="cmk3zh_100" title="Структура, отмечающая страницы без «мусорных» строк; требуется для Index Only Scan">карты видимости</span> и покрывающих столбцов.</p></li></ul><div class="code-block" data-lang="sql">
+EXPLAIN (ANALYZE, BUFFERS)
+    SELECT customer_id, amount
+    FROM public.orders
+    WHERE customer_id = 42
+    ORDER BY created_at DESC
+    LIMIT 10;
+</div><div class="code-block" data-lang="none"> Index Only Scan using idx_orders_customer_created_inc on orders ... </div></section><section class="chapter"><h2 id="cmk3zh_8" data-toc="cmk3zh_8">Стоимость индексов при записи и как её снизить</h2><p id="cmk3zh_101">Каждый INSERT/DELETE/UPDATE обновляет все релевантные индексы. Это увеличивает <span class="tooltip" id="cmk3zh_104" title="Время отклика системы — интервал между началом операции (например, получением запроса) и её завершением (отправкой ответа). Измеряется в миллисекундах/секундах. Бывает «end-to-end» (полный путь клиента) и «server-side» (только сервер). Для оценки качества используют перцентили (P50, P95, P99), потому что среднее скрывает хвосты медленных запросов. Важно фиксировать метод измерения, источник времени и границы (включает ли сети, прокси, ретраи).">задержку</span> и конкуренцию за ресурсы.</p><ul class="list _bullet" id="cmk3zh_102"><li class="list__item" id="cmk3zh_105"><p>Удаляйте неиспользуемые индексы (<code class="code" id="cmk3zh_109">pg_stat_user_indexes</code>).</p></li><li class="list__item" id="cmk3zh_106"><p>Используйте частичные индексы для &laquo;активной&raquo; части данных.</p></li><li class="list__item" id="cmk3zh_107"><p>Снижайте <span class="tooltip" id="cmk3zh_110" title="Разбухание таблиц/индексов из-за удалённых/обновлённых строк, повышающее стоимость IO">bloat</span> регулярным обслуживанием.</p></li><li class="list__item" id="cmk3zh_108"><p>Тонко настраивайте <code class="code" id="cmk3zh_111">fillfactor</code> и целевые параметры autovacuum.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="cmk3zh_103"><p>Дублирующие индексы (одинаковый набор столбцов/выражений) &mdash; распространённый источник лишних затрат.</p></aside></section><section class="chapter"><h2 id="cmk3zh_9" data-toc="cmk3zh_9">Обслуживание: VACUUM, ANALYZE, REINDEX</h2><ul class="list _bullet" id="cmk3zh_112"><li class="list__item" id="cmk3zh_115"><p><span id="cmk3zh_118"><b>VACUUM</b></span> &mdash; помечает удалённые версии строк как свободные, поддерживает карту видимости для Index Only Scan.</p></li><li class="list__item" id="cmk3zh_116"><p><span id="cmk3zh_119"><b>ANALYZE</b></span> &mdash; обновляет статистику распределений для планировщика.</p></li><li class="list__item" id="cmk3zh_117"><p><span id="cmk3zh_120"><b>REINDEX</b></span> &mdash; перестроение индекса при сильном bloat или ошибках структуры.</p></li></ul><div class="code-block" data-lang="sql">
+        VACUUM (VERBOSE) public.orders;
+
+        ANALYZE public.orders;
+
+        REINDEX INDEX CONCURRENTLY public.idx_orders_customer_created_inc;
+</div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_114"><p>Используйте <span id="cmk3zh_121"><b>CONCURRENTLY</b></span> при перестроении и создании индексов в продакшене, чтобы не блокировать запись и чтение.</p></aside></section><section class="chapter"><h2 id="cmk3zh_10" data-toc="cmk3zh_10">Конкурентное создание и блокировки</h2><p id="cmk3zh_122"><code class="code" id="cmk3zh_125">CREATE INDEX</code> без опции <code class="code" id="cmk3zh_126">CONCURRENTLY</code> ставит блокировки, мешающие записи. В нагруженных системах используйте конкурентное создание.</p><div class="code-block" data-lang="sql"> CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_user_created ON public.payments (user_id, created_at); </div><aside class="prompt" data-type="warning" data-title="" id="cmk3zh_124"><p>Операция <code class="code" id="cmk3zh_127">CONCURRENTLY</code> дольше и чувствительнее к сбоям. Следите за журналами и повторяйте при необходимости.</p></aside></section><section class="chapter"><h2 id="cmk3zh_11" data-toc="cmk3zh_11">Практические шаблоны (рецепты)</h2><section class="chapter"><h3 id="cmk3zh_128" data-toc="cmk3zh_128">Последние N записей пользователя</h3><div class="code-block" data-lang="sql">
+        CREATE INDEX idx_orders_user_created_desc ON public.orders (user_id, created_at DESC);
+
+        SELECT order_id, created_at
+        FROM public.orders
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 20;
+</div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_135"><p>DESC в индексе избавит от сортировки и ускорит LIMIT.</p></aside></section><section class="chapter"><h3 id="cmk3zh_129" data-toc="cmk3zh_129">Фильтр по статусу и дате</h3><div class="code-block" data-lang="sql">
+
+
+                CREATE INDEX idx_orders_active_created
+                    ON public.orders (created_at)
+                    WHERE status = 'active';
+
+                SELECT *
+                FROM public.orders
+                WHERE status = 'active'
+                  AND created_at &gt;= now() - interval '7 days';
+            </div></section><section class="chapter"><h3 id="cmk3zh_130" data-toc="cmk3zh_130">Поиск по email без учёта регистра</h3><div class="code-block" data-lang="sql">
+CREATE INDEX idx_users_lower_email ON public.users (lower(email));
+
+SELECT id
+FROM public.users
+WHERE lower(email) = $1;
+</div></section><section class="chapter"><h3 id="cmk3zh_131" data-toc="cmk3zh_131">jsonb: есть ли ключ со значением</h3><div class="code-block" data-lang="sql">
+CREATE INDEX idx_profiles_data_gin ON public.profiles USING GIN (data);
+
+SELECT id
+FROM public.profiles
+WHERE data @&gt; '{&quot;role&quot;:&quot;admin&quot;}';
+</div></section><section class="chapter"><h3 id="cmk3zh_132" data-toc="cmk3zh_132">Полнотекст: найти статьи по фразе</h3><div class="code-block" data-lang="sql">
+                CREATE INDEX idx_articles_fts ON public.articles USING GIN (to_tsvector('russian', title || ' ' || body));
+
+                SELECT id
+                FROM public.articles
+                WHERE to_tsvector('russian', title || ' ' || body)
+                      @@ plainto_tsquery('russian', 'индексы постгрес');
+            </div></section><section class="chapter"><h3 id="cmk3zh_133" data-toc="cmk3zh_133">BRIN для временных данных</h3><div class="code-block" data-lang="sql">
+CREATE INDEX idx_logs_ts_brin ON public.logs USING BRIN (ts);
+SELECT *
+FROM public.logs
+WHERE ts BETWEEN $1 AND $2;
+</div><aside class="prompt" data-type="tip" data-title="" id="cmk3zh_141"><p>Пересоздайте BRIN после крупной переливки данных, если нарушилась монотонность времени.</p></aside></section></section><section class="chapter"><h2 id="cmk3zh_12" data-toc="cmk3zh_12">Диагностика и мониторинг</h2><ul class="list _bullet" id="cmk3zh_142"><li class="list__item" id="cmk3zh_145"><p><code class="code" id="cmk3zh_149">EXPLAIN (ANALYZE, BUFFERS)</code> &mdash; измеряйте фактическое время и чтение страниц.</p></li><li class="list__item" id="cmk3zh_146"><p><code class="code" id="cmk3zh_150">pg_stat_user_indexes</code> &mdash; счётчики обращений к индексам. Ненужные индексы видны по нулевым/низким hit.</p></li><li class="list__item" id="cmk3zh_147"><p><code class="code" id="cmk3zh_151">pg_stat_all_tables</code> &mdash; мониторинг вакуума/автовакуума и др.</p></li><li class="list__item" id="cmk3zh_148"><p><code class="code" id="cmk3zh_152">pg_indexes</code> &mdash; список индексов и их определения.</p></li></ul><div class="code-block" data-lang="sql">
+                 SELECT relname AS table, indexrelname AS index, idx_scan
+                 FROM pg_stat_user_indexes
+                 ORDER BY idx_scan ASC NULLS FIRST
+                 LIMIT 20;
+            </div><aside class="prompt" data-type="note" data-title="" id="cmk3zh_144"><p>Если <code class="code" id="cmk3zh_153">idx_scan</code> долго остаётся близким к нулю &mdash; кандидат на удаление.</p></aside></section><section class="chapter"><h2 id="cmk3zh_13" data-toc="cmk3zh_13">Частые ошибки и анти-паттерны</h2><ul class="list _bullet" id="cmk3zh_154"><li class="list__item" id="cmk3zh_156"><p>Создание индекса &laquo;на всякий случай&raquo; на каждый столбец.</p></li><li class="list__item" id="cmk3zh_157"><p>Дублирующие индексы с одинаковыми наборами столбцов.</p></li><li class="list__item" id="cmk3zh_158"><p>Ожидание, что индекс ускорит запрос с низкой селективностью (например, <code class="code" id="cmk3zh_161">status IN (...)</code> на таблице, где почти все строки имеют эти статусы).</p></li><li class="list__item" id="cmk3zh_159"><p>Невнимание к порядку столбцов в составном индексе.</p></li><li class="list__item" id="cmk3zh_160"><p>Несовпадение выражения в запросе и в индексе по выражению.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="cmk3zh_155"><p>Индекс не &laquo;починит&raquo; плохо написанный запрос. Сначала упрощайте условия, проверяйте планы, добавляйте индексы целенаправленно.</p></aside></section><section class="chapter"><h2 id="cmk3zh_14" data-toc="cmk3zh_14">Чек-лист перед созданием индекса</h2><ul class="list _bullet" id="cmk3zh_162"><li class="list__item" id="cmk3zh_163"><p>Запрос стабильный и часто исполняется?</p></li><li class="list__item" id="cmk3zh_164"><p>Есть ли достаточная селективность условия?</p></li><li class="list__item" id="cmk3zh_165"><p>Помогает ли индекс убрать сортировку/LIMIT?</p></li><li class="list__item" id="cmk3zh_166"><p>Не существует ли уже подходящего индекса?</p></li><li class="list__item" id="cmk3zh_167"><p>Готовы ли вы к издержкам на запись и обслуживанию?</p></li><li class="list__item" id="cmk3zh_168"><p>Нужен ли частичный/выражение/INCLUDE для покрытия?</p></li><li class="list__item" id="cmk3zh_169"><p>Создавать ли <code class="code" id="cmk3zh_170">CONCURRENTLY</code> в продакшене?</p></li></ul></section><div class="last-modified">28 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="redis.html" class="navigation-links__prev">Redis</a><a href="s3.html" class="navigation-links__next">S3</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Командная разработка" id="_Командная-разработка" help-id="Командная-разработка">
+
+    <chapter title="Зачем нужна командная разработка">
+        <p>Командная разработка — это организованная совместная работа нескольких специалистов над программным
+            продуктом. В ней важны общие правила, прозрачные процессы и единые инструменты. Без этого возникает хаос:
+            задачи теряются, релизы срываются, качество падает. В этом топике мы разберём, как применять
+            <tooltip term="Agile">Agile</tooltip>
+            -подходы, чем отличаются
+            <tooltip term="Scrum">Scrum</tooltip>
+            и
+            <tooltip term="Kanban">Kanban</tooltip>
+            , как называть ветки в
+            <tooltip term="Git">Git</tooltip>
+            и привязывать их к задачам, как пользоваться
+            <tooltip term="Git-Flow">Git-Flow</tooltip>
+            , а также как настроить релизный цикл с
+            <tooltip term="Release Candidate">release candidate (RC)</tooltip>
+            .
+        </p>
+        <tip><p>Даже небольшая команда выигрывает от минимальных договорённостей: единые названия веток, формат
+            коммитов, частота релизов и правила code review.</p></tip>
+    </chapter>
+    <chapter title="Agile: принципы и ценности">
+        <p>
+            <format style="bold">Agile</format>
+            — это набор принципов, помогающих быстрее доставлять ценность пользователю и адаптироваться к изменениям.
+            Ключевые идеи: короткие итерации, обратная связь, приоритизация по ценности, работающая версия продукта
+            важнее документации, сотрудничество важнее контрактов.
+        </p>
+        <list>
+            <li>Фокус на ценности для пользователя: каждый спринт должен приносить ощутимый результат.</li>
+            <li>Инкрементальность: продукт развивается маленькими шагами, а не «одним большим релизом».</li>
+            <li>Прозрачность: статус задач и метрики доступны всей команде.</li>
+            <li>Адаптивность: планы меняются по мере появления новой информации.</li>
+        </list>
+        <note>
+            <p>Agile — не методология, а подход. Конкретные фреймворки —
+                <tooltip term="Scrum">Scrum</tooltip>
+                и
+                <tooltip term="Kanban">Kanban</tooltip>
+                — предлагают практики для ежедневной работы.
+            </p>
+        </note>
+    </chapter>
+    <chapter title="Scrum: роли, события, артефакты">
+        <p>
+            <format style="bold">Scrum</format>
+            — фреймворк с фиксированными ролями, событиями и артефактами. Он хорошо подходит, когда работа планируется
+            итерациями (спринтами) и важно регулярно показывать инкремент продукта.
+        </p>
+        <list>
+            <li>Роли: Product Owner (приоритизирует backlog), Scrum Master (помогает процессу), Команда разработки
+                (делает инкремент).
+            </li>
+            <li>События: планирование спринта, ежедневные стендапы, ревью спринта, ретроспектива.</li>
+            <li>Артефакты: Product Backlog, Sprint Backlog, Инкремент.</li>
+        </list>
+        <p>Спринт обычно длится 1–2 недели. На планировании команда выбирает задачи из backlog по приоритету и оценивает
+            их сложность. По итогам спринта проводится демонстрация результата и ретроспектива для улучшения
+            процесса.</p>
+        <warning><p>Частая ошибка — превращать ежедневный стендап в отчёт менеджеру. Цель стендапа — синхронизация
+            команды: что делаем сегодня, что мешает, где нужна помощь.</p></warning>
+    </chapter>
+    <chapter title="Kanban: визуализация потока и ограничение WIP">
+        <p>
+            <format style="bold">Kanban</format>
+            — фреймворк непрерывного потока. Вместо спринтов — постоянная доставка. Основные практики: визуализация
+            колонками (Backlog → In Progress → Review → Testing → Done), ограничение
+            <tooltip term="WIP">WIP</tooltip>
+            (Work In Progress) и управление потоком по метрикам (cycle time, throughput).
+        </p>
+        <list>
+            <li>Визуализация: каждая задача видна на доске, легко понять узкие места.</li>
+            <li>Ограничение WIP: нельзя начинать новую работу, пока не завершена текущая — это снижает переключение
+                контекста.
+            </li>
+            <li>Сервисные уровни: SLA для классов работ (например, баги — быстрее, чем фичи).</li>
+        </list>
+        <note><p>Kanban хорошо работает для команд поддержки и операций, где поток задач непрерывен и сложно планировать
+            жёсткие итерации.</p></note>
+    </chapter>
+    <chapter title="Правила наименования веток и привязки к задачам">
+        <p>Единый шаблон имён веток делает историю репозитория предсказуемой и упрощает автоматизацию. Ветка должна
+            однозначно указывать тип работы и ссылаться на идентификатор задачи в трекере (например, Jira , YouTrack, GitHub Issues).
+        </p>
+        <list>
+            <li>Типы веток: feature/, bugfix/, hotfix/, chore/, refactor/, docs/.</li>
+            <li>Шаблон: type/TICKET-123/korotkoe-opisanie.</li>
+            <li>Только латиница, цифры и дефисы; все слова в kebab-case.</li>
+            <li>Связь с задачей: ссылка на задачу в описании pull request и в первом коммите.</li>
+        </list>
+        <code-block lang="bash">
+            git checkout -b feature/APP-742/user-profile-avatar-upload
+            git push -u origin feature/APP-742/user-profile-avatar-upload
+        </code-block>
+        <p>Формат коммитов удобно стандартизировать по
+            <tooltip term="Conventional Commits">Conventional Commits</tooltip>
+            . Это помогает автоматически генерировать релиз-ноты и семантические версии.
+        </p>
+        <code-block lang="bash">
+            git commit -m "APP-742: allow avatar upload via drag-and-drop"
+            git commit -m "APP-801: handle refresh token rotation on 401"
+        </code-block>
+        <warning><p>Случайные имена вроде tmp, test или mybranch делают историю непонятной и ломают автоматические
+            правила CI/CD.</p></warning>
+        <note><p>Если трекер поддерживает smart-коммиты, указывайте идентификатор задачи прямо в сообщении (например,
+            APP-742), чтобы активировалась автоссылка и учёт времени.</p></note>
+    </chapter>
+    <chapter title="Git-Flow: типы веток и правила слияния">
+        <p>
+            <format style="bold">Git-Flow</format>
+            — модель ветвления, в которой выделены постоянные ветки main и develop, а также короткоживущие ветки
+            feature, release и hotfix. Она обеспечивает предсказуемость релизов и безопасные исправления в продакшене.
+        </p>
+        <list>
+            <li>main — всегда готовая к релизу стабильная ветка.</li>
+            <li>develop — интеграционная ветка для завершённых фич до формирования релиза.</li>
+            <li>feature/* — ведётся от develop, по завершении вливается обратно в develop через Pull Request.</li>
+            <li>release/* — создаётся от develop, сюда входят только фиксы и полировка; после релиза вливается в main и
+                в develop.
+            </li>
+            <li>hotfix/* — создаётся от main для срочных исправлений продакшена; после фикса вливается в main и в
+                develop.
+            </li>
+        </list>
+        <code-block lang="bash">
+            # начало фичи
+            git checkout develop
+            git checkout -b feature/APP-900/export-to-csv
+
+            #завершение фичи
+
+            git push -u origin feature/APP-900/export-to-csv
+
+            #подготовка релиза
+
+            git checkout develop
+            git checkout -b release/1.8.0
+            git push -u origin release/1.8.0
+
+            #хотфикс продакшена
+
+            git checkout main
+            git checkout -b hotfix/1.7.1/null-pointer-on-login
+            git push -u origin hotfix/1.7.1/null-pointer-on-login
+</code-block>
+        <warning>
+            <p>Git-Flow увеличивает количество веток и ритуалов. Для маленьких продуктов с ежедневными релизами часто
+                лучше
+                <tooltip term="Trunk Based Development">Trunk-Based Development</tooltip>
+                с feature toggles.
+            </p>
+        </warning>
+        <note>
+            <p>Требуйте
+                <tooltip term="Pull Request">Pull Request</tooltip>
+                и code review для всех feature/* и hotfix/* веток. Используйте «merge --no-ff», чтобы сохранялась
+                история ветки.
+            </p>
+        </note>
+        <code-block lang="bash">
+            git checkout develop
+            git merge --no-ff feature/APP-900/export-to-csv
+            git tag -a v1.8.0-rc.1 -m "RC1 for 1.8.0"
+            git push origin v1.8.0-rc.1
+        </code-block>
+    </chapter>
+
+    <chapter title="Релизный цикл и работа с Release Candidate (RC)">
+        <p>
+            <format style="bold">Release Candidate (RC)</format>
+            — это кандидат на релиз, который проходит финальные проверки. Если дефектов блокирующего уровня не найдено,
+            RC становится официальным релизом. Такой процесс снижает риски и делает выпуск предсказуемым.
+        </p>
+        <list>
+            <li>Заморозка фич: в ветку release/* попадают только исправления багов и тексты.</li>
+            <li>Версионирование: используйте
+                <tooltip term="Semantic Versioning">SemVer</tooltip>
+                (MAJOR.MINOR.PATCH).
+            </li>
+            <li>Теги: v1.8.0-rc.1, v1.8.0-rc.2 до готовности; затем v1.8.0.</li>
+            <li>Артефакты: для каждого тега собираются образы контейнеров и пакеты.</li>
+            <li>Среды: RC деплоится на staging, релиз — на production.</li>
+        </list>
+        <code-block lang="bash">
+            # создание RC-тэга
+            git checkout release/1.8.0
+            git tag -a v1.8.0-rc.1 -m "Release candidate 1 for 1.8.0"
+            git push origin v1.8.0-rc.1
+        </code-block>
+        <p>После прохождения регресса и приёмки RC переводится в релиз: создаётся тег v1.8.0 на том же коммите и
+            выполняется продакшен-деплой. Баги, найденные в RC, фиксируются коммитами в release/* с инкрементом
+            rc-номера.</p>
+        <code-block lang="bash">
+            # перевод RC в релиз
+            git tag -a v1.8.0 -m "Release 1.8.0"
+            git push origin v1.8.0
+        </code-block>
+        <warning><p>Прыжок сразу из develop в production без промежуточного RC увеличивает вероятность регрессий и
+            инцидентов в продакшене.</p></warning>
+        <note><p>Автоматизируйте выпуск через CI/CD: сборка, тесты, создание тегов, генерация релиз-нот и деплой по
+            событию «новый тег».</p></note>
+    </chapter>
+    <chapter title="Связка с трекером задач и релиз-ноты"><p>Каждая задача должна иметь ссылку на коммит, ветку и Pull
+        Request, а каждый релиз — список задач и изменений. Это достигается единым форматом сообщений коммитов и
+        шаблонами PR.</p>
+        <list>
+            <li>Коммиты: type(scope): message (TICKET-ID).</li>
+            <li>PR: шаблон с «Описание», «Как тестировать», «Ссылки на задачи», «Скриншоты».</li>
+            <li>Changelog: генерируется из Conventional Commits, сгруппирован по feature/fix/chore.</li>
+        </list>
+        <note><p>Требуйте прохождение статических проверок (линтеры, типы), тестов и успешный review перед merge. Это
+            уменьшает технический долг и сокращает время расследования инцидентов.</p></note>
+    </chapter>
+    <chapter title="Минимальные политики для начинающей команды">
+        <list>
+            <li>Имена веток: type/TICKET-ID/short-desc.</li>
+            <li>Conventional Commits и обязательный PR-review.</li>
+            <li>Доска Kanban с ограничением WIP или Scrum-спринты на 1–2 недели.</li>
+            <li>Еженедельные релизы с RC на staging.</li>
+            <li>Автоматическая сборка по тегу и генерация релиз-нот.</li>
+        </list>
+        <tip><p>Начните с простого: единые имена веток, формат коммитов и обязательный Pull Request. Остальное
+            добавляйте по мере роста команды и продукта.</p></tip>
+    </chapter>
+</topic>

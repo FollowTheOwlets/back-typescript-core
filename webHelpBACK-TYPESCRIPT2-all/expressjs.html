@@ -1,0 +1,294 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:34.9239476"><title>ExpressJS | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"z8xntcf_2","level":0,"title":"Что такое Express и зачем он нужен","anchor":"#z8xntcf_2"},{"id":"z8xntcf_3","level":0,"title":"Как работают серверные приложения и основные концепции","anchor":"#z8xntcf_3"},{"id":"z8xntcf_4","level":0,"title":"Правильная структура файлов","anchor":"#z8xntcf_4"},{"id":"z8xntcf_5","level":0,"title":"Минимальное приложение: запуск и первый маршрут","anchor":"#z8xntcf_5"},{"id":"z8xntcf_6","level":0,"title":"Базовые сущности и инструменты Express","anchor":"#z8xntcf_6"},{"id":"z8xntcf_7","level":0,"title":"Практические советы и подводные камни","anchor":"#z8xntcf_7"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="ExpressJS | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/expressjs.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="ExpressJS | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/expressjs.html#webpage",
+    "url": "writerside-documentation//1.0.0/expressjs.html",
+    "name": "ExpressJS | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="_ExpressJS" data-main-title="ExpressJS" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="_ExpressJS" id="_ExpressJS.topic">ExpressJS</h1><section class="chapter"><h2 id="z8xntcf_2" data-toc="z8xntcf_2">Что такое Express и зачем он нужен</h2><p id="z8xntcf_8"><span class="tooltip" id="z8xntcf_11" title="Минималистичный веб-фреймворк для Node.js для создания HTTP-серверов и API">Express</span> &mdash; это минималистичный <span class="tooltip" id="z8xntcf_12" title="Набор библиотек и соглашений, ускоряющих разработку приложений">фреймворк</span> для <span class="tooltip" id="z8xntcf_13" title="Среда выполнения JavaScript вне браузера">Node.js</span>, который упрощает создание <span class="tooltip" id="z8xntcf_14" title="Протокол передачи гипертекста для общения клиента и сервера">HTTP</span>-серверов и веб-приложений. Он предоставляет удобные абстракции над низкоуровневым модулем <code class="code" id="z8xntcf_15">http</code>, позволяя быстрее определять <span class="tooltip" id="z8xntcf_16" title="Связка HTTP-метода и пути с обработчиком запроса">маршруты</span>, подключать <span class="tooltip" id="z8xntcf_17" title="Функция пред-/пост-обработки запроса в цепочке Express">middleware</span>, обрабатывать файлы, параметры, заголовки и ошибки. На Express строят <span id="z8xntcf_18"><b>REST</b></span> API, серверный рендеринг страниц и <span id="z8xntcf_19"><b>backend</b></span> для SPA/мобильных приложений.</p><ul class="list _bullet" id="z8xntcf_9"><li class="list__item" id="z8xntcf_20"><p>Ускоряет разработку благодаря готовым примитивам: <code class="code" id="z8xntcf_23">app</code>, <code class="code" id="z8xntcf_24">Router</code>, <code class="code" id="z8xntcf_25">req</code>/<code class="code" id="z8xntcf_26">res</code>, <code class="code" id="z8xntcf_27">next</code>.</p></li><li class="list__item" id="z8xntcf_21"><p>Гибко расширяется через экосистему пакетов: логирование, <span class="tooltip" id="z8xntcf_28" title="Механизм контроля кросс-доменных запросов между браузером и сервером">CORS</span>, куки, сессии, валидация, загрузка файлов.</p></li><li class="list__item" id="z8xntcf_22"><p>Не навязывает архитектуру &mdash; вы сами выбираете слои и структуру каталогов.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_10"><p>Express отлично подходит как для учебных проектов, так и для продакшн-систем, если соблюдаются базовые практики качества кода, безопасности и наблюдаемости.</p></aside></section><section class="chapter"><h2 id="z8xntcf_3" data-toc="z8xntcf_3">Как работают серверные приложения и основные концепции</h2><p id="z8xntcf_29">Серверное приложение &laquo;слушает&raquo; порт и принимает входящие <span class="tooltip" id="z8xntcf_32" title="Операция чтения состояния модели без его изменения">запросы</span>. Каждый запрос проходит через цепочку <span class="tooltip" id="z8xntcf_33" title="Функция пред-/пост-обработки запроса в цепочке Express">middleware</span> &mdash; маленьких функций, которые могут читать/изменять <code class="code" id="z8xntcf_34">req</code> (запрос), <code class="code" id="z8xntcf_35">res</code> (ответ), либо завершать обработку, либо передавать управление дальше через <code class="code" id="z8xntcf_36">next()</code>. Когда найден подходящий <span class="tooltip" id="z8xntcf_37" title="Связка HTTP-метода и пути с обработчиком запроса">маршрут</span>, вызывается его обработчик, формирующий ответ.</p><ul class="list _bullet" id="z8xntcf_30"><li class="list__item" id="z8xntcf_38"><p><span id="z8xntcf_42"><b>Приложение</b></span> (<code class="code" id="z8xntcf_43">app</code>) &mdash; центральный объект, к которому &laquo;подвешивают&raquo; middleware и маршруты.</p></li><li class="list__item" id="z8xntcf_39"><p><span id="z8xntcf_44"><b>Middleware</b></span> &mdash; функции пред- и пост-обработки: парсинг тела, аутентификация, логирование, ограничения скорости.</p></li><li class="list__item" id="z8xntcf_40"><p><span id="z8xntcf_45"><b>Маршрутизатор</b></span> (<code class="code" id="z8xntcf_46">Router</code>) &mdash; модуль для группировки маршрутов по домену (например, <code class="code" id="z8xntcf_47">/users</code>).</p></li><li class="list__item" id="z8xntcf_41"><p><span id="z8xntcf_48"><b>Обработчик ошибок</b></span> &mdash; специальное middleware с сигнатурой <code class="code" id="z8xntcf_49">(err, req, res, next)</code>.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="z8xntcf_31"><p>Цепочка middleware позволяет добавлять функциональность небольшими независимыми блоками &mdash; это повышает переиспользуемость и упрощает тестирование.</p></aside></section><section class="chapter"><h2 id="z8xntcf_4" data-toc="z8xntcf_4">Правильная структура файлов</h2><p id="z8xntcf_50">Express не навязывает структуру, но практично разделять слои и домены. Ниже &mdash; опорный шаблон для <span id="z8xntcf_55"><b>REST API</b></span> со слоями <span class="tooltip" id="z8xntcf_56" title="Слой, преобразующий HTTP-запросы в вызовы доменной логики и формирующий ответы">контроллеров</span>, <span class="tooltip" id="z8xntcf_57" title="Автономный развертываемый компонент, владеющий своим состоянием и выполняющий ограниченный набор функций">сервисов</span>, <span class="tooltip" id="z8xntcf_58" title="Слой доступа к данным (БД/внешние сервисы), инкапсулирующий детали хранения">репозиториев</span> и утилит.</p><div class="code-block" data-lang="none">
+            project/
+              src/
+                app.ts
+                server.ts
+                config/
+                  index.ts
+                modules/
+                  users/
+                    users.router.ts
+                    users.controller.ts
+                    users.service.ts
+                    users.repository.ts
+                    users.validators.ts
+                    users.types.ts
+                  auth/
+                    auth.router.ts
+                    auth.controller.ts
+                    auth.service.ts
+                middlewares/
+                  error.middleware.ts
+                  not-found.middleware.ts
+                  request-logger.middleware.ts
+                libs/
+                  db.ts
+                  http.ts
+                utils/
+                  env.ts
+                tests/
+                  users.e2e.test.ts
+              public/
+                index.html
+              .env
+              package.json
+              tsconfig.json
+    </div><ul class="list _bullet" id="z8xntcf_52"><li class="list__item" id="z8xntcf_59"><p><code class="code" id="z8xntcf_65">app.ts</code> &mdash; сборка приложения: подключение middleware/маршрутов.</p></li><li class="list__item" id="z8xntcf_60"><p><code class="code" id="z8xntcf_66">server.ts</code> &mdash; запуск HTTP-сервера, чтение порта из окружения.</p></li><li class="list__item" id="z8xntcf_61"><p><code class="code" id="z8xntcf_67">modules/*</code> &mdash; доменная логика: роуты, контроллеры, сервисы, репозитории, валидация.</p></li><li class="list__item" id="z8xntcf_62"><p><code class="code" id="z8xntcf_68">middlewares/*</code> &mdash; кросс-срезовые задачи: логирование, безопасность, обработка ошибок.</p></li><li class="list__item" id="z8xntcf_63"><p><code class="code" id="z8xntcf_69">config/*</code> и <code class="code" id="z8xntcf_70">utils/*</code> &mdash; конфигурация и вспомогательные функции.</p></li><li class="list__item" id="z8xntcf_64"><p><code class="code" id="z8xntcf_71">public/*</code> &mdash; статические файлы, если нужно раздавать их напрямую.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_53"><p>Держите файлы короткими и целенаправленными: один файл &mdash; одна ответственность. Это облегчает обзор кода и рефакторинг.</p></aside><aside class="prompt" data-type="warning" data-title="" id="z8xntcf_54"><p>Смешивание слоёв (SQL-запросы прямо в контроллерах, &laquo;толстые&raquo; маршруты) приводит к хрупкости и дублированию логики. Разделяйте ответственность по слоям.</p></aside></section><section class="chapter"><h2 id="z8xntcf_5" data-toc="z8xntcf_5">Минимальное приложение: запуск и первый маршрут</h2><div class="code-block" data-lang="bash">
+            npm init -y
+            npm i express
+            node src/server.js
+        </div><div class="code-block" data-lang="javascript">
+            /* src/server.js */
+            const express = require(&quot;express&quot;);
+
+            const app = express();
+            app.use(express.json());
+
+            app.get(&quot;/&quot;, (req, res) =&gt; {
+                res.status(200).send(&quot;Hello, Express!&quot;);
+            });
+
+            const PORT = process.env.PORT || 3000;
+            app.listen(PORT, () =&gt; {
+                console.log(`Server started on http://localhost:${PORT}`); // выведем адрес для проверки
+            });
+        </div><aside class="prompt" data-type="note" data-title="" id="z8xntcf_74"><p>В продакшне предпочтительнее TypeScript и явные слои. Но даже базовый скелет уже демонстрирует концепции: парсер тела, маршрут, статус-код и ответ.</p></aside></section><section class="chapter"><h2 id="z8xntcf_6" data-toc="z8xntcf_6">Базовые сущности и инструменты Express</h2><section class="chapter"><h3 id="z8xntcf_75" data-toc="z8xntcf_75">Приложение и Router</h3><p id="z8xntcf_82"><code class="code" id="z8xntcf_87">app</code> &mdash; корневой объект. <code class="code" id="z8xntcf_88">Router()</code> позволяет группировать маршруты по доменам и подключать локальные middleware.</p><div class="code-block" data-lang="ts">
+                // src/modules/users/users.router.ts
+                import { Router } from &quot;express&quot;;
+                import * as controller from &quot;./users.controller&quot;;
+
+                export const usersRouter = Router();
+
+                usersRouter.get(&quot;/&quot;, controller.list);
+                usersRouter.post(&quot;/&quot;, controller.create);
+                usersRouter.get(&quot;/:id&quot;, controller.getById);
+                usersRouter.patch(&quot;/:id&quot;, controller.update);
+                usersRouter.delete(&quot;/:id&quot;, controller.remove);
+            </div><div class="code-block" data-lang="ts">
+                // src/app.ts
+                import express from &quot;express&quot;;
+                import { usersRouter } from &quot;./modules/users/users.router&quot;;
+
+                export const app = express();
+
+                app.use(express.json());
+                app.use(&quot;/users&quot;, usersRouter);
+            </div><div class="code-block" data-lang="ts">
+                // src/server.ts
+                import { app } from &quot;./app&quot;;
+
+                const PORT = Number(process.env.PORT) || 3000;
+                app.listen(PORT, () =&gt; {
+                    console.log(`Server on http://localhost:${PORT}`); // проверка, что сервер поднят
+                });
+            </div><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_86"><p>Маршрутизаторы помогают поддерживать порядок: каждый модуль инкапсулирует свои endpoint-ы, валидаторы и обработку ошибок.</p></aside></section><section class="chapter"><h3 id="z8xntcf_76" data-toc="z8xntcf_76">Контроллеры, сервисы, репозитории</h3><p id="z8xntcf_89"><span class="tooltip" id="z8xntcf_94" title="Слой, преобразующий HTTP-запросы в вызовы доменной логики и формирующий ответы">Контроллер</span> преобразует HTTP-запрос в вызовы доменной логики, <span class="tooltip" id="z8xntcf_95" title="Автономный развертываемый компонент, владеющий своим состоянием и выполняющий ограниченный набор функций">сервис</span> реализует бизнес-правила, <span class="tooltip" id="z8xntcf_96" title="Слой доступа к данным (БД/внешние сервисы), инкапсулирующий детали хранения">репозиторий</span> общается с БД/внешними системами.</p><div class="code-block" data-lang="ts">
+                // src/modules/users/users.controller.ts
+                import { Request, Response, NextFunction } from &quot;express&quot;;
+                import * as service from &quot;./users.service&quot;;
+
+                export async function list(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const users = await service.list();
+                        res.status(200).json(users);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function create(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.create(req.body);
+                        res.status(201).json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function getById(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.getById(req.params.id);
+                        if (!user) return res.status(404).json({ error: &quot;Not found&quot; });
+                        res.json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function update(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        const user = await service.update(req.params.id, req.body);
+                        res.json(user);
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+
+                export async function remove(req: Request, res: Response, next: NextFunction) {
+                    try {
+                        await service.remove(req.params.id);
+                        res.status(204).send();
+                    } catch (err) {
+                        next(err);
+                    }
+                }
+            </div><div class="code-block" data-lang="ts">
+                // src/modules/users/users.service.ts
+                import * as repo from &quot;./users.repository&quot;;
+                import {User} from &quot;./users.types&quot;;
+
+                export async function list(): Promise&lt;User[]&gt; {
+                    return repo.findAll();
+                }
+
+                export async function create(data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    return repo.insert(data);
+                }
+
+                export async function getById(id: string): Promise&lt;User | undefined&gt; {
+                    return repo.findById(id);
+                }
+
+                export async function update(id: string, data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    return repo.update(id, data);
+                }
+
+                export async function remove(id: string): Promise&lt;void&gt; {
+                    return repo.remove(id);
+                }
+            </div><div class="code-block" data-lang="ts">
+                // src/modules/users/users.repository.ts
+                import {randomUUID} from &quot;crypto&quot;;
+                import {User} from &quot;./users.types&quot;;
+
+                const memory: User[] = [];
+
+                export async function findAll(): Promise&lt;User[]&gt; {
+                    return memory;
+                }
+
+                export async function insert(data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    const item: User = {id: randomUUID(), name: data.name ?? &quot;&quot;, email: data.email ?? &quot;&quot;};
+                    memory.push(item);
+                    return item;
+                }
+
+                export async function findById(id: string): Promise&lt;User | undefined&gt; {
+                    return memory.find(u =&gt; u.id === id);
+                }
+
+                export async function update(id: string, data: Partial&lt;User&gt;): Promise&lt;User&gt; {
+                    const idx = memory.findIndex(u =&gt; u.id === id);
+                    if (idx === -1) throw new Error(&quot;Not found&quot;);
+                    memory[idx] = {...memory[idx], ...data};
+                    return memory[idx];
+                }
+
+                export async function remove(id: string): Promise&lt;void&gt; {
+                    const idx = memory.findIndex(u =&gt; u.id === id);
+                    if (idx !== -1) memory.splice(idx, 1);
+                }
+            </div><aside class="prompt" data-type="note" data-title="" id="z8xntcf_93"><p>Даже если сначала данные в памяти, сохраните слой репозитория &mdash; позже будет проще перейти на БД без переписывания сервисов и контроллеров.</p></aside></section><section class="chapter"><h3 id="z8xntcf_77" data-toc="z8xntcf_77">Middleware: общая пред-/пост-обработка</h3><p id="z8xntcf_97"><span class="tooltip" id="z8xntcf_103" title="Функция пред-/пост-обработки запроса в цепочке Express">Middleware</span> принимает <code class="code" id="z8xntcf_104">(req, res, next)</code>. Оно может завершить ответ или передать управление дальше вызовом <code class="code" id="z8xntcf_105">next()</code>. Порядок подключения влияет на поведение.</p><div class="code-block" data-lang="ts">
+                // src/middlewares/request-logger.middleware.ts
+                import { Request, Response, NextFunction } from &quot;express&quot;;
+
+                export function requestLogger(req: Request, res: Response, next: NextFunction) {
+                    const started = Date.now();
+                    res.on(&quot;finish&quot;, () =&gt; {
+                        const ms = Date.now() - started;
+                        console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`); // лог запроса
+                    });
+                    next();
+                }
+            </div><div class="code-block" data-lang="ts">
+                // src/app.ts (фрагмент подключения логгера)
+                import { requestLogger } from &quot;./middlewares/request-logger.middleware&quot;;
+                // ... после создания app
+                app.use(requestLogger);
+            </div><div class="code-block" data-lang="ts">
+                // src/middlewares/error.middleware.ts
+                import { Request, Response, NextFunction } from &quot;express&quot;;
+
+                export function errorMiddleware(err: unknown, req: Request, res: Response, _next: NextFunction) {
+                    const status = 500;
+                    const message = err instanceof Error ? err.message : &quot;Internal Server Error&quot;;
+                    res.status(status).json({ error: message });
+                }
+            </div><div class="code-block" data-lang="ts">
+                // src/app.ts (подключение обработчика ошибок в самом конце)
+                import { errorMiddleware } from &quot;./middlewares/error.middleware&quot;;
+                // ... после всех маршрутов и middleware
+                app.use(errorMiddleware);
+            </div><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_102"><p>Проверяйте тип ошибки и не раскрывайте лишних деталей в продакшне. Трассировки сохраняйте в логи, а пользователю отдавайте безопасное сообщение.</p></aside></section><section class="chapter"><h3 id="z8xntcf_78" data-toc="z8xntcf_78">Парсинг тела, статические файлы, CORS</h3><p id="z8xntcf_106">Частые утилиты: <code class="code" id="z8xntcf_109">express.json()</code> для JSON-тел, <code class="code" id="z8xntcf_110">express.urlencoded()</code> для форм, <code class="code" id="z8xntcf_111">express.static()</code> для статики, пакет <code class="code" id="z8xntcf_112">cors</code> для <span class="tooltip" id="z8xntcf_113" title="Механизм контроля кросс-доменных запросов между браузером и сервером">CORS</span>.</p><div class="code-block" data-lang="ts">
+                // src/app.ts (фрагмент: парсинг, статика, CORS)
+                import cors from &quot;cors&quot;;
+                import path from &quot;path&quot;;
+                import express from &quot;express&quot;;
+
+                app.use(cors());
+                app.use(express.json({ limit: &quot;1mb&quot; }));
+                app.use(express.urlencoded({ extended: true }));
+                app.use(&quot;/static&quot;, express.static(path.join(process.cwd(), &quot;public&quot;)));
+            </div><aside class="prompt" data-type="warning" data-title="" id="z8xntcf_108"><p>Не ставьте слишком большой <code class="code" id="z8xntcf_114">limit</code> на <code class="code" id="z8xntcf_115">json()</code> &mdash; это увеличит риск DoS и потребление памяти. Раздачу статики ограничивайте только необходимыми директориями.</p></aside></section><section class="chapter"><h3 id="z8xntcf_79" data-toc="z8xntcf_79">Валидация входных данных</h3><p id="z8xntcf_116">Проверяйте параметры, <code class="code" id="z8xntcf_120">req.body</code> и <code class="code" id="z8xntcf_121">req.query</code> до бизнес-логики. Можно использовать <code class="code" id="z8xntcf_122">express-validator</code> или <code class="code" id="z8xntcf_123">zod</code>/<code class="code" id="z8xntcf_124">yup</code>.</p><div class="code-block" data-lang="ts">
+                // src/modules/users/users.validators.ts
+                import { body, param } from &quot;express-validator&quot;;
+
+                export const createUserDto = [
+                    body(&quot;email&quot;).isEmail(),
+                    body(&quot;name&quot;).isString().isLength({ min: 2 })
+                ];
+
+                export const idParam = [ param(&quot;id&quot;).isUUID() ];
+            </div><div class="code-block" data-lang="ts">
+                // src/middlewares/validate.middleware.ts
+                import { validationResult } from &quot;express-validator&quot;;
+                import { Request, Response, NextFunction } from &quot;express&quot;;
+
+                export function validate(req: Request, res: Response, next: NextFunction) {
+                    const errors = validationResult(req);
+                    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+                    next();
+                }
+            </div><aside class="prompt" data-type="note" data-title="" id="z8xntcf_119"><p>Валидация на границе контроллера защищает сервисный слой от &laquo;грязных&raquo; данных и упрощает отладку &mdash; ошибки становятся предсказуемыми.</p></aside></section><section class="chapter"><h3 id="z8xntcf_80" data-toc="z8xntcf_80">Асинхронные обработчики и ловля ошибок</h3><p id="z8xntcf_125">Асинхронные контроллеры должны передавать ошибки в общий обработчик. Оберните их в небольшую утилиту.</p><div class="code-block" data-lang="ts">
+                import { Request, Response, NextFunction } from &quot;express&quot;;
+
+                export const asyncHandler =
+                    (fn: (req: Request, res: Response, next: NextFunction) =&gt; unknown) =&gt;
+                    (req: Request, res: Response, next: NextFunction) =&gt;
+                        Promise.resolve(fn(req, res, next)).catch(next);
+            </div><div class="code-block" data-lang="ts">
+                // пример использования asyncHandler в роутере
+                import { Router } from &quot;express&quot;;
+                import { asyncHandler } from &quot;../../libs/http&quot;;
+
+                const router = Router();
+
+                router.get(&quot;/:id&quot;, asyncHandler(async (req, res) =&gt; {
+                    res.json({ id: req.params.id });
+                }));
+
+                export default router;
+            </div><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_128"><p>Единая обёртка избавляет от дублирования <code class="code" id="z8xntcf_129">try/catch</code> и гарантирует, что любая ошибка попадёт в <span class="tooltip" id="z8xntcf_130" title="Специальное middleware Express с сигнатурой (err, req, res, next)">обработчик ошибок</span>.</p></aside></section><section class="chapter"><h3 id="z8xntcf_81" data-toc="z8xntcf_81">Конфигурация и переменные окружения</h3><p id="z8xntcf_131">Чувствительные значения храните в окружении (<code class="code" id="z8xntcf_134">.env</code>) и валидируйте при старте.</p><div class="code-block" data-lang="ts">
+                // src/utils/env.ts
+                import * as dotenv from &quot;dotenv&quot;;
+                dotenv.config();
+
+                export const env = {
+                    NODE_ENV: process.env.NODE_ENV || &quot;development&quot;,
+                    PORT: Number(process.env.PORT || 3000)
+                };
+            </div><aside class="prompt" data-type="warning" data-title="" id="z8xntcf_133"><p>Не коммитьте <code class="code" id="z8xntcf_135">.env</code> в репозиторий. В продакшне используйте секреты/хранилища параметров.</p></aside></section></section><section class="chapter"><h2 id="z8xntcf_7" data-toc="z8xntcf_7">Практические советы и подводные камни</h2><ul class="list _bullet" id="z8xntcf_136"><li class="list__item" id="z8xntcf_139"><p>Порядок <span class="tooltip" id="z8xntcf_144" title="Последовательность middleware, через которую проходит каждый запрос">middleware</span> важен: логирование и CORS &mdash; раньше маршрутизации; обработчик ошибок &mdash; в самом конце.</p></li><li class="list__item" id="z8xntcf_140"><p>Всегда возвращайте корректные <span class="tooltip" id="z8xntcf_145" title="Числовой код результата обработки запроса (2xx, 4xx, 5xx)">HTTP-статусы</span> и явные JSON-структуры ошибок.</p></li><li class="list__item" id="z8xntcf_141"><p>Ограничивайте размер тела запроса и время обработки, добавляйте таймауты и rate limiting.</p></li><li class="list__item" id="z8xntcf_142"><p>Не смешивайте домены: держите отдельные <code class="code" id="z8xntcf_146">Router</code> для разных модулей.</p></li><li class="list__item" id="z8xntcf_143"><p>Добавьте наблюдаемость: логирование запросов, корреляционные ID, метрики времени ответа.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="z8xntcf_137"><p>Игнорирование обработки ошибок и валидации ведёт к нестабильности и уязвимостям. Любая ошибка должна проходить через централизованный обработчик.</p></aside><aside class="prompt" data-type="tip" data-title="" id="z8xntcf_138"><p>Начинайте с минимального, но &laquo;правильного&raquo; каркаса: слои, роутеры, middleware, обработчик ошибок, .env &mdash; это окупится при росте проекта.</p></aside></section><div class="last-modified">26 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="s3.html" class="navigation-links__prev">S3</a><a href="cors.html" class="navigation-links__next">CORS</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

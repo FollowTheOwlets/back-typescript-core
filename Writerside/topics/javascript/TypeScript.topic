@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="TypeScript" id="TypeScript">
+
+    <p>
+        <tooltip term="TypeScript">TypeScript</tooltip>
+        — это надстройка над
+        <tooltip term="JavaScript">JavaScript</tooltip>
+        , добавляющая статическую систему
+        <tooltip term="Тип">типов</tooltip>
+        , инструменты для проверки кода на этапе разработки и улучшенную поддержку крупных проектов. Он
+        компилируется в обычный JS, поэтому запускается везде, где работает JS: в Node.js и в браузере. Ниже — что
+        именно добавляет TS и как стажёру, знакомому только с серверным JS, грамотно на него перейти.
+    </p>
+
+    <chapter title="Что добавляет TypeScript поверх JavaScript">
+        <list>
+            <li>
+                <format style="bold">Статическая типизация</format>
+                : объявление типов для переменных, параметров, возвращаемых значений функций и структур данных.
+            </li>
+            <li>
+                <format style="bold">Инференс типов</format>
+                : TS умеет выводить типы автоматически, не требуя аннотаций везде.
+            </li>
+            <li>
+                <format style="bold">Проверка на этапе компиляции</format>
+                : ловит опечатки, несоответствия контрактам и потенциальные ошибки ещё до запуска.
+            </li>
+            <li>
+                <format style="bold">Современный синтаксис</format>
+                : поддержка последних возможностей JS (ESNext), включая <code>import/export</code>,
+                <code>async/await</code>,
+                декораторы (экспериментально) и т. п.
+            </li>
+            <li>
+                <format style="bold">Инструменты для больших кодовых баз</format>
+                :
+                <tooltip term="Интерфейс">интерфейсы</tooltip>
+                ,
+                <tooltip term="Дженерик">дженерики</tooltip>
+                ,
+                <tooltip term="Юнион-типы">объединения типов</tooltip>
+                ,
+                <tooltip term="Пересечение типов">пересечения типов</tooltip>
+                ,
+                <tooltip term="Утилитные типы">утилитные типы</tooltip>
+                .
+            </li>
+            <li>
+                <format style="bold">Более умный редакторский опыт</format>
+                : автодополнение, навигация по коду, рефакторинги и подсказки становятся точнее благодаря типам.
+            </li>
+        </list>
+        <note>TS не меняет рантайм Node.js. Он лишь добавляет проверку и подсказки до запуска. В рантайме остаётся
+            обычный JS.
+        </note>
+    </chapter>
+
+    <chapter title="Базовые типы и аннотации">
+        <p>Самые часто используемые типы: <code>string</code>, <code>number</code>, <code>boolean</code>,
+            <code>null</code>, <code>undefined</code>, <code>symbol</code>, <code>bigint</code>,
+            <code>unknown</code>, <code>any</code>, <code>never</code>, а также <code>object</code>, массивы
+            <code>T[]</code>
+            и кортежи <code>[T1, T2]</code>.</p>
+        <code-block lang="ts">
+                // Явные аннотации типов
+                let message: string = "Hello";
+                let count: number = 42;
+                let ok: boolean = true;
+
+                // Массивы и кортежи
+                const nums: number\[] = \[1, 2, 3];
+                const pair: \[string, number] = \["id", 10];
+
+                // Объекты и интерфейсы
+                interface User {
+                    id: string;
+                    email?: string; // вопросительный знак — поле необязательно
+                }
+
+                const u: User = {id: "u1"};
+            </code-block>
+        <tip>Аннотации нужны не везде — компилятор часто сам выводит тип: <code>const x = 1</code> означает, что
+            <code>x</code> — <code>number</code>.
+        </tip>
+        <warning>Тип <code>any</code> отключает проверки по месту использования. Избыточное применение
+            <code>any</code> лишает преимуществ TS.
+        </warning>
+    </chapter>
+
+    <chapter title="Структурная типизация и контракты">
+        <p>TS использует
+            <tooltip term="Структурная типизация">структурную типизацию</tooltip>
+            : совместимость определяется формой объекта (набором полей), а не именем типа.
+        </p>
+        <code-block lang="ts">
+                interface HasId {
+                    id: string;
+                }
+
+                type WithIdAndName = {
+                    id: string;
+                    name: string;
+                };
+
+                const w: WithIdAndName = {id: "1", name: "Alice"};
+                const h: HasId = w; // ОК: у w есть поле id\:string
+            </code-block>
+        <note>Благодаря структурности проще исполнять принцип подстановки: объект «богаче по полям» можно передать
+            туда, где требуется «беднее».
+        </note>
+    </chapter>
+
+    <chapter title="Интерфейсы и type-алиасы">
+        <p>И <code>interface</code>, и <code>type</code> объявляют формы типов. <code>interface</code> поддерживает
+            декларативное расширение (merging), <code>type</code> — более универсален (можно описывать объединения,
+            пересечения и пр.).</p>
+        <code-block lang="ts">
+                interface A {
+                    x: number;
+                }
+
+                interface A {
+                    y: number;
+                } // merging: теперь A имеет x и y
+
+                type B = { x: number } & { y: number }; // пересечение даёт { x; y }
+            </code-block>
+        <tip>В доменных контрактах чаще используют <code>interface</code>, для сложных композиционных типов —
+            <code>type</code>.
+        </tip>
+    </chapter>
+
+    <chapter title="Объединения, пересечения, литеральные и перечислимые типы">
+            <code-block lang="ts">
+                type Id = string | number; // объединение
+                type Point2D = { x: number } &amp; { y: number }; // пересечение
+
+                // Литеральные типы и сужение
+                type Direction = "up" | "down" | "left" | "right";
+
+                enum Role {
+                    Admin = "admin",
+                    User = "user",
+                }
+            </code-block>
+        <warning>С <code>enum</code> аккуратно: строковые литералы чаще проще и легче для tree-shaking. Рассмотрите
+            <code>as const</code> объекты как альтернативу.
+        </warning>
+    </chapter>
+
+    <chapter title="Сужение типов (type narrowing) и проверки">
+        <p>TS анализирует ветвления и проверки, чтобы «сузить» тип к более конкретному.</p>
+        <code-block lang="ts">
+                    function printId(id: string | number) {
+                        if (typeof id === "string") {
+                            console.log(id.toUpperCase());
+                        } else {
+                            console.log(id.toFixed(2));
+                        }
+                    }
+
+                    function isUser(x: unknown): x is { id: string } {
+                        return typeof x === "object" && x !== null && "id" in x;
+                    }
+                </code-block>
+        <tip>Пользовательские type guards (<code>x is ...</code>) помогают описать безопасные проверки сложных
+            структур.
+        </tip>
+    </chapter>
+
+    <chapter title="Дженерики (обобщения)">
+        <p>Дженерики позволяют писать переиспользуемый код, сохраняющий информацию о типах.</p>
+        <code-block lang="ts">
+                    function wrap&lt;T&gt;(value: T) {
+                        return {value};
+                    }
+
+                    const x = wrap&lt;number&gt;(42);      // x: { value: number }
+                    const y = wrap("str");            // инференс T = string
+                </code-block>
+        <note>Добавляйте ограничения: <code>&lt;T extends { id: string }&gt;</code>, чтобы сужать область допустимых
+            типов.
+        </note>
+    </chapter>
+
+    <chapter title="Полезные утилитные типы">
+        <list>
+            <li><code>Partial&lt;T&gt;</code>, <code>Required&lt;T&gt;</code>, <code>Readonly&lt;T&gt;</code></li>
+            <li><code>Pick&lt;T, K&gt;</code>, <code>Omit&lt;T, K&gt;</code></li>
+            <li><code>Record&lt;K, T&gt;</code>, <code>NonNullable&lt;T&gt;</code>, <code>ReturnType&lt;F&gt;</code>
+            </li>
+        </list>
+        <code-block lang="ts">
+                type User = { id: string; email?: string };
+                type UserPatch = Partial&lt;User&gt;;          // все поля необязательны
+                type UserRequired = Required&lt;User&gt;;      // все обязательны
+                type OnlyId = Pick&lt;User, "id"&gt;;
+            </code-block>
+    </chapter>
+
+    <chapter title="Функции, this и перегрузки">
+        <p>Аннотируйте параметры и возвращаемые значения. Для разных сигнатур используйте перегрузки.</p>
+        <code-block lang="ts">
+                function len(x: string): number;
+                function len(x: any[]): number;
+                function len(x: string | any[]) {
+                    return x.length;
+                }
+            </code-block>
+        <warning>Не злоупотребляйте перегрузками — иногда достаточно объединений типов и сужения внутри тела
+            функции.
+        </warning>
+    </chapter>
+
+    <chapter title="Классы, модификаторы и поля">
+        <p>TS добавляет модификаторы <code>public</code>, <code>private</code>, <code>protected</code>,
+            <code>readonly</code>,
+            а также поля инициализации прямо в сигнатуре конструктора.</p>
+        <code-block lang="ts">
+                class Repo {
+                    constructor(private readonly url: string) {
+                    }
+
+                    connect(): void { /* ... */
+                    }
+                }
+
+                const r = new Repo("postgres://...");
+            </code-block>
+        <tip>Приватные поля помогают формализовать инкапсуляцию и не полагаться лишь на соглашения.</tip>
+    </chapter>
+
+    <chapter title="Строгий режим и работа с null/undefined">
+        <p>Включите строгий режим, чтобы компилятор помогал больше: <code>"strict": true</code>, включая <code>strictNullChecks</code>.
+        </p>
+        <code-block lang="ts">
+                    function findEmail(u?: { email?: string }) {
+                        // Опциональная последовательность и оператор объединения с null
+                        return u?.email ?? "no-email@example.com";
+                    }
+                </code-block>
+        <warning>Осторожнее с утверждениями (<code>as</code>) и небезопасными операторами (<code>!</code>): они
+            выключают проверки и могут скрыть ошибки.
+        </warning>
+    </chapter>
+
+    <chapter title="Переезд с серверного JS на TypeScript — практическая стратегия">
+        <chapter title="Шаг 1. Подготовка окружения">
+            <list>
+                <li>Добавьте TS в проект: <code>npm i -D typescript</code>.</li>
+                <li>Инициализируйте конфиг: <code>npx tsc --init</code>.</li>
+                <li>Рекомендуемые опции для Node.js-проекта:
+                    <code-block lang="json">
+                        {
+                            "compilerOptions": {
+                                "target": "ES2020",
+                                "module": "NodeNext",
+                                "moduleResolution": "NodeNext",
+                                "strict": true,
+                                "esModuleInterop": true,
+                                "skipLibCheck": true,
+                                "outDir": "dist",
+                                "rootDir": "src",
+                                "resolveJsonModule": true,
+                                "forceConsistentCasingInFileNames": true
+                            },
+                            "include": [
+                                "src"
+                            ]
+                        }
+                      </code-block>
+                </li>
+            </list>
+            <note><code>module</code>/<code>moduleResolution</code> выбирайте под ваш стиль импортов (ESM или CJS).
+                Для современного Node лучше ESM: <code>"type": "module"</code> в <code>package.json</code> и <code>NodeNext</code>
+                в TS.
+            </note>
+        </chapter>
+        <chapter title="Шаг 2. Мягкая типизация существующего кода">
+            <list>
+                <li>Включите поддержку JS-файлов в сборке: <code>"allowJs": true</code> и, по желанию, <code>"checkJs":
+                    true</code> для постепенной проверки JSDoc-типов.
+                </li>
+                <li>Начните добавлять JSDoc-типы в JS-файлы, не переименовывая их в <code>.ts</code>. Это даст
+                    подсказки без резкого порога.
+                </li>
+                <li>Постепенно переименовывайте файлы из <code>.js</code> в <code>.ts</code>, начиная с листовых
+                    модулей (не переиспользуемых другими).
+                </li>
+            </list>
+            <tip>JSDoc-комментарии типа <code>@param</code>, <code>@returns</code> и <code>@typedef</code> помогают
+                TS без смены расширения файла.
+            </tip>
+        </chapter>
+
+        <chapter title="Шаг 3. Типизация внешних зависимостей">
+            <list>
+                <li>Если пакет не имеет встроенных типов, установите их: <code>npm i -D @types/&lt;pkg&gt;</code>.
+                </li>
+                <li>Пишите собственные декларации для внутренних библиотек: <code>*.d.ts</code> в папке
+                    <code>types</code> и добавьте её в <code>typeRoots</code>, если нужно.
+                </li>
+            </list>
+            <warning>Старайтесь избегать <code>any</code> в декларациях. Лучше описать минимально нужный контракт
+                (например, <code>interface</code> с используемыми полями).
+            </warning>
+        </chapter>
+
+        <chapter title="Шаг 4. Ужесточение конфигурации">
+            <list>
+                <li>Включайте строгие флаги постепенно: <code>noImplicitAny</code>, <code>noImplicitThis</code>,
+                    <code>strictNullChecks</code>, <code>noUncheckedIndexedAccess</code>.
+                </li>
+                <li>Наводите порядок: устраняйте <code>any</code>, вводите интерфейсы/типы, покрывайте участки кода
+                    тестами.
+                </li>
+            </list>
+            <note>Итеративный подход снижает риски: усилили правила — поправили ошибки — закрепили результат.</note>
+        </chapter>
+
+        <chapter title="Шаг 5. Сборка и запуск">
+            <list>
+                <li>В разработке удобно использовать <code>tsx</code> или <code>ts-node</code>:
+                    <code-block lang="bash">
+                            npm i -D tsx
+
+                            # или
+
+                            npm i -D ts-node
+                        </code-block>
+                </li>
+                <li>В продакшн собирайте в JS:
+                    <code-block lang="bash">
+                            npx tsc
+                            node dist/index.js 
+                        </code-block>
+                </li>
+            </list>
+            <warning>Не запускайте продакшн-приложение через транспайлер на лету без необходимости — это усложняет
+                отладку и может замедлять запуск.
+            </warning>
+        </chapter>
+    </chapter>
+
+    <chapter title="Лучшие практики для серверного TypeScript">
+        <list>
+            <li>С самого начала включите <code>"strict": true</code> и <code>"skipLibCheck": true</code> (ускоряет
+                сборку, не проверяя внешние типы).
+            </li>
+            <li>Фиксируйте интерфейсы доменных сущностей в <code>types/</code> или <code>domain/</code>.
+                Поддерживайте их как «контракты» между модулями.
+            </li>
+            <li>Предпочитайте <code>unknown</code> вместо <code>any</code> на границах ввода (например, при парсинге
+                JSON), затем выполняйте проверку и сужение.
+            </li>
+            <li>Используйте утилитные типы для DTO: <code>Pick</code>, <code>Omit</code>, <code>Partial</code>,
+                чтобы не дублировать поля.
+            </li>
+            <li>Поддерживайте единый стиль импорта/экспорта (ESM или CJS) и настройте линтер (ESLint) + форматтер
+                (Prettier).
+            </li>
+        </list>
+        <warning>Не превращайте все сущности в классы. Простые <code>type</code>/<code>interface</code> и функции
+            часто лучше классов для чистой бизнес-логики.
+        </warning>
+        <tip>Добавьте sourcemaps (<code>"sourceMap": true</code>) — стек-трейсы укажут на строки исходного TS-кода
+            при ошибках.
+        </tip>
+    </chapter>
+
+    <chapter title="Мини-проект: пример и как запустить">
+    <p>Создадим минимальный сервер на Node.js с TypeScript.</p>
+    <code-block lang="bash">
+                # 1) Инициализируем проект
+                npm init -y
+                
+                # 2) Ставим зависимости для TS-разработки
+                
+                npm i -D typescript tsx @types/node
+                
+                # 3) Инициализируем tsconfig
+                
+                npx tsc --init 
+            </code-block>
+    <p>Отредактируем <code>tsconfig.json</code> (минимально необходимое):</p>
+    <code-block lang="json">
+                {
+                    "compilerOptions": {
+                        "target": "ES2020",
+                        "module": "NodeNext",
+                        "moduleResolution": "NodeNext",
+                        "strict": true,
+                        "esModuleInterop": true,
+                        "skipLibCheck": true,
+                        "rootDir": "src",
+                        "outDir": "dist"
+                    },
+                    "include": [
+                        "src"
+                    ]
+                } 
+            </code-block>
+    <p>Создадим файл <code>src/index.ts</code>:</p>
+    <code-block lang="ts">
+                // Мини-сервер HTTP без фреймворков
+                import http from "node:http";
+
+                const port: number = Number(process.env.PORT ?? 3000);
+
+                const server = http.createServer((req, res) => {
+                    if (req.url === "/health") {
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json; charset=utf-8");
+                        res.end(JSON.stringify({ok: true, ts: new Date().toISOString()}));
+                        return;
+                    }
+
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+                    res.end("Hello from TypeScript!");
+                });
+
+                server.listen(port, () => {
+                    console.log(`Server is listening on http://localhost:${port}`);
+                }); 
+            </code-block>
+    <p>Добавим скрипты в <code>package.json</code>:</p>
+    <code-block lang="json">
+                {
+                    "type": "module",
+                    "scripts": {
+                        "dev": "tsx watch src/index.ts",
+                        "build": "tsc",
+                        "start": "node dist/index.js"
+                    }
+                } 
+            </code-block>
+    <p>Запуск:</p>
+    <list>
+        <li>
+            <format style="bold">Режим разработки</format>
+            : горячий перезапуск
+            <code-block lang="bash">
+                npm run dev
+            </code-block>
+        </li>
+        <li>
+            <format style="bold">Сборка и продакшн-запуск</format>
+            :
+            <code-block lang="bash">
+                npm run build
+                npm start
+            </code-block>
+        </li>
+    </list>
+    </chapter>
+</topic>

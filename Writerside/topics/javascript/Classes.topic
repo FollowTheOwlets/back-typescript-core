@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Классы" id="Classes">
+    <warning>
+        <p>❗❗❗Перед прочтением изучите теоретический материал про ООП❗❗❗</p>
+    </warning>
+
+    <chapter title="Зачем нужны классы (связь с ООП)">
+        <p>
+            <format style="bold">Класс</format>
+            — это шаблон (чертёж) для создания объектов с общим состоянием и поведением. В
+            <tooltip term="ООП">ООП</tooltip>
+            классы помогают выразить
+            <tooltip term="Абстракция">абстракции</tooltip>
+            , скрывать детали реализации (
+            <tooltip term="Инкапсуляция">инкапсуляция</tooltip>
+            ), строить иерархии через
+            <tooltip term="Наследование">наследование</tooltip>
+            и заменять поведение за счёт
+            <tooltip term="Полиморфизм">полиморфизма</tooltip>
+            .
+        </p>
+        <p>
+            В JavaScript классы — это синтаксический сахар над
+            <tooltip term="Прототип">прототипами</tooltip>
+            . Класс не вводит новую модель объектов — он упрощает работу с уже существующей прототипной системой и
+            делает код ближе к каноническому языку ООП.
+        </p>
+        <note><p>Думайте о классе как о функции-конструкторе плюс прототип. Класс лишь делает эти идеи
+            декларативными и безопаснее по умолчанию (например, запрет вызова без <code>new</code>).</p></note>
+    </chapter>
+
+    <chapter title="Объявление и выражение класса">
+        <p>Есть два способа задать класс: объявление (<code>class C {...}</code>) и выражение (<code>const C = class
+            {...}</code> или именованное выражение <code>const C = class Named {...}</code>).</p>
+        <code-block lang="js">
+      class Point {
+          // Конструктор вызывается при создании экземпляра
+          constructor(x, y) {
+              this.x = x;
+              this.y = y;
+          }
+
+          // Метод прототипа
+          length() {
+              return Math.hypot(this.x, this.y);
+          }
+      }
+
+
+      const p = new Point(3, 4);
+      console.log(p.length()); // 5
+        </code-block>
+        <warning>
+            <p><code>class</code>-объявления не поднимаются как функции (нет «хостинга» для использования до
+                определения). Попытка обратиться к классу до его определения приведёт к ошибке времени выполнения.
+            </p>
+        </warning>
+        
+
+    </chapter>
+
+    <chapter title="Конструктор и создание экземпляров">
+        <p>
+            <tooltip term="Конструктор">Конструктор</tooltip>
+            — это специальный метод <code>constructor</code>, который инициализирует состояние. Экземпляры создаются
+            оператором <code>new</code>.
+        </p>
+        <list>
+            <li><code>constructor</code> может принимать аргументы и устанавливать поля экземпляра.</li>
+            <li>В производном классе вызов <code>super(...)</code> обязателен перед использованием <code>this</code>.
+            </li>
+            <li>Возврат из конструктора не обязателен; если явно вернуть объект, он заменит создаваемый экземпляр.
+            </li>
+        </list>
+        <code-block lang="js">
+      class Base {
+          constructor(name) {
+              this.name = name;
+          }
+      }
+
+      class User extends Base {
+          constructor(name, role) {
+              super(name); // инициализирует Base-часть
+              this.role = role;
+          }
+      }
+
+      const u = new User('Alice', 'admin');
+      console.log(u.name, u.role); // Alice admin
+    </code-block>
+        <warning>
+            <p>В производном классе обращение к <code>this</code> до <code>super()</code> вызывает
+                <code>ReferenceError</code>.
+            </p>
+        </warning>
+    </chapter>
+
+    <chapter title="Методы, поля и порядок инициализации">
+        <p>Класс поддерживает методы прототипа, а также поля экземпляра (публичные и приватные), задаваемые прямо в
+            теле класса. Важен порядок инициализации:</p>
+        <list>
+            <li>У базового класса поля-инициализаторы выполняются перед телом <code>constructor</code>.</li>
+            <li>У производного — после вызова <code>super()</code> и до остального кода конструктора.</li>
+        </list>
+        <code-block lang="js">
+      class Counter {
+          // публичное поле экземпляра
+          value = 0;
+
+      
+    increment() {
+      this.value += 1;
+    }
+  }
+  const c = new Counter();
+  c.increment();
+  console.log(c.value); // 1
+</code-block>
+        <note>
+            <p>Методы, объявленные внутри класса, попадают в <code>Prototype</code> и не копируются на каждый
+                экземпляр, а поля экземпляра создаются на каждом объекте отдельно.</p>
+        </note>
+        
+
+    </chapter>
+
+    <chapter title="Приватные поля и методы">
+        <p>Приватные члены объявляются с помощью <code>#</code> и недоступны вне класса. Это реальная
+            <tooltip term="Инкапсуляция">инкапсуляция</tooltip>
+            на уровне языка.
+        </p>
+        <code-block lang="js">
+      class BankAccount {
+          #balance = 0;              // приватное поле
+          static #fee = 0.01;        // приватное статическое поле
+
+      
+    deposit(amount) { this.#balance += amount; }
+    withdraw(amount) { this.#balance -= amount + amount * BankAccount.#fee; }
+    get balance() { return this.#balance; }
+  }
+
+  const acc = new BankAccount();
+  acc.deposit(100);
+  console.log(acc.balance); // 100
+  // console.log(acc.#balance); // Ошибка синтаксиса
+</code-block>
+        <tip>
+            <p>Используйте приватные поля для инвариантов (состояний, которые нельзя нарушать извне), например счёт,
+                ключи, кэш.</p>
+        </tip>
+        
+
+    </chapter>
+
+    <chapter title="Статические поля и методы">
+        <p><code>static</code>-члены принадлежат самому классу, а не экземплярам. Это удобное место для фабрик,
+            констант, утилит.</p>
+        <code-block lang="js">
+      class Color {
+          static named = {red: '#f00', green: '#0f0', blue: '#00f'};
+
+          constructor(hex) {
+              this.hex = hex;
+          }
+
+          static fromName(name) {
+              return new Color(Color.named[name]);
+          }
+      }
+
+      const red = Color.fromName('red');
+      console.log(red.hex); // #f00
+    </code-block>
+        <note>
+            <p>Статические члены наследуются: <code>class Child extends Parent</code> видит
+                <code>Parent.staticMethod</code>
+                через <code>super.staticMethod()</code> внутри статических методов.</p>
+        </note>
+    </chapter>
+
+    <chapter title="Геттеры и сеттеры (свойства)">
+        <p>Геттеры/сеттеры объявляют вычисляемые свойства и позволяют валидировать присваивания.</p>
+        <code-block lang="js">
+      class Person {
+          #_age = 0;
+
+          get age() {
+              return this.#_age;
+          }
+
+          set age(v) {
+              if (v &lt; 0) throw new Error('Age must be non-negative');
+              this.#_age = v;
+          }
+      }
+
+      const p = new Person();
+      p.age = 30;
+      console.log(p.age); // 30
+    </code-block>
+    </chapter>
+
+    <chapter title="Наследование, super и переопределение">
+        <p>Наследование (<code>extends</code>) связывает
+            <tooltip term="Подкласс">подкласс</tooltip>
+            с
+            <tooltip term="Суперкласс">суперклассом</tooltip>
+            . Переопределяйте методы для реализации
+            <tooltip term="Полиморфизм">полиморфизма</tooltip>
+            .
+        </p>
+        <code-block lang="js">
+      class Shape {
+          area() {
+              console.log("Родительский метод")
+              return 0;
+          }
+      }
+
+      class Rect extends Shape {
+          constructor(w, h) {
+              super();
+              this.w = w;
+              this.h = h;
+          }
+
+          area() {
+              super.area()
+              return this.w * this.h;
+          } // переопределение
+      }
+
+      class Square extends Rect {
+          constructor(size) {
+              super(size, size);
+          }
+      }
+
+      console.log(new Rect(3, 4).area()); // 12
+      console.log(new Square(5).area());  // 25
+    </code-block>
+        <tip>
+            <p>В статическом контексте <code>super</code> ссылается на конструктор предка: используйте <code>super.methodName()</code>
+                для переиспользования какого-то конкретного метода.</p>
+        </tip>
+    </chapter>
+
+    <chapter title="Классы и прототипы: что под капотом">
+        <p>Класс — это функция особого вида; его методы — это свойства его <code>prototype</code>. Цепочка такова:
+            <code>Child.prototype.__proto__ === Parent.prototype</code> и <code>Child.__proto__ === Parent</code>.
+        </p>
+        <code-block lang="js">
+      class A {
+      }
+
+      class B extends A {
+      }
+
+      console.log(Object.getPrototypeOf(B) === A); // true
+      console.log(Object.getPrototypeOf(B.prototype) === A.prototype); // true
+    </code-block>
+        <note>
+            <p>Методы класса не перечислимые (не попадают в <code>for...in</code>), что обычно соответствует
+                ожиданиям.</p>
+        </note>
+    </chapter>
+
+    <chapter title="Контекст this, стрелочные поля-методы и производительность">
+        <p><code>this</code> в методах прототипа определяется вызовом. Для колбэков используйте <code>bind</code>
+            или стрелочные поля-методы (они замыкают лексический <code>this</code>), но помните о накладных расходах
+            на экземпляр.</p>
+        <code-block lang="js">
+      class Button {
+          // стрелочное поле создаёт функцию на каждом экземпляре
+          onClick = () =&gt; {
+              console.log(this.label);
+          };
+
+          constructor(label) {
+              this.label = label;
+          }
+      }
+
+      const b = new Button('OK');
+      setTimeout(b.onClick, 0); // OK
+    </code-block>
+        <warning>
+            <p>Стрелочные поля-методы увеличивают потребление памяти (функция на каждый экземпляр). Предпочитайте
+                методы прототипа, если не требуется жёсткая привязка <code>this</code>.</p>
+        </warning>
+    </chapter>
+
+    <chapter title="Композиция против наследования">
+        <p>Многие иерархии проще и надёжнее выразить через
+            <tooltip term="Композиция">композицию</tooltip>
+            (объект содержит другие объекты и делегирует им работу), а не через глубокое наследование.
+        </p>
+        <code-block lang="js">
+      const withLogging = (target) =&gt; ({
+          ...target,
+          log(msg) {
+              console.log(`[log] ${msg}`);
+          }
+      });
+
+      
+  const service = withLogging({
+    fetch() { return 'data'; }
+  });
+
+  console.log(service.fetch()); // data
+  service.log('done'); // [log] done
+</code-block>
+        <tip>
+            <p>Правило: «наследуйся, когда есть настоящая изоморфная избыточность типов и соблюдается замещаемость (
+                <tooltip term="LSP">LSP</tooltip>
+                ); в остальных случаях — композиция».
+            </p>
+        </tip>
+        
+
+    </chapter>
+
+    <chapter title="Миксины (mixins)">
+        <p>
+            <tooltip term="Миксин">Миксины</tooltip>
+            добавляют функциональность классам без иерархий.
+        </p>
+        <code-block lang="js">
+      const Timestamped = (Base) =&gt; class extends Base {
+          touch() {
+              this.updatedAt = Date.now();
+          }
+      };
+
+      
+  class Model {}
+  class User extends Timestamped(Model) {}
+
+  const u = new User();
+  u.touch();
+  console.log(!!u.updatedAt); // true
+</code-block>
+        <warning>
+            <p>Чрезмерное количество миксинов усложняет трассировку источника методов. Документируйте порядок
+                применения.</p>
+        </warning>
+        
+
+    </chapter>
+
+    <chapter title="Абстрактные базовые классы и контракты (приёмы)">
+        <p>В чистом JS нет ключевого слова <code>abstract</code>, но контракт можно выразить через проверки <code>new.target</code>
+            и «виртуальные» методы.</p>
+        <code-block lang="js">
+      class Repo {
+          constructor() {
+              if (new.target === Repo) throw new Error('Use a concrete subclass');
+          }
+
+          // "виртуальный" метод
+          findById(id) {
+              throw new Error('Not implemented');
+          }
+      }
+
+      class MemoryRepo extends Repo {
+          findById(id) {
+              return {id};
+          }
+      }
+
+      console.log(new MemoryRepo().findById(1).id); // 1
+    </code-block>
+        <note>
+            <p>В TypeScript используйте <code>abstract</code>-классы и интерфейсы — это надёжнее на этапе
+                компиляции.</p>
+        </note>
+    </chapter>
+
+    <chapter title="Сериализация, клонирование и сравнение">
+        <p>Экземпляры классов при <code>JSON.stringify</code> теряют методы и приватные поля. Для переносимых
+            представлений реализуйте <code>toJSON()</code> и статические фабрики/парсеры.</p>
+        <code-block lang="js">
+      class Point {
+          constructor(x, y) {
+              this.x = x;
+              this.y = y;
+          }
+
+          toJSON() {
+              return {x: this.x, y: this.y, _type: 'Point'};
+          }
+
+          static fromJSON(o) {
+              return new Point(o.x, o.y);
+          }
+      }
+
+      const json = JSON.stringify(new Point(1, 2));
+      console.log(json.includes('_type')); // true
+      const p = Point.fromJSON(JSON.parse(json));
+      console.log(p instanceof Point); // true
+    </code-block>
+        <tip>
+            <p>Для структурного сравнения реализуйте метод <code>equals</code> или используйте библиотеки сравнения
+                структур; <code>===</code> сравнивает по ссылке.</p>
+        </tip>
+    </chapter>
+
+    <chapter title="Расширенные возможности">
+        <list>
+            <li><code>static</code> блоки — один раз инициализируют статическое состояние класса.</li>
+            <li><code>Symbol.hasInstance</code> — позволяет настроить поведение <code>instanceof</code>.</li>
+            <li>Асинхронные методы (<code>async</code>) и статические асинхронные фабрики.</li>
+        </list>
+        <code-block lang="js">
+      class Tokenizer {
+          static patterns;
+          static {
+              Tokenizer.patterns = [/\\w+/, /\\s+/];
+          }
+
+          static [Symbol.hasInstance](obj) {
+              return !!obj &amp;&amp; typeof obj.next === 'function';
+          }
+      }
+
+      console.log({
+          next() {
+          }
+      } instanceof Tokenizer); // true
+    </code-block>
+    </chapter>
+
+    <chapter title="Лучшие практики и частые ошибки">
+        <list>
+            <li>Не делайте тяжёлую работу в <code>constructor</code> (I/O, сетевые вызовы). Вынесите в статические
+                фабрики или методы инициализации.
+            </li>
+            <li>Предпочитайте композицию глубокой иерархии наследования.</li>
+            <li>Фиксируйте инварианты приватными полями и валидаторами в сеттерах.</li>
+            <li>Явно документируйте контракты (ожидаемые методы/свойства), особенно при использовании миксинов.</li>
+            <li>Не полагайтесь на перечислимость методов — используйте явные API.</li>
+        </list>
+        <warning>
+            <p>Вызов «виртуальных» методов из конструктора базового класса опасен: переопределения в подклассе
+                увидят ещё не полностью инициализированный объект.</p>
+        </warning>
+    </chapter>
+
+</topic>

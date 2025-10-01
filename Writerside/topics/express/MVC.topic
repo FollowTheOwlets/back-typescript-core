@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="MVC" id="MVC">
+
+    <chapter title="Паттерн MVC">
+        <chapter title="Что такое MVC">
+            <p>
+                <tooltip term="MVC">MVC</tooltip>
+                — архитектурный шаблон, который делит приложение на три независимых компонента:
+                <tooltip term="Модель">Модель</tooltip>
+                ,
+                <tooltip term="Представление">Представление</tooltip>
+                и
+                <tooltip term="Контроллер">Контроллер</tooltip>
+                . Такая декомпозиция уменьшает связность кода, упрощает тестирование и параллельную разработку, а также
+                делает систему предсказуемой при росте сложности.
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Модель (Model)</format>
+                    — хранит состояние и инкапсулирует бизнес-правила. Она не знает о веб-запросах и разметке. В
+                    веб-приложениях часто дополняется
+                    <tooltip term="Слой сервиса">сервисным слоем</tooltip>
+                    и
+                    <tooltip term="Репозиторий">репозиторием</tooltip>
+                    для работы с данными.
+                </li>
+                <li>
+                    <format style="bold">Представление (View)</format>
+                    — отвечает за отображение. Получает готовые данные и рендерит HTML (или JSON, PDF и т.п.). Не
+                    содержит бизнес-логики.
+                </li>
+                <li>
+                    <format style="bold">Контроллер (Controller)</format>
+                    — связывает
+                    <tooltip term="Маршрутизатор">маршруты</tooltip>
+                    с бизнес-действиями: получает запрос, вызывает модель/сервисы, выбирает представление и формирует
+                    ответ.
+                </li>
+            </list>
+            <note>Чёткое разделение обязанностей облегчает замену любого слоя: например, вы можете сменить
+                <tooltip term="Шаблонизатор">шаблонизатор</tooltip>
+                с EJS на Pug, не меняя контроллеры и сервисы.
+            </note>
+        </chapter>
+
+        <chapter title="Теория и мотивация">
+            <p>Главная идея — изоляция
+                <format style="bold">знаний</format>
+                каждого слоя.
+                <tooltip term="Контроллер">Контроллер</tooltip>
+                не должен «думать» о правилах домена,
+                <tooltip term="Представление">представление</tooltip>
+                — о доступе к данным, а
+                <tooltip term="Модель">модель</tooltip>
+                — о HTTP-деталях. Это снижает
+                <format style="bold">связанность</format>
+                и повышает
+                <format style="bold">согласованность</format>
+                кода.
+            </p>
+            <list>
+                <li>
+                    <format style="bold">Тестируемость</format>
+                    : бизнес-правила в моделях/сервисах можно тестировать без HTTP и шаблонов.
+                </li>
+                <li>
+                    <format style="bold">Расширяемость</format>
+                    : новые точки ввода (REST, GraphQL, очередь задач) переиспользуют те же сервисы.
+                </li>
+                <li>
+                    <format style="bold">Командная работа</format>
+                    : фронтенд/верстка работают над представлениями, бэкенд — над моделями/сервисами.
+                </li>
+            </list>
+            <tip>В MVC полезно придерживаться принципа
+                <tooltip term="SRP">Single Responsibility</tooltip>
+                : «один файл — одна роль» и «один слой — один тип логики».
+            </tip>
+        </chapter>
+
+        <chapter title="Правила реализации (практические) ">
+            <list>
+                <li>
+                    <format style="bold">Контроллеры — тонкие</format>
+                    : принимают вход, валидируют его через
+                    <tooltip term="DTO">DTO</tooltip>
+                    /
+                    <tooltip term="Валидация">валидаторы</tooltip>
+                    , вызывают сервисы, выбирают тип ответа.
+                </li>
+                <li>
+                    <format style="bold">Сервисы — умные</format>
+                    : содержат бизнес-инварианты, транзакции, оркестрацию нескольких репозиториев/шлюзов.
+                </li>
+                <li>
+                    <format style="bold">Модели — источник правды</format>
+                    : типы/классы предметной области, фабрики, методы домена, события.
+                </li>
+                <li>
+                    <format style="bold">Репозитории — изоляция хранения</format>
+                    : любая СУБД/кэш/файл скрыты за интерфейсом.
+                </li>
+                <li>
+                    <format style="bold">Представления — только рендер</format>
+                    : минимальная логика форматирования, ноль бизнес-правил.
+                </li>
+                <li>
+                    <format style="bold">Маршрутизатор</format>
+                    : только маппинг HTTP-метод + путь → контроллер + middleware.
+                </li>
+                <li>
+                    <format style="bold">Ошибки и ответы</format>
+                    : единый формат JSON-ошибок, централизованный обработчик исключений.
+                </li>
+                <li>
+                    <format style="bold">Стандарты по папкам</format>
+                    : /controllers, /services, /models, /repositories, /routes, /views, /middlewares, /validators.
+                </li>
+            </list>
+            <warning>«Толстые контроллеры» и «умные представления» приводят к дублированию логики и
+                труднодиагностируемым ошибкам. Держите правила домена вне HTTP слоя, иначе миграция на другой транспорт
+                (например, очередь) станет болезненной.
+            </warning>
+            <note>Даже если
+                <tooltip term="REST">REST</tooltip>
+                -эндпоинт возвращает JSON,
+                <format style="bold">V</format>
+                остаётся слоем представления — форматтером данных (сериализатором), просто без HTML.
+            </note>
+        </chapter>
+
+        <chapter title="Грамотное построение MVC на Express">
+            <chapter title="Цели и общий план">
+                <p>
+                    <tooltip term="Express">Express</tooltip>
+                    — минималистичный фреймворк, поэтому структуру MVC определяете вы. Мы отделим <code>routes</code>
+                    (маршруты), <code>controllers</code> (HTTP-координация), <code>services</code> (бизнес-логика),
+                    <code>repositories</code> (данные), <code>models</code> (доменные типы), <code>views</code>
+                    (EJS/Pug), <code>middlewares</code> (сквозные политики) и <code>validators</code> (
+                    <tooltip term="DTO">DTO</tooltip>
+                    ).
+                </p>
+            </chapter>
+
+
+            <chapter title="Структура проекта">
+  <code-block lang="bash">.
+
+
+├── package.json
+├── src
+│   ├── app.js
+│   ├── routes
+│   │   └── todos.routes.js
+│   ├── controllers
+│   │   └── todos.controller.js
+│   ├── services
+│   │   └── todos.service.js
+│   ├── repositories
+│   │   └── todo.repository.js
+│   ├── models
+│   │   └── todo.model.js
+│   ├── validators
+│   │   └── todo.dto.js
+│   ├── middlewares
+│   │   ├── error.middleware.js
+│   │   └── notFound.middleware.js
+│   └── views
+│       ├── layouts
+│       │   └── main.pug
+│       └── todos
+│           ├── index.pug
+│           └── show.pug
+└── .env</code-block>
+                <note>Папки — это «границы» слоёв. Они помогают удерживать MVC-дисциплину и облегчают навигацию по
+                    проекту.
+                </note>
+            </chapter>
+
+
+            <chapter title="Модель и репозиторий">
+                <p>Начнём с доменной модели и хранилища (для простоты — в памяти). В реальном проекте репозиторий
+                    инкапсулирует доступ к базе, а модель описывает инварианты сущности.</p>
+                <code-block lang="javascript">
+                    /* src/models/todo.model.js */
+
+
+                    class Todo {
+                        constructor(id, title, completed) {
+                            this.id = id;
+                            this.title = title;
+                            this.completed = completed;
+                        }
+                    }
+
+                    module.exports = {Todo};</code-block>
+
+
+                <code-block lang="javascript">
+                    /* src/repositories/todo.repository.js */
+
+
+                    const {Todo} = require("../models/todo.model.js");
+
+                    const _store = []; // Демонстрационный ин-мемори "склад"
+
+                    function nextId() {
+                        return String(Date.now());
+                    }
+
+                    class TodoRepository {
+                        async findAll() {
+                            return _store;
+                        }
+
+                        async findById(id) {
+                            return _store.find(t => t.id === id) || null;
+                        }
+
+                        async create(title) {
+                            const entity = new Todo(nextId(), title, false);
+                            _store.push(entity);
+                            return entity;
+                        }
+
+                        async toggle(id) {
+                            const entity = await this.findById(id);
+                            if (!entity) return null;
+                            entity.completed = !entity.completed;
+                            return entity;
+                        }
+                    }
+
+                    module.exports = {TodoRepository};</code-block>
+                <tip>Даже для
+                    <tooltip term="Примитив">примитивного</tooltip>
+                    списка лучше скрыть детали хранения в репозитории — это позволит безболезненно перейти на БД.
+                </tip>
+            </chapter>
+
+
+            <chapter title="DTO и валидация">
+                <p>
+                    <tooltip term="DTO">DTO</tooltip>
+                    фиксирует контракт входных данных. В маленьких проектах можно валидировать вручную — важно держать
+                    проверку на границе контроллера.
+                </p>
+                <code-block lang="javascript">
+                    /* src/validators/todo.dto.js */
+
+
+                    class CreateTodoDto {
+                        constructor(body) {
+                            this.title = typeof body.title === "string" ? body.title.trim() : "";
+                        }
+
+                        validate() {
+                            const errors = [];
+                            if (!this.title) errors.push("title is required");
+                            if (this.title.length > 140) errors.push("title too long");
+                            return errors;
+                        }
+                    }
+
+                    module.exports = {CreateTodoDto};</code-block>
+                <note>Валидация в контроллере защищает сервисы от «грязного» ввода, упрощая их логику.</note>
+            </chapter>
+
+
+            <chapter title="Сервис — бизнес-логика">
+                <p>Сервис использует репозиторий, реализует сценарии и инварианты домена.</p>
+                <code-block lang="javascript">
+                    /* src/services/todos.service.js */
+
+
+                    const {TodoRepository} = require("../repositories/todo.repository.js");
+
+                    class TodosService {
+                        constructor(repo = new TodoRepository()) {
+                            this.repo = repo;
+                        }
+
+                        async list() {
+                            return this.repo.findAll();
+                        }
+
+                        async create(validatedTitle) {
+                            return this.repo.create(validatedTitle);
+                        }
+
+                        async toggle(id) {
+                            return this.repo.toggle(id);
+                        }
+                    }
+
+                    module.exports = {TodosService};</code-block>
+            </chapter>
+
+
+            <chapter title="Контроллер — координация HTTP">
+                <p>Контроллер принимает запрос, создаёт DTO, проверяет ошибки, вызывает сервис и выбирает ответ (
+                    <tooltip term="Представление">HTML</tooltip>
+                    или JSON).
+                </p>
+                <code-block lang="javascript">
+                    /* src/controllers/todos.controller.js */
+
+
+                    const {TodosService} = require("../services/todos.service.js");
+                    const {CreateTodoDto} = require("../validators/todo.dto.js");
+
+                    class TodosController {
+                        constructor(service = new TodosService()) {
+                            this.service = service;
+                        }
+
+                        index = async (req, res, next) => {
+                            try {
+                                const todos = await this.service.list();
+                                if (req.accepts(["html", "json"]) === "json") {
+                                    return res.json({data: todos});
+                                }
+                                return res.render("todos/index", {title: "Todos", todos});
+                            } catch (e) {
+                                next(e);
+                            }
+                        }
+
+                        create = async (req, res, next) => {
+                            try {
+                                const dto = new CreateTodoDto(req.body);
+                                const errors = dto.validate();
+                                if (errors.length) return res.status(400).json({errors});
+
+
+                                const todo = await this.service.create(dto.title);
+                                // Демонстрационный вывод:
+                                console.log(&quot;created:&quot;, todo); // Выведет созданный todo
+
+                                if (req.accepts([&quot;html&quot;, &quot;json&quot;]) === &quot;json&quot;) {
+                                    return res.status(201).json({data: todo});
+                                }
+                                return res.redirect(&quot;/todos&quot;);
+                            } catch (e) {
+                                next(e);
+                            }
+
+
+                        }
+
+                        toggle = async (req, res, next) => {
+                            try {
+                                const todo = await this.service.toggle(req.params.id);
+                                if (!todo) return res.status(404).json({error: "Not found"});
+                                return res.json({data: todo});
+                            } catch (e) {
+                                next(e);
+                            }
+                        }
+                    }
+
+                    module.exports = {TodosController};</code-block>
+                <warning>Не смешивайте сериализацию (формирование JSON/HTML) с бизнес-правилами. Это быстро приведёт к
+                    дублированию и рассыпанию логики по слоям.
+                </warning>
+            </chapter>
+
+
+            <chapter title="Маршруты и middleware">
+                <p>
+                    <tooltip term="Маршрутизатор">Router</tooltip>
+                    сопоставляет URL с методами контроллера. Сквозные политики (аутентификация, логирование, ограничение
+                    частоты) реализуются как
+                    <tooltip term="Middleware">middleware</tooltip>
+                    .
+                </p>
+                <code-block lang="javascript">
+                    /* src/routes/todos.routes.js */
+
+
+                    const {Router} = require("express");
+                    const {TodosController} = require("../controllers/todos.controller.js");
+
+                    const router = Router();
+                    const c = new TodosController();
+
+                    router.get("/", c.index);
+                    router.post("/", c.create);
+                    router.patch("/\:id/toggle", c.toggle);
+
+                    module.exports = {todosRouter: router};</code-block>
+
+
+                <code-block lang="javascript">
+                    /* src/middlewares/error.middleware.js */
+
+
+                    function errorHandler(err, req, res, next) {
+                        console.error(err); // Выведет стек ошибки в консоль
+                        res.status(500).json({error: "Internal Server Error"});
+                    }
+
+                    module.exports = {errorHandler};</code-block>
+
+
+                <code-block lang="javascript">
+                    /* src/middlewares/notFound.middleware.js */
+
+
+                    function notFound(req, res, next) {
+                        res.status(404).json({error: "Not Found"});
+                    }
+
+                    module.exports = {notFound};
+</code-block>
+            </chapter>
+
+
+            <chapter title="Входная точка приложения">
+  <code-block lang="javascript">
+        /* src/app.js */
+
+
+        require("dotenv").config();
+        const express = require("express");
+        const path = require("path");
+        const {todosRouter} = require("./routes/todos.routes.js");
+        const {errorHandler} = require("./middlewares/error.middleware.js");
+        const {notFound} = require("./middlewares/notFound.middleware.js");
+
+        const app = express();
+
+        app.set("views", path.join(__dirname, "views"
+        ))
+        ;
+        app.set("view engine", "pug");
+
+        app.use(express.json());
+        app.use(express.urlencoded({extended: true}));
+
+        app.use("/todos", todosRouter);
+
+        app.get("/", (req, res) => res.redirect("/todos"));
+
+        app.use(notFound);
+        app.use(errorHandler);
+
+        const port = process.env.PORT || 3000;
+        app.listen(port, () => console.log("HTTP on :" + port)); // Выведет: HTTP on :3000
+  </code-block>
+                <tip>Храните порт и секреты в .env, а не в коде. Это упрощает конфигурацию на разных средах.</tip>
+                <warning>Не забудьте перед использованием шаблонизатора уставить пакет <code>pug</code></warning>
+            </chapter>
+
+
+            <chapter title="Представления (PUG)">
+                <p>В HTML-рендеринге представления получают уже подготовленные данные. Ниже — минимальный пример с
+                    макетом и страницами списка/детали.</p>
+                <code-block lang="pug">
+                    doctype html
+                    html
+                        head
+                            meta(charset="utf-8")
+                            title= title
+                    body
+                        #app
+                            block content
+                </code-block>
+                <code-block lang="pug">
+                    extends layouts/main
+
+                    block content
+                        h1 Todos
+
+                        form(method="post", action="/todos")
+                            input(type="text", name="title", placeholder="What to do?")
+                            button(type="submit") Add
+
+                        ul
+                            each t in todos
+                                li
+                                span #{t.title}
+                                strong= t.completed ? 'done' : 'open'
+                                form(method="post", action="/todos/#{t.id}/toggle?_method=PATCH")
+                                    button(type="submit") Toggle
+                </code-block>
+
+                <code-block lang="pug">
+                    extends layouts/main
+
+                    block content
+                        h1 Todo
+                        pre= JSON.stringify(todo, null, 2)
+                </code-block>
+
+
+                <warning>Не помещайте бизнес-условия (например, проверку лимитов, статусов оплаты) в шаблоны.
+                    Представление должно только форматировать уже решённые контроллером/сервисом данные.
+                </warning>
+            </chapter>
+
+            <chapter title="Лучшие практики и подводные камни">
+                <list>
+                    <li>
+                        <format style="bold">Идём от домена</format>
+                        : сначала модель/сервис, потом контроллер/вид. Так вы избежите «HTTP-зависимых» правил внутри
+                        домена.
+                    </li>
+                    <li>
+                        <format style="bold">Единый формат ошибок</format>
+                        : централизованный <code>errorHandler</code> упрощает отладку и интеграции.
+                    </li>
+                    <li>
+                        <format style="bold">Сериализация</format>
+                        : для JSON заведите слой сериализаторов/ресурсов (микро-«V») — они форматируют даты, маскируют
+                        поля и т.п.
+                    </li>
+                    <li>
+                        <format style="bold">Зависимости</format>
+                        : инъекция зависимостей в контроллер/сервис облегчает тестирование (можно подменять
+                        репозитории).
+                    </li>
+                    <li>
+                        <format style="bold">Тонкие маршруты</format>
+                        : в <code>routes</code> — только привязка путей, никакой логики.
+                    </li>
+                </list>
+                <warning>Смешивание слоёв (например, запрос к БД прямо из контроллера) сначала кажется быстрее, но в
+                    перспективе резко увеличивает стоимость изменений: тесты ломаются каскадом, повторно использовать
+                    бизнес-логику невозможно.
+                </warning>
+                <note>Если нужно HTML и JSON одновременно — держите одну бизнес-операцию в сервисе, а в контроллере
+                    выбирайте представление (шаблон или JSON) по заголовкам запроса.
+                </note>
+            </chapter>
+
+
+        </chapter>
+    </chapter>
+</topic>

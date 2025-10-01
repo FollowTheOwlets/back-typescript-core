@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Движок V8" id="V8">
+
+    <chapter title="Зачем знать V8 (контекст и роли компонентов)">
+        <p>
+            <tooltip term="V8">V8</tooltip>
+            — исполнительная платформа JavaScript (и
+            <tooltip term="WebAssembly">WebAssembly</tooltip>
+            ), которая в составе
+            <tooltip term="Node.js">Node.js</tooltip>
+            вместе с
+            <tooltip term="libuv">libuv</tooltip>
+            и системными библиотеками обеспечивает модель «один поток JavaScript + неблокирующий ввод-вывод». Понимание
+            внутренних механизмов V8 позволяет писать код, который быстрее запускается, устойчивее масштабируется и
+            предсказуемее потребляет память.
+        </p>
+        <list>
+            <li>
+                <format style="bold">V8</format>
+                — парсит, интерпретирует, (JIT-)компилирует и выполняет ваш JS.
+            </li>
+            <li>
+                <format style="bold">libuv</format>
+                — реализует
+                <tooltip term="Событийный цикл">событийный цикл</tooltip>
+                (таймеры, сокеты, файловые операции, пул потоков).
+            </li>
+            <li>
+                <format style="bold">Node.js bootstrap</format>
+                — загружает рантайм-модули, создаёт
+                <tooltip term="Isolate">изолят</tooltip>
+                и
+                <tooltip term="Context">контекст</tooltip>
+                , настраивает связи с V8.
+            </li>
+        </list>
+        <note>Взаимодействие простое по идее: JS код → V8 (парсинг → байткод → JIT) → планирование задач в libuv →
+            обратные вызовы снова попадают в V8.
+        </note>
+    </chapter>
+    <chapter title="Что происходит при запуске node index.js (этапы выполнения)"><p>При запуске <code>node
+        index.js</code> происходит детерминированная цепочка шагов:</p>
+        <list>
+            <li>
+                <format style="bold">Инициализация рантайма</format>
+                : процесс стартует, настраивается <code>Isolate</code>, создаётся глобальный <code>Context</code>,
+                применяются настройки V8 (флаги, лимиты памяти), подготавливается
+                <tooltip term="Snapshot">снапшот</tooltip>
+                с базовой средой.
+            </li>
+            <li>
+                <format style="bold">Bootstrap Node.js</format>
+                : поднимаются внутренние модули (<code>fs</code>, <code>net</code>, таймеры), связываются C++ биндинги и
+                JS-обёртки.
+            </li>
+            <li>
+                <format style="bold">Загрузка пользовательского модуля</format>
+                : разрешение пути (CJS/ESM), чтение исходника, передача текста в V8.
+            </li>
+            <li>
+                <format style="bold">Парсинг и подготовка</format>
+                : лексер/парсер строят
+                <tooltip term="AST">AST</tooltip>
+                , проводится привязка идентификаторов и лексических окружений.
+            </li>
+            <li>
+                <format style="bold">Генерация байткода</format>
+                : интерпретатор
+                <tooltip term="Ignition">Ignition</tooltip>
+                генерирует байткод из AST.
+            </li>
+            <li>
+                <format style="bold">Исполнение и профиль</format>
+                : байткод исполняется, собирается
+                <tooltip term="Type Feedback">типовая обратная связь</tooltip>
+                в
+                <tooltip term="Feedback Vector">feedback-векторах</tooltip>
+                .
+            </li>
+            <li>
+                <format style="bold">JIT-компиляция по требованию</format>
+                : «горячие» функции поднимаются по тиру:
+                <tooltip term="Sparkplug">Sparkplug</tooltip>
+                (baseline) →
+                <tooltip term="Maglev">Maglev</tooltip>
+                (mid-tier) →
+                <tooltip term="TurboFan">TurboFan</tooltip>
+                (оптимизатор полного профиля).
+            </li>
+            <li>
+                <format style="bold">Сборка мусора</format>
+                : периодически работают минорные/мажорные циклы GC, освобождая память.
+            </li>
+        </list>
+        <tip>JIT запускается не сразу, а по мере «нагрева» кода. Путь к быстрым функциям — предсказуемые типы и
+            стабильные объекты.
+        </tip>
+    </chapter>
+    <chapter title="Архитектура исполнения в V8 (интерпретатор и JIT-тираны)"><p>Современный V8 использует
+        многоуровневый пайплайн, чтобы быстро стартовать и эффективно оптимизировать «горячие» участки:</p>
+        <list>
+            <li>
+                <format style="bold">Ignition</format>
+                — байткодный интерпретатор: минимальный стартовый оверхед, сбор <code>type feedback</code>.
+            </li>
+            <li>
+                <format style="bold">Sparkplug</format>
+                — быстрый baseline JIT: переводит байткод в машинный код без дорогих анализов, снижая интерпретационный
+                оверхед.
+            </li>
+            <li>
+                <format style="bold">Maglev</format>
+                — средний тировый оптимизатор: использует обратную связь и
+                <tooltip term="Inline Caches">IC</tooltip>
+                , делает агрессивные, но быстрые оптимизации.
+            </li>
+            <li>
+                <format style="bold">TurboFan</format>
+                — главный оптимизатор: строит высокоуровневое SSA-представление, делает инлайнинг, устранение боковых
+                эффектов, <code>common subexpression elimination</code>, <code>bounds check elimination</code> и др.
+            </li>
+        </list>
+        <p> Все уровни зависят от корректности предположений о типах и «формах» объектов (см.
+            <tooltip term="Hidden Class">скрытые классы</tooltip>
+            ). Если предположения рушатся в рантайме, происходит
+            <tooltip term="Deoptimization">деоптимизация</tooltip>
+            (откат до ранее сгенерированного кода или байткода).
+        </p>
+        <warning>Частые изменения структуры объектов, смешение типов в массивах, использование «магических» возможностей
+            (например, динамический <code>eval</code>) увеличивают риск деоптимизаций и «холодят» код.
+        </warning>
+    </chapter>
+    <chapter title="Модель объектов, скрытые классы и inline caches">
+        <p> Объекты в V8 имеют «карту» —
+            <tooltip term="Hidden Class">скрытый класс</tooltip>
+            (в терминах V8 — <code>Map</code>), который фиксирует набор и порядок свойств, а также оффсеты хранения.
+            Доступ к свойству оптимизируется через
+            <tooltip term="Inline Caches">IC</tooltip>
+            , которые запоминают «как мы находили это свойство в прошлый раз».
+        </p>
+        <list>
+            <li>
+                <format style="bold">Стабильные формы</format>
+                : если вы создаёте однотипные объекты и добавляете свойства в одном и том же порядке — IC остаются
+                моно-/полиморфными и быстрыми.
+            </li>
+            <li>
+                <format style="bold">Разрушение форм</format>
+                : добавление/удаление свойств в разном порядке, <code>delete</code>, доступ через строки с разным
+                набором ключей приводит к «мегаморфизму» IC и деградации.
+            </li>
+        </list>
+        <code-block lang="js">
+        function makeUser(id, name) {
+            return {id, name};
+        }
+
+        const a = makeUser(1, 'Ann');
+        const b = makeUser(2, 'Bob');
+        console.log(a.id + b.id); // 3
+        </code-block>
+        <tip>Если нужно опциональное поле — заранее инициализируйте его значением <code>null</code>, чтобы сохранить
+            форму объекта стабильной.
+        </tip>
+        <warning><code>delete obj.key</code> ломает скрытый класс. Лучше использовать <code>Map</code> для динамических
+            наборов ключей.
+        </warning>
+    </chapter>
+    <chapter title="Массивы и их «виды элементов» (Elements Kinds)">
+        <p> У массивов V8 различает «виды элементов» (
+            <tooltip term="Elements Kind">elements kinds</tooltip>
+            ): <code>Packed Smi</code> (целые), <code>Packed Double</code> (числа с плавающей точкой),
+            <code>Holey</code> (с «дырами»), <code>Dictionary</code> (редкие/спарс). Переходы между видами дороги и
+            ломают оптимизации.
+        </p>
+        <list>
+            <li>Держите массивы плотными (
+                <format style="bold">packed</format>
+                ): не создавайте больших «дыр» (<code>a[1e6] = 1</code>).
+            </li>
+            <li>Не смешивайте типы: числа + строки в одном массиве → переход к «generic» представлению.</li>
+            <li>Избегайте частых <code>unshift</code>/<code>splice</code> в начале — это дороже, чем
+                <code>push</code>/<code>pop</code>.
+            </li>
+        </list>
+        <code-block lang="js">
+        const a = [1, 2, 3];
+        a.push(4);
+        console.log(a.length); // 4 </code-block>
+        <warning>Назначение <code>arr.length = N</code> с большим <code>N</code> создаёт «дыры», ухудшая представление.
+        </warning>
+    </chapter>
+    <chapter title="Событийный цикл: фазы Node.js, задачи и микрозадачи">
+        <p> В Node.js событийный цикл (
+            <tooltip term="Event Loop">event loop</tooltip>
+            ) реализован в
+            <tooltip term="libuv">libuv</tooltip>
+            и имеет фазы:
+            <format style="bold">timers</format>
+            →
+            <format style="bold">pending callbacks</format>
+            →
+            <format style="bold">idle/prepare</format>
+            →
+            <format style="bold">poll</format>
+            →
+            <format style="bold">check</format>
+            →
+            <format style="bold">close callbacks</format>
+            . Между вызовами коллбеков V8 «сливает»
+            <tooltip term="Microtask Queue">очередь микрозадач</tooltip>
+            (Promises/queueMicrotask). Отдельно в Node есть очередь <code>process.nextTick</code>, обрабатываемая раньше
+            микрозадач.
+        </p>
+        <code-block lang="js">
+        setTimeout(() =&gt; console.log('timeout'), 0);
+        setImmediate(() =&gt; console.log('immediate'));
+        Promise.resolve().then(() =&gt; console.log('microtask'));
+        process.nextTick(() =&gt; console.log('nextTick'));
+        // Возможный порядок вывода в консоли:
+        // nextTick
+        // microtask
+        // timeout или immediate (зависит от того, была ли I/O и текущей фазы)
+        </code-block>
+        <tip><code>process.nextTick</code> — инструмент для «немедленного» продолжения текущей задачи, используйте
+            умеренно: бесконечное перепланирование «съест» цикл и задержит I/O.
+        </tip>
+        <note><code>setImmediate</code> вызывается на фазе <code>check</code>, тогда как <code>setTimeout(0)</code> — на
+            фазе <code>timers</code>. После I/O <code>setImmediate</code> обычно срабатывает раньше.
+        </note>
+    </chapter>
+    <chapter title="Пул потоков, I/O и CPU-bound задачи">
+        <p> Node.js делегирует часть операций в
+            <format style="bold">пул потоков</format>
+            libuv (по умолчанию 4): файловая система, DNS (без <code>c-ares</code>), крипто, сжатие. Эти задачи
+            асинхронны относительно главного JS-потока.
+        </p>
+        <list>
+            <li>
+                <format style="bold">I/O-bound</format>
+                : оставляйте в главном потоке — коллбеки вернутся через цикл событий.
+            </li>
+            <li>
+                <format style="bold">CPU-bound</format>
+                : переносите в
+                <tooltip term="Worker Threads">worker threads</tooltip>
+                — иначе вы «заморозите» цикл и всё приложение.
+            </li>
+            <li>Параметр <code>UV_THREADPOOL_SIZE</code> регулирует размер пула (для I/O-задач), но не решает CPU-bound
+                проблемы.
+            </li>
+        </list>
+        <code-block lang="js">
+// Пример наблюдаемого эффекта:
+const start = Date.now();
+// Имитация тяжёлой синхронной операции:
+while (Date.now() - start &lt; 300) {}
+console.log('heavy done'); // heavy done
+        </code-block>
+        <warning>Синхронные тяжёлые циклы блокируют обработку всех соединений. Для вычислений используйте <code>worker_threads</code>.
+        </warning>
+    </chapter>
+    <chapter title="Устройство сборки мусора в V8 (память и GC)">
+        <p> Память V8 разбита на пространства:
+            <format style="bold">New Space</format>
+            (молодое),
+            <format style="bold">Old Space</format>
+            (старое),
+            <format style="bold">Large Object Space</format>
+            (крупные объекты),
+            <format style="bold">Code Space</format>
+            (машинный код),
+            <format style="bold">Read-only Space</format>
+            и др. Молодое пространство собирается часто и быстро (
+            <tooltip term="Minor GC">минорный GC</tooltip>
+            , копирующий), старое — реже и тяжелее (
+            <tooltip term="Major GC">мажорный GC</tooltip>
+            : mark-sweep/mark-compact, инкрементальный и параллельный).
+        </p>
+        <list>
+            <li>
+                <format style="bold">Generational hypothesis</format>
+                : «большинство объектов живут недолго». Короткоживущие погибают в New Space; выжившие «продвигаются» в
+                Old Space.
+            </li>
+            <li>
+                <format style="bold">Write barriers</format>
+                и
+                <format style="bold">remembered set</format>
+                : отслеживают ссылки из старого в молодое, чтобы минорный GC был корректным.
+            </li>
+            <li>
+                <format style="bold">Compaction</format>
+                : мажорный GC может «уплотнять» кучу, уменьшая фрагментацию.
+            </li>
+        </list>
+        <warning>Долгоживущие крупные структуры (кэш без ограничений, глобальные массивы) быстро переполняют Old Space и
+            вызывают «фризы» на мажорных GC.
+        </warning>
+        <tip>Освобождайте ссылки (обнуляйте/обрезайте массивы, очищайте карты/сеты), когда данные больше не нужны.
+            Следите за количеством активных таймеров и слушателей событий.
+        </tip>
+    </chapter>
+    <chapter title="Чего избегать, чтобы не «холодить» JIT и не плодить деоптимизации">
+        <list>
+            <li>
+                <format style="bold">Мегаморфные IC</format>
+                : не смешивайте в одном месте доступа к свойствам десятки «форм» объектов.
+            </li>
+            <li>
+                <format style="bold">Смешанные массивы</format>
+                : не храните в одном массиве числа и строки/объекты; не создавайте «дыр».
+            </li>
+            <li>
+                <format style="bold">delete</format>
+                : не удаляйте свойства у горячих объектов — меняйте модель данных (используйте <code>Map</code> или
+                логические флаги).
+            </li>
+            <li>
+                <format style="bold">arguments</format>
+                : не «мапьте» и не мутируйте его; используйте <code>...rest</code>.
+            </li>
+            <li>
+                <format style="bold">eval / with</format>
+                : ломают статический анализ и оптимизации.
+            </li>
+            <li>
+                <format style="bold">Исключения в «узких» циклах</format>
+                : <code>try/catch</code> в горячих путях может препятствовать оптимизациям.
+            </li>
+        </list>
+        <code-block lang="js">
+        function sum(...xs) {
+            return xs.reduce((a, b) =&gt; a + b, 0);
+        }
+
+        console.log(sum(1, 2, 3)); // 6 </code-block>
+        <note>Переход на <code>rest</code>-параметры облегчает оптимизацию, в отличие от «волшебного»
+            <code>arguments</code>.
+        </note>
+    </chapter>
+    <chapter title="Практические шаблоны, хорошо дружащие с V8">
+        <list>
+            <li>
+                <format style="bold">Стабилизируйте формы</format>
+                : объявляйте все поля объекта в конструкторе/фабрике, даже если часть временно <code>null</code>.
+            </li>
+            <li>
+                <format style="bold">Типизируйте коллекции</format>
+                : «масив чисел» — это реально только числа; для гетерогенных данных используйте объекты/классы.
+            </li>
+            <li>
+                <format style="bold">Используйте Map/Set</format>
+                для словарей/множеств вместо «объектов-ассоциативных массивов».
+            </li>
+            <li>
+                <format style="bold">TypedArray</format>
+                и <code>ArrayBuffer</code> — для плотных числовых данных и работы с бинарными протоколами.
+            </li>
+            <li>
+                <format style="bold">Разделяйте I/O и CPU</format>
+                : тяжёлые вычисления — в <code>worker_threads</code>.
+            </li>
+            <li>
+                <format style="bold">Корректно «уступайте» циклу</format>
+                : используйте <code>setImmediate</code>/<code>setTimeout</code> для батчинга, не злоупотребляйте <code>nextTick</code>.
+            </li>
+        </list>
+        <code-block
+                lang="js"> // Порядок и полный набор полей фиксируют форму: function makePoint(x, y) { return { x, y, z: 0, tag: null }; } const p = makePoint(1, 2); console.log(p.z); // 0 </code-block>
+    </chapter>
+    <chapter title="Диагностика производительности и памяти (инструменты)">
+        <p> Для анализа существуют встроенные флаги и внешние профайлеры: <code>--trace_gc</code>, <code>--trace_gc_verbose</code>,
+            <code>--inspect</code>, <code>--heap-prof</code>, <code>--cpu-prof</code>. Подключение Chrome DevTools к
+            Node позволяет снимать
+            <tooltip term="Heap Snapshot">снимки кучи</tooltip>
+            , анализировать ретейнеры и утечки.
+        </p>
+        <list>
+            <li>
+                <format style="bold">CPU profile</format>
+                : найдите «горячие» функции, убедитесь, что они оптимизированы (нет постоянных деоптимизаций).
+            </li>
+            <li>
+                <format style="bold">Heap snapshot</format>
+                : проверяйте рост Old Space; ищите «корни», удерживающие большие структуры.
+            </li>
+            <li>
+                <format style="bold">GC traces</format>
+                : следите за частотой minor/major GC и длительностью пауз.
+            </li>
+        </list>
+        <code-block
+                lang="js"> // Наблюдение за ростом памяти: const big = []; for (let i = 0; i &lt; 1e4; i++) big.push(Buffer.alloc(1024)); console.log(process.memoryUsage().heapUsed &gt; 0); // true </code-block>
+        <tip>Флаги <code>--max-old-space-size=&lt;MB&gt;</code> пригодны для контейнеров, чтобы ограничивать память и
+            управлять частотой GC.
+        </tip>
+    </chapter>
+    <chapter title="Микрозадачи: Promises, queueMicrotask и nextTick"><p> V8 поддерживает общую очередь микрозадач:
+        <code>Promise.then</code>/<code>queueMicrotask</code>. В Node.js есть ещё <code>process.nextTick</code>,
+        исполняющийся раньше любой микрозадачи. Понимание порядка важно для детерминизма. </p>
+        <code-block lang="js">
+Promise.resolve().then(() =&gt;
+console.log('promise'));
+queueMicrotask(() =&gt; console.log('microtask'));
+process.nextTick(() =&gt; console.log('tick'));
+// Порядок:
+// tick
+// promise
+// microtask
+        </code-block>
+        <warning>Не строите бесконечных цепочек <code>nextTick</code>: вы заблокируете I/O и timers фазу.</warning>
+    </chapter>
+    <chapter title="Кейс: быстрота «холодного старта» vs длительная работа">
+        <p>
+            <format style="bold">Sparkplug</format>
+            даёт быстрый выигрыш на старте (меньше интерпретации), а
+            <format style="bold">TurboFan</format>
+            раскрывается на длительных прогревах. В CLI-утилитах «холодный старт» критичнее, чем «долгая оптимизация», а
+            в серверных службах — наоборот.
+        </p>
+        <note>Оптимизируйте то, что действительно «горит» по профилю. Ранние микрооптимизации без данных — частая
+            причина ухудшения читаемости кода без измеримого выигрыша.
+        </note>
+    </chapter>
+    <chapter title="Выводы">
+        <list>
+            <li>Объекты: фиксируйте набор и порядок свойств, избегайте <code>delete</code>.</li>
+            <li>Массивы: держите плотными и однотипными, без «дыр».</li>
+            <li>Асинхронщина: используйте <code>Promise</code>/<code>async/await</code>, не злоупотребляйте <code>nextTick</code>.
+            </li>
+            <li>I/O vs CPU: отделяйте; CPU — в <code>worker_threads</code>.</li>
+            <li>Память: ограничивайте кэши, снимайте <code>heap snapshot</code>, ищите долгоживущие ссылки.</li>
+            <li>Профилируйте: <code>--inspect</code>, CPU/Heap профили, <code>--trace_gc</code>.</li>
+            <li>Конфигурация: корректный <code>--max-old-space-size</code> для контейнеров.</li>
+        </list>
+    </chapter>
+</topic>

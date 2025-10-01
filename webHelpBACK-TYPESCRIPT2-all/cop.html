@@ -1,0 +1,121 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:34.9492176"><title>Компонентно-ориентированная модель | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"azv9v5_2","level":0,"title":"Что такое КОП и зачем она нужна","anchor":"#azv9v5_2"},{"id":"azv9v5_3","level":0,"title":"Компонент vs класс, модуль и сервис","anchor":"#azv9v5_3"},{"id":"azv9v5_4","level":0,"title":"Контракты компонентов: предоставляемые и требуемые интерфейсы","anchor":"#azv9v5_4"},{"id":"azv9v5_5","level":0,"title":"Композиция и внедрение зависимостей (DI)","anchor":"#azv9v5_5"},{"id":"azv9v5_6","level":0,"title":"Жизненный цикл компонента","anchor":"#azv9v5_6"},{"id":"azv9v5_7","level":0,"title":"Версионирование, совместимость и эволюция","anchor":"#azv9v5_7"},{"id":"azv9v5_8","level":0,"title":"Коммуникации: внутри процесса и между процессами","anchor":"#azv9v5_8"},{"id":"azv9v5_9","level":0,"title":"Тестирование компонентов","anchor":"#azv9v5_9"},{"id":"azv9v5_10","level":0,"title":"Наблюдаемость и эксплуатация","anchor":"#azv9v5_10"},{"id":"azv9v5_11","level":0,"title":"Антипаттерны и подводные камни","anchor":"#azv9v5_11"},{"id":"azv9v5_12","level":0,"title":"Практический чек-лист проектирования компонента","anchor":"#azv9v5_12"},{"id":"azv9v5_13","level":0,"title":"Примеры упаковки и поставки (по экосистемам)","anchor":"#azv9v5_13"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Компонентно-ориентированная модель | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/cop.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Компонентно-ориентированная модель | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/cop.html#webpage",
+    "url": "writerside-documentation//1.0.0/cop.html",
+    "name": "Компонентно-ориентированная модель | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="COP" data-main-title="Компонентно-ориентированная модель" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs="_Theory.topic|Теория"><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="COP" id="COP.topic">Компонентно-ориентированная модель</h1><section class="chapter"><h2 id="azv9v5_2" data-toc="azv9v5_2">Что такое КОП и зачем она нужна</h2><p id="azv9v5_14"><span id="azv9v5_17"><b>Компонентно-ориентированное программирование (КОП)</b></span> &mdash; это подход, где базовой единицей проектирования является не класс и не функция, а <span class="tooltip" id="azv9v5_18" title="Автономная единица поставки и замены с явными контрактами и жизненным циклом">компонент</span> &mdash; автономный, повторно используемый модуль с чётко определёнными <span class="tooltip" id="azv9v5_19" title="Формальное описание предоставляемых и требуемых интерфейсов компонента, включая типы и инварианты">контрактами</span>: какими интерфейсами он <span id="azv9v5_20"><b>обладает</b></span> (предоставляет) и какие интерфейсы <span id="azv9v5_21"><b>требует</b></span> от окружения.</p><ul class="list _bullet" id="azv9v5_15"><li class="list__item" id="azv9v5_22"><p>Компонент &mdash; это <span id="azv9v5_26"><b>единица поставки и замены</b></span> (модуль или артефакт: .jar, npm-пакет, Go-модуль, .so/.dll).</p></li><li class="list__item" id="azv9v5_23"><p>Граница компонента &mdash; это <span id="azv9v5_27"><b>контракт</b></span> (интерфейсы, схемы данных, протоколы, инварианты).</p></li><li class="list__item" id="azv9v5_24"><p>Компоненты соединяются через <span class="tooltip" id="azv9v5_28" title="Точка подключения компонента к внешнему миру (предоставляемый или требуемый интерфейс)">порты</span> и <span class="tooltip" id="azv9v5_29" title="Прослойка, которая согласует порт компонента с конкретной технологией или реализацией">адаптеры</span>, а не через внутренние детали.</p></li><li class="list__item" id="azv9v5_25"><p>КОП поощряет слабую связность, сильную сочетаемость и контролируемую эволюцию версий.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="azv9v5_16"><p>КОП &mdash; про <span id="azv9v5_30"><b>стабильные границы</b></span> и <span id="azv9v5_31"><b>управляемые зависимости</b></span>. Это удобно как в монорепозитории, так и в микросервисной архитектуре.</p></aside></section><section class="chapter"><h2 id="azv9v5_3" data-toc="azv9v5_3">Компонент vs класс, модуль и сервис</h2><p id="azv9v5_32">Класс &mdash; строительный блок кода. Модуль (package) &mdash; блок компоновки. <span class="tooltip" id="azv9v5_34" title="Автономная единица поставки и замены с явными контрактами и жизненным циклом">Компонент</span> &mdash; блок <span id="azv9v5_35"><b>поставки</b></span> и <span id="azv9v5_36"><b>замены</b></span>. Он может содержать несколько модулей и классов, иметь свой цикл жизни и версионирование. Сервис &mdash; это <span id="azv9v5_37"><b>запущенный</b></span> процесс/экземпляр, который может быть реализован одним или несколькими компонентами.</p><aside class="prompt" data-type="warning" data-title="" id="azv9v5_33"><p>Частая ошибка &mdash; путать микросервисы и компоненты. Микросервис &mdash; процесс с сетью между границами; компонент &mdash; концепт архитектурной границы. Не каждую границу нужно выносить в отдельный процесс.</p></aside></section><section class="chapter"><h2 id="azv9v5_4" data-toc="azv9v5_4">Контракты компонентов: предоставляемые и требуемые интерфейсы</h2><p id="azv9v5_38"><span id="azv9v5_41"><b>Предоставляемые интерфейсы</b></span> определяют, как использовать компонент. <span id="azv9v5_42"><b>Требуемые интерфейсы</b></span> фиксируют ожидания компонента от окружения. Хороший контракт описывает типы данных, пред- и постусловия, ошибки и версионирование.</p><aside class="prompt" data-type="tip" data-title="" id="azv9v5_39"><p>Документируйте контракты в виде интерфейсов языка, OpenAPI/Proto-схем, UML-диаграмм порты/адаптеры. В коде &mdash; интерфейсы и типы.</p></aside><section class="chapter"><h3 id="azv9v5_40" data-toc="azv9v5_40">Мини-пример: компонент приветствия использует часы (требуемый порт)</h3><p id="azv9v5_43">Компонент <span class="tooltip" id="azv9v5_46" title="Автономная единица поставки и замены с явными контрактами и жизненным циклом">Greeter</span> <span id="azv9v5_47"><b>предоставляет</b></span> метод greet(), а <span id="azv9v5_48"><b>требует</b></span> порт Clock. Связь &mdash; через <span class="tooltip" id="azv9v5_49" title="Механизм передачи компоненту его требуемых зависимостей извне (в конструктор/фабрику)">внедрение зависимостей</span>.</p><div class="tabs" id="azv9v5_44" data-anchors="[azv9v5_50,azv9v5_51,azv9v5_52,azv9v5_53,azv9v5_54]"><div class="tabs__content" data-gtm="tab" id="azv9v5_50" data-title="C++"><div class="code-block" data-lang="cpp" data-title="CPP">
+                    #include &lt;iostream&gt;
+                    #include &lt;string&gt;
+
+                    struct IClock {
+                        virtual ~IClock() = default;
+                        virtual std::string Now() const = 0;
+                    };
+
+                    struct SystemClock : IClock {
+                        std::string Now() const override { return &quot;2025-09-24T21:00:00Z&quot;; }
+                    };
+
+                    class Greeter {
+                        const IClock&amp; clock;
+                        public:
+                        explicit Greeter(const IClock&amp; c) : clock(c) {}
+                        void Greet() const {
+                            std::cout &lt;&lt; &quot;Hello! Now: &quot; &lt;&lt; clock.Now() &lt;&lt; std::endl; // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    };
+
+                    int main() {
+                        SystemClock c;
+                        Greeter g(c);
+                        g.Greet();
+                    }
+                    </div></div><div class="tabs__content" data-gtm="tab" id="azv9v5_51" data-title="Java"><div class="code-block" data-lang="java" data-title="Java">
+
+                    interface Clock { String now(); }
+
+                    class SystemClock implements Clock {
+                        public String now() { return &quot;2025-09-24T21:00:00Z&quot;; }
+                    }
+
+                    class Greeter {
+                        private final Clock clock;
+                        Greeter(Clock clock) { this.clock = clock; }
+                        void greet() {
+                            System.out.println(&quot;Hello! Now: &quot; + clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    public class Main {
+                        public static void main(String\[] args) {
+                            Clock c = new SystemClock();
+                            new Greeter(c).greet();
+                        }
+                    }
+                    </div></div><div class="tabs__content" data-gtm="tab" id="azv9v5_52" data-title="JavaScript"><div class="code-block" data-lang="javascript" data-title="JavaScript">
+
+
+
+                    class Greeter {
+                        constructor(clock) {
+                            this.clock = clock;
+                        }
+
+                        greet() {
+                            console.log(&quot;Hello! Now: &quot; + this.clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    const clock = {now: () =&gt; &quot;2025-09-24T21:00:00Z&quot;};
+                    new Greeter(clock).greet();
+                    </div></div><div class="tabs__content" data-gtm="tab" id="azv9v5_53" data-title="TypeScript"><div class="code-block" data-lang="ts" data-title="TypeScript">
+                    interface Clock {
+                        now(): string;
+                    }
+
+                    class SystemClock implements Clock {
+                        now(): string {
+                            return &quot;2025-09-24T21:00:00Z&quot;;
+                        }
+                    }
+
+                    class Greeter {
+                        constructor(private clock: Clock) {
+                        }
+
+                        greet(): void {
+                            console.log(&quot;Hello! Now: &quot; + this.clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    new Greeter(new SystemClock()).greet();
+                    </div></div><div class="tabs__content" data-gtm="tab" id="azv9v5_54" data-title="Go"><div class="code-block" data-lang="go" data-title="Go">
+                    package main
+
+                    import &quot;fmt&quot;
+
+                    type Clock interface{ Now() string }
+
+                    type SystemClock struct{}
+                    func (SystemClock) Now() string { return &quot;2025-09-24T21:00:00Z&quot; }
+
+                    type Greeter struct{ clock Clock }
+                    func (g Greeter) Greet() {
+                        fmt.Println(&quot;Hello! Now: &quot; + g.clock.Now()) // Hello! Now: 2025-09-24T21:00:00Z
+                    }
+
+                    func main() {
+                        g := Greeter{clock: SystemClock{}}
+                        g.Greet()
+                    }
+                    </div></div></div><aside class="prompt" data-type="note" data-title="" id="azv9v5_45"><p>Контракт Clock можно в будущем заменить (например, на тестовые &laquo;фиктивные&raquo; часы) без изменения кода Greeter. Это и есть слабая связность.</p></aside></section></section><section class="chapter"><h2 id="azv9v5_5" data-toc="azv9v5_5">Композиция и внедрение зависимостей (DI)</h2><p id="azv9v5_60">Композиция &mdash; это сборка приложения из компонентов. <span class="tooltip" id="azv9v5_63" title="Механизм передачи компоненту его требуемых зависимостей извне (в конструктор/фабрику)">DI</span> автоматизирует связывание требуемых портов с адаптерами/реализациями. Допустима ручная композиция, контейнер DI, или плагин-механизм (discovery &amp; loading).</p><aside class="prompt" data-type="note" data-title="" id="azv9v5_61"><p>Предпочитайте <span id="azv9v5_64"><b>конструкторное внедрение</b></span> и явные интерфейсы. Это упрощает тестирование и версионирование.</p></aside><aside class="prompt" data-type="warning" data-title="" id="azv9v5_62"><p>Антипаттерн: <span class="tooltip" id="azv9v5_65" title="Антипаттерн получения зависимостей из глобального реестра, скрывающий связи">Service Locator</span>. Он скрывает зависимости, ломает анализ связей и усложняет тесты.</p></aside></section><section class="chapter"><h2 id="azv9v5_6" data-toc="azv9v5_6">Жизненный цикл компонента</h2><p id="azv9v5_66">Обычно включает этапы: <span id="azv9v5_68"><b>инициализация</b></span> (чтение конфигурации, проверка окружения), <span id="azv9v5_69"><b>старт</b></span> (подключение ресурсов), <span id="azv9v5_70"><b>работа</b></span>, <span id="azv9v5_71"><b>останов</b></span> (безопасное завершение, освобождение ресурсов).</p><ul class="list _bullet" id="azv9v5_67"><li class="list__item" id="azv9v5_72"><p>Методы вроде init()/start()/stop()/dispose().</p></li><li class="list__item" id="azv9v5_73"><p>Идентичность и состояние компонента должны быть управляемыми и наблюдаемыми (health-check).</p></li><li class="list__item" id="azv9v5_74"><p>Кросс-срезы (логирование, метрики, трассировка) подключайте декораторами/обёртками, не загрязняя доменную логику.</p></li></ul></section><section class="chapter"><h2 id="azv9v5_7" data-toc="azv9v5_7">Версионирование, совместимость и эволюция</h2><p id="azv9v5_75"><span id="azv9v5_78"><b>SemVer</b></span> помогает согласовать ожидания: MAJOR &mdash; несовместимые изменения контракта; MINOR &mdash; добавления, сохраняющие совместимость; PATCH &mdash; исправления. Для бинарных библиотек учитывайте <span class="tooltip" id="azv9v5_79" title="Бинарный интерфейс приложения; важен для совместимости скомпилированных библиотек">ABI</span>, для исходных &mdash; API-совместимость.</p><ul class="list _bullet" id="azv9v5_76"><li class="list__item" id="azv9v5_80"><p>Избегайте <span id="azv9v5_83"><b>ломающих изменений</b></span> в предоставляемых интерфейсах без MAJOR-bump.</p></li><li class="list__item" id="azv9v5_81"><p>Добавляйте по умолчанию необязательные параметры/флаги, а старые помечайте <span id="azv9v5_84"><b>deprecated</b></span> с переходным периодом.</p></li><li class="list__item" id="azv9v5_82"><p>Вводите <span class="tooltip" id="azv9v5_85" title="Прослойка, которая согласует порт компонента с конкретной технологией или реализацией">адаптеры</span> между версиями, если нужно поддержать старых клиентов.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="azv9v5_77"><p>&laquo;Ад зависимости&raquo; (version hell) возникает при пересечении несовместимых версий транзитивных компонентов. Используйте lock-файлы, строгие диапазоны и периодический audit/refresh зависимостей.</p></aside></section><section class="chapter"><h2 id="azv9v5_8" data-toc="azv9v5_8">Коммуникации: внутри процесса и между процессами</h2><p id="azv9v5_86">Связи бывают <span id="azv9v5_88"><b>внутрипроцессные</b></span> (вызов метода/функции) и <span id="azv9v5_89"><b>межпроцессные</b></span> (RPC, REST/gRPC, сообщения в шине). Чем &laquo;дальше&raquo; граница, тем грубее должен быть интерфейс (меньше чата), стабильнее схема данных и чётче обработка ошибок.</p><aside class="prompt" data-type="note" data-title="" id="azv9v5_87"><p>Для сетевых границ проектируйте <span id="azv9v5_90"><b>крупнозернистые</b></span> операции и устойчивые DTO: избегайте лишних чатов и N+1 вызовов.</p></aside></section><section class="chapter"><h2 id="azv9v5_9" data-toc="azv9v5_9">Тестирование компонентов</h2><ul class="list _bullet" id="azv9v5_91"><li class="list__item" id="azv9v5_93"><p><span id="azv9v5_96"><b>Юнит-тесты</b></span> &mdash; проверяют внутреннюю логику.</p></li><li class="list__item" id="azv9v5_94"><p><span id="azv9v5_97"><b>Контрактные тесты</b></span> &mdash; фиксируют поведение предоставляемых интерфейсов и ожидания требуемых.</p></li><li class="list__item" id="azv9v5_95"><p><span id="azv9v5_98"><b>Интеграционные тесты</b></span> &mdash; проверяют связки компонентов с реальными адаптерами.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="azv9v5_92"><p>Если компонент публикует API, храните набор &laquo;золотых&raquo; примеров запрос/ответ; используйте property-based тестирование для критичных инвариантов.</p></aside></section><section class="chapter"><h2 id="azv9v5_10" data-toc="azv9v5_10">Наблюдаемость и эксплуатация</h2><p id="azv9v5_99">Компонент должен экспортировать метрики (счётчики ошибок, латентность), логи с контекстом, трассировки на границах и health-checks. Это ускоряет диагностику и повышает предсказуемость релизов.</p></section><section class="chapter"><h2 id="azv9v5_11" data-toc="azv9v5_11">Антипаттерны и подводные камни</h2><ul class="list _bullet" id="azv9v5_100"><li class="list__item" id="azv9v5_102"><p><span id="azv9v5_107"><b>God-компонент</b></span>: &laquo;компонент-всё&raquo;. Тяжело версионировать и тестировать.</p></li><li class="list__item" id="azv9v5_103"><p><span id="azv9v5_108"><b>Циклические зависимости</b></span>: затрудняют сборку и эволюцию контрактов.</p></li><li class="list__item" id="azv9v5_104"><p><span id="azv9v5_109"><b>Протекающая абстракция</b></span>: наружу выползают детали хранения/передачи данных.</p></li><li class="list__item" id="azv9v5_105"><p><span id="azv9v5_110"><b>Скрытые зависимости</b></span>: использование глобальных синглтонов/локаторов.</p></li><li class="list__item" id="azv9v5_106"><p><span id="azv9v5_111"><b>Чатливые интерфейсы</b></span>: множество мелких вызовов через границу.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="azv9v5_101"><p>Любая утечка внутренней структуры через контракт делает компонент хрупким: любое изменение деталей ломает клиентов. Скрывайте детали за адаптерами.</p></aside></section><section class="chapter"><h2 id="azv9v5_12" data-toc="azv9v5_12">Практический чек-лист проектирования компонента</h2><ul class="list _bullet" id="azv9v5_112"><li class="list__item" id="azv9v5_114"><p>Определите <span class="tooltip" id="azv9v5_122" title="Чёткая областная граница, через которую доступен только контракт, а детали скрыты">границу</span> и контракты (предоставляемые/требуемые).</p></li><li class="list__item" id="azv9v5_115"><p>Спроектируйте порты и адаптеры (хранилище, сеть, очередь, UI).</p></li><li class="list__item" id="azv9v5_116"><p>Выберите стратегию композиции (ручная, DI, плагины).</p></li><li class="list__item" id="azv9v5_117"><p>Опишите жизненный цикл и ресурсы (конфигурация, пулы, тайм-ауты).</p></li><li class="list__item" id="azv9v5_118"><p>Зафиксируйте политику версионирования и депрекейта.</p></li><li class="list__item" id="azv9v5_119"><p>Добавьте наблюдаемость: логи, метрики, трассировки, health.</p></li><li class="list__item" id="azv9v5_120"><p>Подготовьте тесты: юнит, контрактные, интеграционные.</p></li><li class="list__item" id="azv9v5_121"><p>Оцените гранулярность: не слишком крупный и не слишком мелкий.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="azv9v5_113"><p>Если сомневаетесь в размере &mdash; начните крупнее с чёткими подграницами. Расщепить позже дешевле, чем склеивать разросшиеся мелочи.</p></aside></section><section class="chapter"><h2 id="azv9v5_13" data-toc="azv9v5_13">Примеры упаковки и поставки (по экосистемам)</h2><ul class="list _bullet" id="azv9v5_123"><li class="list__item" id="azv9v5_125"><p>C++: статические/динамические библиотеки, pkg-config, контроль ABI.</p></li><li class="list__item" id="azv9v5_126"><p>Java: артефакты Maven/Gradle (.jar/.aar), манифесты, OSGi/JPMS.</p></li><li class="list__item" id="azv9v5_127"><p>JavaScript/TypeScript: npm-пакеты, export-карта, типы .d.ts.</p></li><li class="list__item" id="azv9v5_128"><p>Go: модули (go.mod), семантика совместимости пакетов.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="azv9v5_124"><p>Фиксируйте внешнюю &laquo;поверхность&raquo; экспорта и публикуйте минимально необходимое API. Всё остальное &mdash; внутренности.</p></aside></section><div class="last-modified">24 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="aop.html" class="navigation-links__prev">Аспектно-ориентированное программирование</a><a href="design-patterns.html" class="navigation-links__next">Patterns</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

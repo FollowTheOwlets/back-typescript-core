@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Основы JavaScript ES5" id="JavaScript-ES5">
+    <chapter title="1. Основной синтаксис">
+        <p>
+            <format style="bold">JavaScript</format>
+            — динамически типизируемый язык с синтаксисом, похожим на C. Программы состоят из
+            <tooltip term="Инструкция">инструкций</tooltip>
+            , разделяемых точкой с запятой. Пробелы и переносы строк обычно игнорируются синтаксисом, но повышают
+            читаемость.
+        </p>
+        <p>
+            <format style="bold">Переменные</format>
+            объявляются через <code>var</code> и видимы в пределах функции (функциональная область видимости).
+            Присваивание выполняется оператором <code>=</code>. Имена чувствительны к регистру.
+        </p>
+        <code-block lang="javascript">
+// Объявление и присваивание
+var x = 6;
+var msg = "Hello";
+
+// Выражение и оператор
+var sum = x + 4;       // 10
+console.log(sum);      // 10 </code-block>
+        <note><p>Используйте понятные имена: <code>totalPrice</code>, <code>userName</code>. Короткие
+            <code>x</code>/<code>y</code>
+            уместны только в локальной математике.</p></note>
+        <warning><p>В ES5 нет блочной области видимости у <code>var</code>. Переменная, объявленная в
+            <code>for</code> или <code>if</code>, «протечёт» наружу в ту же функцию. Это частый источник ошибок.</p>
+        </warning>
+        <p>
+            <format style="bold">Операторы</format>
+            — символы/слова, производящие значения: арифметические (<code>+</code>, <code>-</code>, <code>\*</code>,
+            <code>/</code>, <code>%</code>), сравнения (<code>===</code>, <code>!==</code>, <code>
+            &lt;
+        </code>, <code>></code>, <code>
+            &gt;
+            =</code>, <code>>=</code>), логические (<code>&amp;&amp;</code>, <code>||</code>, <code>!</code>), тернарный
+            (<code>?:</code>), присваивания (<code>=</code>, <code>+=</code>, …).
+        </p>
+        <code-block lang="javascript">
+// Сравнение и логика
+var a = 3, b = "3";
+console.log(a === b);      // false (строгое сравнение)
+console.log(a == b);       // true  (нестрогое сравнение: приводит типы)
+console.log(a &lt; 10 &amp;&amp; a &gt; 1); // true </code-block>
+        <tip>
+            <p>
+                <format style="bold">Правило</format>
+                : предпочитайте <code>===</code>/<code>!==</code> вместо <code>==</code>/<code>!=</code>, чтобы
+                избежать неявных преобразований.
+            </p>
+        </tip>
+    </chapter>
+
+    <chapter title="2. Типы данных">
+        <p>В ES5 есть 6 типов: пять
+            <tooltip term="Примитив">примитивов</tooltip>
+            и один ссылочный тип —
+            <format style="bold">объект</format>.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Примитивы</format>
+                : <code>undefined</code>, <code>null</code>, <code>boolean</code>, <code>number</code>,
+                <code>string</code>.
+            </li>
+            <li>
+                <format style="bold">Объекты</format>: коллекции свойств с возможностью иметь методы и прототип.
+            </li>
+        </list>
+        <code-block lang="javascript">
+// typeof — быстрый тест типа (с особенностями)
+console.log(typeof 42);            // "number"
+console.log(typeof "hi");          // "string"
+console.log(typeof true);          // "boolean"
+console.log(typeof undefined);     // "undefined"
+console.log(typeof null);          // "object" (историческая особенность!)
+console.log(typeof {});            // "object"
+console.log(typeof function(){});  // "function" (частный случай объекта)
+    </code-block>
+        <warning>
+            <p><code>typeof null</code> возвращает <code>"object"</code> — это известная историческая особенность
+                языка. Для проверки на <code>null</code> используйте строгое сравнение: <code>value === null</code>.
+            </p>
+        </warning>
+    </chapter>
+
+    <chapter title="3. Примитивы">
+        <p>
+            <format style="bold">Number</format>
+            в ES5 — это 64-битный формат IEEE-754. Существуют специальные значения: <code>NaN</code>,
+            <code>Infinity</code>, <code>-Infinity</code>.
+        </p>
+        <code-block lang="javascript">
+// NaN "липучий": любые операции с NaN дают NaN
+console.log(0 / 0);            // NaN
+console.log(NaN === NaN);      // false
+console.log(isNaN("foo"));     // true (строка приводится к NaN)
+    </code-block>
+        <p>
+            <format style="bold">String</format>
+            — неизменяемая последовательность UTF-16 кодовых единиц. Индексация доступна, но менять символы по
+            индексу нельзя.
+        </p>
+        <code-block lang="javascript">
+var s = "Hello";
+console.log(s[1]);       // "e"
+s[1] = "A";
+console.log(s);          // "Hello"
+    </code-block>
+        <p>
+            <format style="bold">Boolean</format>
+            имеет значения <code>true</code> и <code>false</code>. В логическом контексте примитивы приводятся к
+            булеву значению: «ложные» — <code>0</code>, <code>NaN</code>, <code>""</code>, <code>null</code>, <code>undefined</code>,
+            <code>false</code>. Остальное — «истинные».
+        </p>
+        <p>
+            <format style="bold">undefined</format>
+            означает «значение не присвоено».
+            <format style="bold">null</format>
+            — осознанное «пустое значение».
+        </p>
+        <tip>
+            <p>Используйте <code>null</code> для «нет данных», а <code>undefined</code> пусть сигнализирует «не
+                инициализировано» — это упрощает договорённости в коде.</p>
+        </tip>
+    </chapter>
+
+    <chapter title="4. Объекты (ссылочные типы)">
+        <p>
+            <format style="bold">Объект</format>
+            — это набор пар «ключ-значение». Ключи — строки. Каждое свойство имеет атрибуты:
+            <tooltip term="writable">writable</tooltip>,
+            <tooltip term="enumerable">enumerable</tooltip>,
+            <tooltip term="configurable">configurable</tooltip>. Объекты связаны цепочкой
+            <tooltip term="прототип">прототипов</tooltip>.
+        </p>
+        <code-block lang="javascript">
+var user = { name: "Ann", age: 20 };
+console.log(user.name);     // "Ann"
+user.role = "admin";
+console.log("role" in user); // true
+    </code-block>
+        <warning>
+            <p>Присваивание объекта переменной копирует
+                <format style="bold">ссылку</format>
+                , а не содержимое. Изменение через одну переменную видно через другую, указывающую на тот же объект.
+            </p>
+        </warning>
+        <code-block lang="javascript">
+var a = { n: 1 };
+var b = a;
+b.n = 2;
+console.log(a.n); // 2
+    </code-block>
+        <note>
+            <p>Для «копий» используйте явное клонирование (поверхностное): <code>var copy = {}; for (var k in obj)
+                if (obj.hasOwnProperty(k)) copy[k] = obj[k];</code>. Глубокое — вручную или специализированными
+                утилитами.</p>
+        </note>
+    </chapter>
+
+    <chapter title="5. Подробнее о массивах">
+        <p>
+            <format style="bold">Array</format>
+            — это объект со специальным поведением: числовые индексы и свойство <code>length</code>. Массивы могут
+            быть «рваными» (с пропусками индексов).
+        </p>
+        <code-block lang="javascript">
+var arr = [1, 2, 3];
+arr.push(4);            // [1,2,3,4]
+var x = arr.pop();      // x=4, [1,2,3]
+arr.unshift(0);         // [0,1,2,3]
+arr.shift();            // [1,2,3]
+console.log(arr.length);// 3
+    </code-block>
+        <p>Методы обхода ES5: <code>forEach</code>, <code>map</code>, <code>filter</code>, <code>some</code>, <code>every</code>,
+            <code>reduce</code>, <code>reduceRight</code>, <code>indexOf</code>, <code>lastIndexOf</code>,
+            <code>isArray</code>.
+        </p>
+        <code-block lang="javascript">
+// map/filter/reduce
+var nums = [1,2,3,4];
+var doubled = nums.map(function(n){ return n*2; }); // [2,4,6,8]
+var even = nums.filter(function(n){ return n % 2 === 0; }); // [2,4]
+var sum = nums.reduce(function(acc,n){ return acc + n; }, 0); // 10
+console.log(sum); // 10
+    </code-block>
+        <warning>
+            <p>Не используйте <code>for..in</code> для массивов: он перечисляет
+                <format style="bold">все перечислимые свойства</format>
+                , включая добавленные вручную, и порядок не гарантирован. Для индексов применяйте <code>for</code>
+                или методы итерации.
+            </p>
+        </warning>
+        <note>
+            <p><code>Array.isArray(value)</code> — надёжная проверка массива в ES5. Конструктор
+                <code>Array(len)</code> создаёт «пустые слоты», которые не обходятся многими методами —
+                предпочитайте литералы <code>[]</code>.</p>
+        </note>
+        <code-block lang="javascript">
+// slice/splice
+var a = [1,2,3,4,5];
+console.log(a.slice(1,4)); // [2,3,4]
+a.splice(2,1,"X");         // a = [1,2,"X",4,5]
+console.log(a);            // [1,2,"X",4,5]
+    </code-block>
+    </chapter>
+
+    <chapter title="6. Типы преобразований">
+        <p>JS неявно приводит типы согласно внутренним абстрактным операциям ES5:
+        </p>
+        <list>
+            <li>
+                <format style="bold">ToBoolean</format>
+                : ложные — <code>0</code>, <code>NaN</code>, <code>""</code>, <code>null</code>,
+                <code>undefined</code>, <code>false</code>.
+            </li>
+            <li>
+                <format style="bold">ToNumber</format>
+                : <code>"42"</code> → <code>42</code>, <code>" "</code> → <code>0</code>, <code>"foo"</code> →
+                <code>NaN</code>, <code>true</code> → <code>1</code>.
+            </li>
+            <li>
+                <format style="bold">ToString</format>
+                : <code>42</code> → <code>"42"</code>, <code>null</code> → <code>"null"</code>, объект → <code>"[object
+                Object]"</code> по умолчанию.
+            </li>
+        </list>
+        <code-block lang="javascript">
+// Смешение + : число и строка
+console.log(1 + "2");       // "12" (конкатенация)
+console.log(1 + 2 + "3");   // "33"
+console.log("1" + 2 + 3);   // "123"
+    </code-block>
+        <warning>
+            <p>Оператор <code>+</code> сначала пробует конкатенацию строк, если хотя бы один операнд — строка (после
+                ToPrimitive/ToString). Это частая причина неожиданных результатов.</p>
+        </warning>
+    </chapter>
+
+    <chapter title="7. Явное и неявное преобразование типов">
+        <p>
+            <format style="bold">Явное</format>
+            : используйте конструкторы как функции (<code>Number(x)</code>, <code>String(x)</code>,
+            <code>Boolean(x)</code>), унарный <code>+</code>, <code>parseInt</code>/<code>parseFloat</code>.
+            <format style="bold">Неявное</format>
+            : происходит при сравнении <code>==</code>, в логических операторах, при конкатенации строк, математике
+            и т.д.
+        </p>
+        <code-block lang="javascript">
+// Явное
+console.log(Number("10"));     // 10
+console.log(+ "10");           // 10
+console.log(Boolean(""));      // false
+console.log(String(42));       // "42"
+console.log(parseInt("0xF", 16)); // 15
+
+// Неявное
+console.log("5" * 2);          // 10 (строка стала числом)
+console.log("5" - 2);          // 3
+console.log("5" + 2);          // "52" (строка победила)
+console.log(0 == false);       // true </code-block>
+        <note><p>Для проверки «пустого»/«заданного» значения используйте логическое ИЛИ: <code>var name = input ||
+            "Guest";</code> Но помните: <code>0</code>, <code>""</code>, <code>false</code> тоже считаются
+            «пустыми».</p></note>
+        <note>
+            <p>При парсинге чисел из строк указывайте основание системы счисления: <code>parseInt("08", 10)</code>.
+                Иначе ведущий 0 может интерпретироваться как восьмеричный литерал в старых окружениях.</p>
+        </note>
+        <warning>
+            <p><code>??</code> (<tooltip term="nullish coalescing">nullish coalescing</tooltip>)
+                отсутствует в ES5. Если он встречается в коде, это уже не ES5 и потребуются транспиляция/полифилы.
+                В ES5 аналог через явные проверки: <code>value == null ? fallback : value</code>.
+            </p>
+        </warning>
+    </chapter>
+
+    <chapter title="8. Область видимости и объявление">
+        <p>
+            <format style="bold">Функциональная область</format>
+            : переменные <code>var</code> видны во всей функции.
+            <format style="bold">Поднятие</format>
+            (<tooltip term="hoisting">hoisting</tooltip>)
+            означает, что объявления <code>var</code> и <code>function</code> обрабатываются до выполнения кода.
+        </p>
+        <code-block lang="javascript">
+// Hoisting переменной
+console.log(a);  // undefined (объявление поднято, присваивание — нет)
+var a = 10;
+
+// Hoisting функции (declaration)
+foo();           // "ok"
+function foo(){ console.log("ok"); }
+
+// Выражение функции не поднимает саму инициализацию
+bar();           // TypeError: bar is not a function
+var bar = function(){}; </code-block>
+        <p>
+            <format style="bold">Замыкание</format>
+            — функция «запоминает» окружающие переменные на момент создания.
+        </p>
+        <code-block lang="javascript">
+function counter(){
+var n = 0;
+return function(){
+n += 1;
+return n;
+};
+}
+var c = counter();
+console.log(c()); // 1
+console.log(c()); // 2 </code-block>
+        <warning><p>Цикл с <code>var</code> и замыканиями захватывает одну общую переменную. Для «фиксации» значения
+            на итерации используйте немедленно вызываемое функциональное выражение (IIFE).</p></warning>
+        <code-block lang="javascript">
+// IIFE для «захвата» i
+var fns = [];
+for (var i = 0; i &lt; 3; i++) {
+    (function (j) {
+        fns.push(function () {
+            console.log(j);
+        }); // 0,1,2
+    })(i);
+}
+fns[0](); // 0
+fns[1](); // 1
+fns[2](); // 2 </code-block>
+        <note><p><code>this</code> в ES5 зависит от способа вызова: простая функция — глобальный объект (или <code>undefined</code>
+            в строгом режиме), метод — объект слева от точки, конструктор с <code>new</code> — новый объект.
+            Зафиксировать контекст помогает <code>Function.prototype.bind</code>.</p></note>
+        <code-block lang="javascript">
+var obj = {
+x: 10,
+getX: function(){ return this.x; }
+};
+var unbound = obj.getX;
+console.log(unbound());          // undefined в strict, иначе число из глобального контекста
+var bound = unbound.bind(obj);
+console.log(bound());            // 10 </code-block>
+    </chapter>
+
+    <chapter title="9. Подробнее об Object">
+        <p>
+            <format style="bold">Создание</format>
+            : литерал <code>{}</code> или <code>Object.create(proto)</code> для явного прототипа.
+        </p>
+        <code-block lang="javascript">
+// Прототип от null
+var dict = Object.create(null);
+dict.key = "value";
+console.log("toString" in dict); // false
+    </code-block>
+        <p>
+            <format style="bold">Дескрипторы свойств</format>
+            : <code>Object.defineProperty</code>, <code>Object.defineProperties</code>, <code>Object.getOwnPropertyDescriptor</code>.
+        </p>
+        <code-block lang="javascript">
+// Незаписываемое свойство
+var user = {};
+Object.defineProperty(user, "id", {
+  value: 123,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+console.log(user.id); // 123
+user.id = 456;
+console.log(user.id); // 123
+    </code-block>
+        <p>
+            <format style="bold">Геттеры/сеттеры</format>
+            позволяют вычислять значения при чтении/записи.
+        </p>
+        <code-block lang="javascript">
+var point = {
+  _x: 0,
+  get x(){ return this._x; },
+  set x(v){ if (typeof v === "number") this._x = v; }
+};
+point.x = 5;
+console.log(point.x); // 5
+    </code-block>
+        <p>
+            <format style="bold">Статусы расширяемости</format>
+            : <code>Object.preventExtensions</code>, <code>Object.seal</code>, <code>Object.freeze</code>, а также
+            проверки <code>Object.isExtensible</code>, <code>Object.isSealed</code>, <code>Object.isFrozen</code>.
+        </p>
+        <code-block lang="javascript">
+var o = { a: 1 };
+Object.freeze(o);
+o.a = 2;
+console.log(o.a); // 1
+    </code-block>
+        <note>
+            <p><code>Object.keys(obj)</code> — собственные перечислимые ключи; <code>for..in</code> проходит по всей
+                цепочке прототипов. Для фильтрации используйте <code>hasOwnProperty</code>.</p>
+        </note>
+        <code-block lang="javascript">
+for (var k in o) {
+  if (o.hasOwnProperty(k)) {
+    console.log(k);
+  }
+}
+    </code-block>
+    </chapter>
+
+    <chapter title="10. Служебные методы и use strict">
+        <p>
+            <format style="bold">Служебные методы</format>
+            ядра ES5:
+        </p>
+        <list>
+            <li><code>Object.getPrototypeOf(obj)</code> — получить прототип.</li>
+            <li><code>Object.create(proto, descriptors)</code> — создать с прототипом/дескрипторами.</li>
+            <li><code>Object.defineProperty/defineProperties</code> — управлять атрибутами.</li>
+            <li><code>Object.keys(obj)</code>, <code>Object.getOwnPropertyNames(obj)</code> — список ключей/всех
+                имён.
+            </li>
+            <li><code>Array.isArray(value)</code> — проверка массива.</li>
+            <li><code>Function.prototype.call/apply/bind</code> — явное управление <code>this</code> и аргументами.
+            </li>
+            <li><code>JSON.parse</code>/<code>JSON.stringify</code> — сериализация данных.</li>
+        </list>
+        <code-block lang="javascript">
+// call/apply
+function sum(a,b){ return a + b; }
+console.log(sum.call(null, 2, 3));     // 5
+console.log(sum.apply(null, [2, 3]));  // 5
+
+// JSON
+var data = { ok: true, items: [1,2,3] };
+var s = JSON.stringify(data);
+console.log(s);                        // строка JSON
+console.log(JSON.parse(s).ok);         // true </code-block>
+        <p>
+            <format style="bold">Строгий режим</format>
+            — директива <code>"use strict"</code> включает более строгие правила интерпретации и раннее обнаружение
+            ошибок.
+        </p>
+        <code-block lang="javascript">
+"use strict";
+function demo(){
+// Здесь строгий режим
+return this; // undefined (а не глобальный объект)
+}
+console.log(demo() === undefined); // true </code-block>
+        <list>
+            <li>Запрещены неявные глобальные переменные (присваивание не объявленной переменной вызывает ошибку).
+            </li>
+            <li>Удаление неконфигурируемых свойств — ошибка (<code>delete Object.prototype</code>).</li>
+            <li>Запрещены дублирующиеся имена параметров.</li>
+            <li>Запрещён <code>with</code>, изменение <code>arguments.callee</code>/<code>caller</code>.</li>
+            <li><code>this</code> в обычной функции — <code>undefined</code> (без
+                <code>new</code>/<code>call</code>/<code>apply</code>/<code>bind</code>).
+            </li>
+        </list>
+        <warning><p>Включая строгий режим в модуле/файле, убедитесь, что сторонний код совместим: некоторые старые
+            практики (например, неявные глобалы) начнут бросать ошибки.</p></warning>
+        <tip><p>Рекомендуется начинать файл/самовызывающуюся функцию с <code>"use strict"</code>: это локализует
+            влияние и не ломает старые скрипты на странице.</p></tip>
+    </chapter>
+
+</topic>

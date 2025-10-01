@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="HTTP" id="HTTP">
+
+    <chapter title="Что такое HTTP и зачем он нужен">
+        <p>
+            <tooltip term="HTTP">HTTP</tooltip>
+            — прикладной протокол обмена сообщениями между клиентом (обычно браузером или мобильным приложением) и
+            сервером. Он определяет формат
+            <tooltip term="Сообщение запроса">запросов</tooltip>
+            и
+            <tooltip term="Сообщение ответа">ответов</tooltip>
+            , поддержку
+            <tooltip term="Метод HTTP">методов</tooltip>
+            ,
+            <tooltip term="Статус-код">статусов</tooltip>
+            ,
+            <tooltip term="Заголовок">заголовков</tooltip>
+            , правил кеширования, аутентификации, перенаправлений и многого другого. Поверх HTTP строятся веб-сайты,
+            REST/JSON API, загрузка файлов, стриминг и realtime-механики.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Клиент-сервер</format>
+                : клиент инициирует запрос, сервер формирует ответ.
+            </li>
+            <li>
+                <format style="bold">Без сохранения состояния</format>
+                : каждый запрос самодостаточен; состояние пользователя хранится вне протокола (например, в
+                <tooltip term="Cookie">cookie</tooltip>
+                или
+                <tooltip term="Токен">токене</tooltip>
+                ).
+            </li>
+            <li>
+                <format style="bold">Расширяемость</format>
+                : поведение уточняется заголовками (кеш, язык, формат контента, авторизация и т. п.).
+            </li>
+        </list>
+        <tip>Понимание HTTP на уровне «сырых» сообщений помогает диагностировать ошибки, оптимизировать скорость и
+            безопасность приложений.
+        </tip>
+    </chapter>
+
+    <chapter title="Структура HTTP-сообщений">
+        <chapter title="Запрос (Request)">
+            <p>Запрос состоит из строки запроса, заголовков и необязательного тела. Строка запроса включает
+                <tooltip term="Метод HTTP">метод</tooltip>
+                , путь
+                <tooltip term="URI">URI</tooltip>
+                и версию протокола.
+            </p>
+            <code-block lang="http">
+GET /api/users?limit=10&amp;page=2 HTTP/1.1
+Host: api.example.com
+User-Agent: curl/8.5.0
+Accept: application/json Authorization:
+Bearer &lt;token&gt;
+
+  </code-block>
+        </chapter>
+        <chapter title="Ответ (Response)">
+            <p>Ответ начинается со строки статуса: версия протокола,
+                <tooltip term="Статус-код">статус-код</tooltip>
+                и фраза. Далее — заголовки и тело (опционально).
+            </p>
+            <code-block lang="http">
+
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 27
+ETag: "W/'1b-abc123'"
+
+{"total": 2, "items": []}
+</code-block>
+            <note>Большинство API возвращают JSON: объявляйте <code>Content-Type: application/json</code> и валидный
+                JSON в теле ответа.
+            </note>
+        </chapter>
+    </chapter>
+
+    <chapter title="Методы и семантика">
+        <list>
+            <li>
+                <format style="bold">GET</format>
+                — получить ресурс; без побочных эффектов; тело запроса обычно не используется.
+            </li>
+            <li>
+                <format style="bold">HEAD</format>
+                — как GET, но без тела ответа; для проверки наличия/метаданных.
+            </li>
+            <li>
+                <format style="bold">POST</format>
+                — создать/выполнить действие; может изменять состояние на сервере.
+            </li>
+            <li>
+                <format style="bold">PUT</format>
+                — полная замена ресурса по идентификатору.
+            </li>
+            <li>
+                <format style="bold">PATCH</format>
+                — частичное изменение ресурса.
+            </li>
+            <li>
+                <format style="bold">DELETE</format>
+                — удалить ресурс.
+            </li>
+            <li>
+                <format style="bold">OPTIONS</format>
+                — запрос поддерживаемых методов/настроек (часто для
+                <tooltip term="CORS">CORS</tooltip>
+                preflight).
+            </li>
+        </list>
+        <tip>Соблюдайте
+            <tooltip term="Идемпотентность">идемпотентность</tooltip>
+            : GET, PUT, DELETE должны быть предсказуемы при повторе. Это позволяет безопасные ретраи и кэш.
+        </tip>
+        <warning>Не используйте GET для операций, меняющих состояние (например, перевод денег). Это ломает кеширование и
+            может привести к неожиданным эффектам.
+        </warning>
+    </chapter>
+    <chapter title="Статус-коды: как выбрать корректный">
+        <list>
+            <li>
+                <format style="bold">2xx</format>
+                — успех: 200 OK, 201 Created (с заголовком <code>Location</code>), 204 No Content.
+            </li>
+            <li>
+                <format style="bold">3xx</format>
+                — перенаправления: 301/308 постоянное, 302/303/307 временное.
+            </li>
+            <li>
+                <format style="bold">4xx</format>
+                — ошибка клиента: 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 422
+                Unprocessable Entity, 429 Too Many Requests.
+            </li>
+            <li>
+                <format style="bold">5xx</format>
+                — ошибка сервера: 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway
+                Timeout.
+            </li>
+        </list>
+        <note>Возвращайте машиночитаемые ошибки: <code>{&quot;error&quot;:{&quot;code&quot;:&quot;validation_error&quot;,&quot;details&quot;:[...]}}</code>
+            и корректный статус-код.
+        </note>
+    </chapter>
+    <chapter title="Заголовки: основы взаимодействия">
+        <list>
+            <li>
+                <format style="bold">Content-Type</format>
+                — тип тела ответа/запроса (например, <code>application/json</code>).
+            </li>
+            <li>
+                <format style="bold">Accept</format>
+                — желаемый формат ответа (контент-негациация).
+            </li>
+            <li>
+                <format style="bold">Authorization</format>
+                — схема авторизации (например,
+                <tooltip term="Bearer токен">Bearer</tooltip>
+                или
+                <tooltip term="Basic авторизация">Basic</tooltip>
+                ).
+            </li>
+            <li>
+                <format style="bold">Cache-Control</format>
+                ,
+                <format style="bold">ETag</format>
+                ,
+                <format style="bold">Last-Modified</format>
+                — управление кешированием.
+            </li>
+            <li>
+                <format style="bold">Range</format>
+                ,
+                <format style="bold">Content-Range</format>
+                — частичная загрузка.
+            </li>
+            <li>
+                <format style="bold">X-Request-Id</format>
+                ,
+                <format style="bold">Traceparent</format>
+                — корреляция и трассировка.
+            </li>
+        </list>
+    </chapter>
+    <chapter title="Контент-негациация (Content Negotiation)"><p>Клиент указывает, в каком виде хочет получить ответ,
+        через <code>Accept</code>, <code>Accept-Language</code>, <code>Accept-Encoding</code>. Сервер выбирает лучший
+        вариант и возвращает соответствующие заголовки.</p>
+        <code-block
+                lang="http">
+GET /report HTTP/1.1
+Host: api.example.com
+Accept: application/json, text/csv;q=0.8
+Accept-Language: ru,en;q=0.7
+Accept-Encoding: gzip, br
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Encoding: gzip
+
+{"ok":true}
+</code-block>
+        <tip>Поддерживайте минимум gzip/br-сжатие и корректный <code>Content-Type</code> для каждого формата.</tip>
+    </chapter>
+
+    <chapter title="Кеширование: быстро и экономно">
+        <chapter title="Сильное и условное кеширование"><p>Кеш снижает задержки и нагрузку. Управляйте им
+            заголовками:</p>
+            <list>
+                <li>
+                    <format style="bold">Cache-Control</format>
+                    : <code>max-age</code>, <code>s-maxage</code>, <code>public/private</code>, <code>no-store</code>,
+                    <code>must-revalidate</code>.
+                </li>
+                <li>
+                    <format style="bold">ETag</format>
+                    и
+                    <format style="bold">If-None-Match</format>
+                    — условные запросы (304 Not Modified).
+                </li>
+                <li>
+                    <format style="bold">Last-Modified</format>
+                    и
+                    <format style="bold">If-Modified-Since</format>
+                    — альтернативный механизм.
+                </li>
+            </list>
+            <code-block
+                    lang="http"> GET /avatars/u123.png HTTP/1.1 Host: cdn.example.com If-None-Match: &quot;W/&#39;a1b2c3&#39;&quot;
+
+HTTP/1.1 304 Not Modified
+Cache-Control: public, max-age=604800
+ETag: "W/'a1b2c3'"
+</code-block>
+            <note>304 возвращает только заголовки: клиент использует локальный кеш и не скачивает тело повторно.</note>
+        </chapter>
+        <chapter title="Практика для API">
+            <list>
+                <li>Ставьте <code>Cache-Control: no-store</code> для приватных данных.</li>
+                <li>Для справочников и статических данных — разумный <code>max-age</code> и <code>ETag</code>.</li>
+                <li>Указывайте <code>Vary</code> (например, <code>Vary: Accept-Encoding, Accept</code>), если ответ
+                    зависит от заголовков запроса.
+                </li>
+            </list>
+            <warning>Неправильный <code>Vary</code> ломает кэш CDN/прокси: один клиент может получить данные для
+                другого.
+            </warning>
+        </chapter>
+    </chapter>
+
+    <chapter title="Куки и сессии">
+        <p>
+            <tooltip term="Cookie">Cookie</tooltip>
+            — пары ключ=значение, сохраняемые браузером. Сервер устанавливает их через <code>Set-Cookie</code>, а клиент
+            отправляет обратно в заголовке <code>Cookie</code>.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Флаги</format>
+                : <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite</code> (Lax/Strict/None), срок, домен,
+                путь.
+            </li>
+            <li>
+                <format style="bold">Сессии</format>
+                : сервер хранит состояние в хранилище, а клиент держит идентификатор сессии в cookie.
+            </li>
+            <li>
+                <format style="bold">JWT</format>
+                : альтернатива сессиям — хранение токена у клиента (часто в cookie с <code>HttpOnly</code>).
+            </li>
+        </list>
+        <warning>Для межсайтовых запросов <code>SameSite=None</code> требует <code>Secure</code> и HTTPS, иначе cookie
+            не будут отправлены.
+        </warning>
+    </chapter>
+    <chapter title="Аутентификация и авторизация поверх HTTP">
+        <list>
+            <li>
+                <format style="bold">Basic</format>
+                : <code>Authorization: Basic &lt;base64(user:pass)&gt;</code> — только через HTTPS.
+            </li>
+            <li>
+                <format style="bold">Bearer</format>
+                : <code>Authorization: Bearer &lt;token&gt;</code> — распространённый способ для API.
+            </li>
+            <li>
+                <format style="bold">Cookies + сессии</format>
+                : классическая модель для веб-сайтов.
+            </li>
+        </list>
+        <warning>Никогда не передавайте секреты по HTTP без шифрования. Используйте
+            <tooltip term="HTTPS">HTTPS</tooltip>
+            повсеместно.
+        </warning>
+    </chapter>
+    <chapter title="HTTPS и TLS в двух словах">
+        <p>
+            <tooltip term="HTTPS">HTTPS</tooltip>
+            — это HTTP поверх
+            <tooltip term="TLS">TLS</tooltip>
+            , обеспечивающий шифрование, целостность и аутентификацию сервера (по сертификату). Клиент устанавливает
+            TLS-сеанс, затем передаёт HTTP-сообщения внутри защищённого канала.
+        </p>
+        <list>
+            <li>Преимущества: конфиденциальность, защита от подмены, обязательное требование для современных браузеров
+                (например, для
+                <tooltip term="Service Worker">Service Worker</tooltip>,
+                <tooltip term="HTTP/2">HTTP/2</tooltip>,
+                cookie).
+            </li>
+            <li>Практика: автоматизируйте выпуск сертификатов (например, ACME/Let&#39;s Encrypt), включайте HSTS.</li>
+        </list>
+    </chapter>
+    <chapter title="HTTP/1.1 vs HTTP/2 vs HTTP/3">
+        <list>
+            <li>
+                <format style="bold">HTTP/1.1</format>
+                : один запрос на соединение; keep-alive; head-of-line blocking на уровне TCP сокетов при
+                последовательных запросах.
+            </li>
+            <li>
+                <format style="bold">HTTP/2</format>
+                : мультиплексирование в одном соединении, бинарный формат, сжатие заголовков (HPACK), серверный push
+                (устарел).
+            </li>
+            <li>
+                <format style="bold">HTTP/3</format>
+                : поверх QUIC/UDP; устойчивее к потере пакетов, более быстрый hand-shake, отсутствие HOL-блокировок TCP.
+            </li>
+        </list>
+        <tip>На практике включите HTTP/2/3 на балансировщике или CDN — клиенты автоматически выберут лучший протокол.
+        </tip>
+    </chapter>
+
+    <chapter title="Потоковые ответы, SSE и сравнение с WebSocket">
+        <list>
+            <li>
+                <format style="bold">Chunked Transfer</format>
+                : сервер отправляет части тела по мере готовности (<code>Transfer-Encoding: chunked</code>).
+            </li>
+            <li>
+                <format style="bold">SSE</format>
+                (Server-Sent Events): однонаправленный поток от сервера к клиенту поверх HTTP.
+            </li>
+            <li>
+                <format style="bold">WebSocket</format>
+                : двусторонний постоянный канал; не HTTP после апгрейда, но инициируется HTTP-запросом.
+            </li>
+        </list>
+    </chapter>
+    <chapter title="Прокси, реверс-прокси, CDN">
+        <p>
+            <tooltip term="Реверс-прокси">Реверс-прокси</tooltip>
+            (Nginx, Envoy) принимает запросы от клиентов и проксирует их в бэкенды: выполняет TLS, кеширование, сжатие,
+            балансировку, слияние соединений, ограничения скорости.
+            <tooltip term="CDN">CDN</tooltip>
+            кэширует статический и полу-статический контент ближе к пользователю.
+        </p>
+        <warning>Прокси могут менять и добавлять заголовки. Учитывайте <code>X-Forwarded-For</code>, <code>X-Forwarded-Proto</code>
+            и доверенные прокси при определении IP клиента и схемы.
+        </warning>
+    </chapter>
+    <chapter title="Безопасность на уровне протокола">
+        <list>
+            <li>
+                <format style="bold">Всегда HTTPS</format>
+                : шифрование, HSTS, корректные сертификаты.
+            </li>
+            <li>
+                <format style="bold">CORS</format>
+                : разрешайте только ожидаемые источники, не используйте <code>*</code> с credentials.
+            </li>
+            <li>
+                <format style="bold">Заголовки безопасности</format>
+                : <code>Content-Security-Policy</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy</code>,
+                <code>X-Frame-Options</code> или <code>frame-ancestors</code> в CSP.
+            </li>
+            <li>
+                <format style="bold">Размеры и таймауты</format>
+                : ограничивайте тело запроса, время ожидания и частоту запросов (
+                <tooltip term="Rate limiting">rate limiting</tooltip>
+                ).
+            </li>
+        </list>
+    </chapter>
+    <chapter title="Инструменты: как работать руками и из кода">
+        <chapter title="curl — швейцарский нож HTTP">
+            <code-block lang="bash">
+                curl -i -X POST &quot;https://api.example.com/login&quot; \
+                -H &quot;Accept: application/json&quot; \
+                -H &quot;Content-Type: application/json&quot; \
+                --data &#39;{&quot;email&quot;:&quot;user@example.com&quot;,&quot;password&quot;:&quot;secret&quot;}&#39; </code-block>
+            <code-block
+                    lang="bash"> curl -I &quot;https://static.example.com/logo.png&quot; # только заголовки (HEAD) </code-block>
+        </chapter>
+    </chapter>
+    <chapter title="Диагностика и типичные ошибки">
+        <list>
+            <li>
+                <format style="bold">Неверный Content-Type</format>
+                : JSON без правильного заголовка ломает парсинг на клиенте.
+            </li>
+            <li>
+                <format style="bold">Несогласованные статусы</format>
+                : 200 при ошибке логики сбивает клиентов; используйте 4xx/5xx.
+            </li>
+            <li>
+                <format style="bold">Отсутствует кеш-контроль</format>
+                : лишняя нагрузка, медленные ответы.
+            </li>
+            <li>
+                <format style="bold">Смешение HTTP и бизнес-ошибок</format>
+                : разделяйте транспортный уровень и доменную валидацию.
+            </li>
+            <li>
+                <format style="bold">Игнорирование таймаутов</format>
+                : зависшие соединения; выставляйте серверные и клиентские таймауты.
+            </li>
+        </list>
+        <tip>Всегда сохраняйте в логах метод, путь, статус, длительность, корреляционный идентификатор и важные
+            заголовки запроса/ответа для быстрой отладки.
+        </tip>
+    </chapter>
+</topic>

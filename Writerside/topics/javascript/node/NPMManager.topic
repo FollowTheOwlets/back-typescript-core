@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="NPM" id="NPMManager">
+
+    <chapter title="Суть">
+        <p>
+            <format style="bold">npm</format>
+            — это стандартный
+            <tooltip term="Пакетный менеджер">пакетный менеджер</tooltip>
+            для
+            <tooltip term="Node.js">Node.js</tooltip>
+            , который решает три базовые задачи: хранение и распространение
+            <tooltip term="Пакет">пакетов</tooltip>
+            кода через
+            <tooltip term="Регистр npm">регистр</tooltip>
+            , управление
+            <tooltip term="Зависимость">зависимостями</tooltip>
+            вашего проекта и выполнение проектных
+            <tooltip term="Скрипт npm">скриптов</tooltip>
+            . Он позволяет вам устанавливать библиотеки, фиксировать их версии согласно
+            <tooltip term="Семантическое версионирование">семантическому версионированию</tooltip>
+            , а также автоматизировать рутинные операции (сборка, тесты, линтинг).
+        </p>
+        <note><p>npm входит в состав дистрибутива Node.js. После установки Node.js команда <code>npm</code> доступна в
+            терминале без дополнительных действий.</p></note>
+        <warning>
+            <p>Разные версии npm могут по-разному разрешать
+                <tooltip term="Peer dependency">peer-зависимости</tooltip>
+                и формировать
+                <tooltip term="Локфайл">lock-файл</tooltip>
+                . Для командной разработки фиксируйте версию npm в CI и документируйте её в проекте.
+            </p>
+        </warning>
+    </chapter>
+    <chapter title="Основные команды">
+        <list>
+            <li><code>npm init</code> — интерактивно создаёт <code>package.json</code>. Быстрый вариант: <code>npm init
+                -y</code>.
+            </li>
+            <li><code>npm install</code> (сокр. <code>npm i</code>) — устанавливает зависимости из
+                <code>package.json</code> и обновляет <code>package-lock.json</code>. Без аргументов — установка всего;
+                с именем пакета — установка конкретного.
+            </li>
+            <li><code>npm uninstall</code> (сокр. <code>npm rm</code>) — удаляет пакет и записывает изменение в <code>package.json</code>.
+            </li>
+            <li><code>npm update</code> — обновляет зависимости в рамках разрешённых диапазонов версий.</li>
+            <li><code>npm run &lt;script&gt;</code> — запускает скрипт из секции <code>scripts</code> файла <code>package.json</code>.
+            </li>
+            <li><code>npm test</code> — алиас для <code>npm run test</code>.</li>
+            <li><code>npm exec</code> (или <code>npx</code>) — запускает бинарь из зависимостей без глобальной
+                установки.
+            </li>
+            <li><code>npm outdated</code> — показывает устаревшие пакеты и доступные версии (<code>current</code>,
+                <code>wanted</code>, <code>latest</code>).
+            </li>
+            <li><code>npm audit</code> — ищет уязвимости в зависимостях; <code>npm audit fix</code> — пытается исправить
+                автоматически.
+            </li>
+            <li><code>npm ci</code> — детерминированная установка по <code>package-lock.json</code> для CI. Удаляет
+                каталог <code>node_modules</code> и ставит зависимости в точности как в lock-файле.
+            </li>
+            <li><code>npm cache</code> — управление локальным кэшем (см. раздел «Очистка кэша»).</li>
+            <li><code>npm config</code> — чтение/запись настроек, эквивалентно правке <code>.npmrc</code>.</li>
+            <li><code>npm login</code>, <code>npm logout</code>, <code>npm whoami</code> — аутентификация в реестре для
+                публикации.
+            </li>
+            <li><code>npm publish</code>, <code>npm deprecate</code> — публикация и пометка версий пакета как
+                устаревших.
+            </li>
+            <li><code>npm link</code> — локальная разработка пакетов через симлинки.</li>
+        </list>
+        <code-block lang="bash">
+
+Инициализация проекта
+
+npm init -y
+
+Установка библиотеки как обычной зависимости
+
+npm i express
+
+Установка библиотеки как dev-зависимости (только для разработки)
+
+npm i -D typescript
+
+Запуск локально установленного бинаря без глобальной установки
+
+npx tsc --init
+
+Проверка устаревших пакетов
+
+npm outdated
+
+Детерминированная установка в CI
+
+npm ci
+</code-block>
+
+        <tip>
+            <p>Команды в разделе <code>scripts</code> можно вызывать короче: вместо
+                <code>./node_modules/.bin/eslint</code> используйте <code>npm run lint</code> —
+                <code>node_modules/.bin</code> автоматически в <code>PATH</code>.</p>
+        </tip>
+
+    </chapter>
+    <chapter title="Установка пакетов">
+        <chapter title="Локальная и глобальная установка"><p>По умолчанию пакеты ставятся в каталог
+            <code>node_modules</code> текущего проекта и записываются в <code>package.json</code>. Глобальная установка
+            (<code>npm i -g &lt;pkg&gt;</code>) используется для инструментов командной строки, которые вы вызываете из
+            любого каталога (например, <code>npm</code> сам установлен глобально).</p>
+            <warning><p>Избегайте глобальной установки библиотек, которые нужны конкретному проекту: это нарушает
+                воспроизводимость окружения коллег и CI.</p></warning>
+        </chapter>
+        <chapter title="Типы зависимостей">
+            <list>
+                <li>
+                    <format style="bold">dependencies</format>
+                    — нужны в рантайме приложения (например, <code>express</code>).
+                </li>
+                <li>
+                    <format style="bold">devDependencies</format>
+                    — нужны только в разработке (тесты, линтеры, сборщики).
+                </li>
+                <li>
+                    <format style="bold">peerDependencies</format>
+                    — указывают совместимость с хост-пакетом (например, плагин требует <code>react</code> определённой
+                    версии, но не устанавливает его сам).
+                </li>
+                <li>
+                    <format style="bold">optionalDependencies</format>
+                    — необязательные, их сбой установки не прерывает установку проекта.
+                </li>
+            </list>
+
+            <code-block lang="bash">
+
+Добавить обычную зависимость
+
+npm i axios
+
+Добавить dev-зависимость
+
+npm i -D vitest
+
+Добавить peer-зависимость вручную (npm покажет предупреждение, но ставит не будет)
+
+npm i react@^18
+</code-block>
+
+            <note>
+                <p>Для
+                    <tooltip term="Peer dependency">peer-зависимостей</tooltip>
+                    ответственность за установку лежит на приложении — это защищает от дублирования разных версий «ядра»
+                    (например, двух React в одном бандле).
+                </p>
+            </note>
+        </chapter>
+
+        <chapter title="Форматы источников">
+            <p>npm поддерживает установку из реестра, по <code>git</code>-URL, с локального пути и из tarball-архива.
+            </p>
+            <code-block lang="bash">
+
+Установка из Git
+
+npm i git+https://github.com/user/repo.git
+
+Локальная установка из папки пакета
+
+npm i ../my-local-lib
+
+Установка из tarball
+
+npm i https://registry.npmjs.org/pkg/-/pkg-1.0.0.tgz
+
+</code-block>
+        </chapter>
+    </chapter>
+
+    <chapter title="Отслеживание версий (SemVer)">
+        <p>npm следует
+            <tooltip term="Семантическое версионирование">SemVer</tooltip>
+            : <code>MAJOR.MINOR.PATCH</code> (например, <code>2.5.1</code>). Увеличение <code>PATCH</code> — исправления
+            без изменения API, <code>MINOR</code> — новые обратносovместимые возможности, <code>MAJOR</code> —
+            потенциально ломающие изменения.
+        </p>
+        <chapter title="Диапазоны версий">
+            <list>
+                <li><code>^1.4.2</code> — разрешает обновления <code>MINOR</code>/<code>PATCH</code> (до &lt;2.0.0).
+                </li>
+                <li><code>~1.4.2</code> — разрешает только <code>PATCH</code> (до &lt;1.5.0).</li>
+                <li><code>&gt;=1.2.0 &lt;2</code> — явный интервал.</li>
+                <li><code>1.4.2</code> — строгая фиксация конкретной версии.</li>
+                <li>Пре-релизы: <code>1.0.0-beta.1</code> — требуют явного указания.</li>
+            </list>
+
+            <code-block lang="json">
+
+
+{
+    "dependencies": {
+        "express": "^4.19.0",
+        "zod": "~3.23.8"
+    }
+}
+</code-block>
+
+            <tip>
+                <p>Для библиотек используйте <code>^</code> — потребители получат исправления и минорные улучшения. Для
+                    приложений с высокими требованиями к детерминизму выбирайте <code>npm ci</code> в CI и контролируйте
+                    обновления через <code>npm outdated</code> + ручной апдейт.</p>
+            </tip>
+            <warning>
+                <p>Слепое использование <code>^</code> может подтянуть несовместимые изменения, если автор библиотеки
+                    ошибочно выпустил ломающий релиз как <code>MINOR</code>. В критичных системах фиксируйте версии в
+                    <code>package-lock.json</code> и обновляйтесь контролируемо.</p>
+            </warning>
+        </chapter>
+
+        <chapter title="Lock-файлы">
+            <p><code>package-lock.json</code> фиксирует точные версии, хеши и дерево зависимостей для воспроизводимых
+                установок. В репозитории его следует коммитить.</p>
+            <list>
+                <li><code>npm install</code> — может изменять lock-файл согласно диапазонам.</li>
+                <li><code>npm ci</code> — строго следует lock-файлу, установка падает при несоответствии.</li>
+            </list>
+            <note>
+                <p><code>npm-shrinkwrap.json</code> — «застывший» lock для публикации библиотек; перекрывает <code>package-lock.json</code>.
+                </p>
+            </note>
+        </chapter>
+
+    </chapter>
+    <chapter title="Очистка кэша"><p>npm кэширует загруженные пакеты для ускорения последующих установок. Повреждённый
+        кэш может приводить к ошибкам установки.</p>
+        <code-block lang="bash">
+
+Проверка целостности кэша и вывод его пути
+
+npm cache verify
+
+Полная очистка кэша (требует --force)
+
+npm cache clean --force
+</code-block>
+
+        <warning>
+            <p>Не используйте <code>npm cache clean --force</code> как «ежедневную практику»: это замедляет билды и
+                редко нужно. Сначала попробуйте <code>npm cache verify</code> и переустановку зависимостей (<code>rm -rf
+                    node_modules</code>, затем <code>npm ci</code>).</p>
+        </warning>
+        <tip>
+            <p>В CI имеет смысл кэшировать директории <code>~/.npm</code> и <code>node_modules</code> (или лучше —
+                только кэш npm), чтобы ускорить сборки без потери детерминизма при использовании <code>npm ci</code>.
+            </p>
+        </tip>
+
+    </chapter>
+    <chapter title=".npmrc (конфигурация npm)"><p>Файл <code>.npmrc</code> хранит настройки клиента npm на разных
+        уровнях: глобально (в домашнем каталоге), локально (в корне проекта) и на уровне переменных окружения. Ключевые
+        опции:</p>
+        <code-block lang="ini">
+
+
+; Использовать собственный реестр (например, корпоративный)
+registry=https://registry.npmjs.org/
+
+; Складывать точные версии в package.json (без ^ и ~)
+save-exact=true
+
+; Принудительная проверка движка Node.js
+engine-strict=true
+
+; Авто-добавление node в PATH для скриптов на Windows
+scripts-prepend-node-path=true
+
+; Уровень отчётности audit
+audit-level=high
+
+; Отключить напоминания о финансировании
+fund=false
+
+; Префикс для глобальных установок (избегайте sudo)
+prefix=${HOME}/.npm-global
+
+; Авторизация для приватного реестра (используйте переменные окружения в CI)
+; //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+
+; Настройки по скоупам
+@my-scope:registry=https://npm.my-company.local/
+
+</code-block>
+
+        <tip>
+            <p>В CI храните токены в переменных окружения и подставляйте в <code>.npmrc</code> через
+                <code>${NPM_TOKEN}</code>. Не коммитьте реальные токены в репозиторий.</p>
+        </tip>
+
+        <warning>
+            <p><code>legacy-peer-deps=true</code> может «заглушить» конфликты peer-зависимостей, но приведёт к
+                трудноотлавливаемым ошибкам в рантайме. Используйте только как временную меру и документируйте причину.
+            </p>
+        </warning>
+
+        <chapter title="Работа с конфигом через команду">
+  <code-block lang="bash">
+
+Прочитать значение
+
+npm config get registry
+
+Установить значение на уровне пользователя
+
+npm config set save-exact true
+
+Установить значение локально (в .npmrc проекта)
+
+npm config set engine-strict true --location=project
+</code-block>
+        </chapter>
+    </chapter>
+
+    <chapter title="Практический минимум: от нуля до запуска"> <code-block lang="bash"> # 1) Инициализация проекта npm init -y
+2) Добавляем зависимости
+
+npm i express
+
+3) Добавляем dev-инструменты
+
+npm i -D typescript ts-node nodemon
+
+4) Настраиваем скрипты
+(редактируем package.json вручную или через npm set-script)
+
+npm set-script dev "nodemon src/index.ts"
+npm set-script build "tsc -p tsconfig.json"
+npm set-script start "node dist/index.js"
+
+5) Детерминированная установка в CI
+
+npm ci
+
+6) Безопасность и обновления
+
+npm audit --production
+npm outdated
+</code-block>
+
+        <code-block lang="json">
+
+
+{
+    "name": "my-app",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "nodemon src/index.ts",
+        "build": "tsc -p tsconfig.json",
+        "start": "node dist/index.js",
+        "lint": "eslint .",
+        "test": "vitest run"
+    },
+    "engines": {
+        "node": ">=20.0.0",
+        "npm": ">=10.0.0"
+    },
+    "dependencies": {
+        "express": "^4.19.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.6.0",
+        "vitest": "^2.0.0"
+    }
+}
+</code-block>
+
+        <note>
+            <p>Поле <code>engines</code> помогает раннее выявлять несовместимости окружения; в сочетании с <code>engine-strict=true</code>
+                установка прервётся при неподходящей версии Node.js.</p>
+        </note>
+
+    </chapter>
+</topic>

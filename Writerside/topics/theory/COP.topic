@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Компонентно-ориентированная модель" id="COP">
+
+    <chapter title="Что такое КОП и зачем она нужна">
+        <p>
+            <format style="bold">Компонентно-ориентированное программирование (КОП)</format>
+            — это подход, где базовой единицей проектирования является не класс и не функция, а
+            <tooltip term="Компонент">компонент</tooltip>
+            — автономный, повторно используемый модуль с чётко определёнными
+            <tooltip term="Контракт">контрактами</tooltip>
+            : какими интерфейсами он
+            <format style="bold">обладает</format>
+            (предоставляет) и какие интерфейсы
+            <format style="bold">требует</format>
+            от окружения.
+        </p>
+        <list>
+            <li>Компонент — это
+                <format style="bold">единица поставки и замены</format>
+                (модуль или артефакт: .jar, npm-пакет, Go-модуль, .so/.dll).
+            </li>
+            <li>Граница компонента — это
+                <format style="bold">контракт</format>
+                (интерфейсы, схемы данных, протоколы, инварианты).
+            </li>
+            <li>Компоненты соединяются через
+                <tooltip term="Порт">порты</tooltip>
+                и
+                <tooltip term="Адаптер">адаптеры</tooltip>
+                , а не через внутренние детали.
+            </li>
+            <li>КОП поощряет слабую связность, сильную сочетаемость и контролируемую эволюцию версий.</li>
+        </list>
+        <note>КОП — про
+            <format style="bold">стабильные границы</format>
+            и
+            <format style="bold">управляемые зависимости</format>
+            . Это удобно как в монорепозитории, так и в микросервисной архитектуре.
+        </note>
+    </chapter>
+
+    <chapter title="Компонент vs класс, модуль и сервис">
+        <p>Класс — строительный блок кода. Модуль (package) — блок компоновки.
+            <tooltip term="Компонент">Компонент</tooltip>
+            — блок
+            <format style="bold">поставки</format>
+            и
+            <format style="bold">замены</format>
+            . Он может содержать несколько модулей и классов, иметь свой цикл жизни и версионирование. Сервис — это
+            <format style="bold">запущенный</format>
+            процесс/экземпляр, который может быть реализован одним или несколькими компонентами.
+        </p>
+        <warning>Частая ошибка — путать микросервисы и компоненты. Микросервис — процесс с сетью между границами;
+            компонент — концепт архитектурной границы. Не каждую границу нужно выносить в отдельный процесс.
+        </warning>
+    </chapter>
+
+    <chapter title="Контракты компонентов: предоставляемые и требуемые интерфейсы">
+        <p>
+            <format style="bold">Предоставляемые интерфейсы</format>
+            определяют, как использовать компонент.
+            <format style="bold">Требуемые интерфейсы</format>
+            фиксируют ожидания компонента от окружения. Хороший контракт описывает типы данных, пред- и постусловия,
+            ошибки и версионирование.
+        </p>
+        <tip>Документируйте контракты в виде интерфейсов языка, OpenAPI/Proto-схем, UML-диаграмм порты/адаптеры. В коде
+            — интерфейсы и типы.
+        </tip>
+        <chapter title="Мини-пример: компонент приветствия использует часы (требуемый порт)">
+            <p>Компонент
+                <tooltip term="Компонент">Greeter</tooltip>
+                <format style="bold">предоставляет</format>
+                метод greet(), а
+                <format style="bold">требует</format>
+                порт Clock. Связь — через
+                <tooltip term="Внедрение зависимостей">внедрение зависимостей</tooltip>
+                .
+            </p>
+
+            <tabs>
+                <tab title="C++">
+                    <code-block lang="cpp">
+                    #include &lt;iostream&gt;
+                    #include &lt;string&gt;
+
+                    struct IClock {
+                        virtual ~IClock() = default;
+                        virtual std::string Now() const = 0;
+                    };
+
+                    struct SystemClock : IClock {
+                        std::string Now() const override { return "2025-09-24T21:00:00Z"; }
+                    };
+
+                    class Greeter {
+                        const IClock&amp; clock;
+                        public:
+                        explicit Greeter(const IClock&amp; c) : clock(c) {}
+                        void Greet() const {
+                            std::cout &lt;&lt; "Hello! Now: " &lt;&lt; clock.Now() &lt;&lt; std::endl; // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    };
+
+                    int main() {
+                        SystemClock c;
+                        Greeter g(c);
+                        g.Greet();
+                    }
+                    </code-block>
+                </tab>
+                <tab title="Java">
+                    <code-block lang="java">
+
+                    interface Clock { String now(); }
+
+                    class SystemClock implements Clock {
+                        public String now() { return "2025-09-24T21:00:00Z"; }
+                    }
+
+                    class Greeter {
+                        private final Clock clock;
+                        Greeter(Clock clock) { this.clock = clock; }
+                        void greet() {
+                            System.out.println("Hello! Now: " + clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    public class Main {
+                        public static void main(String\[] args) {
+                            Clock c = new SystemClock();
+                            new Greeter(c).greet();
+                        }
+                    }
+                    </code-block>
+                </tab>
+
+
+                <tab title="JavaScript">
+                    <code-block lang="javascript">
+
+
+
+                    class Greeter {
+                        constructor(clock) {
+                            this.clock = clock;
+                        }
+
+                        greet() {
+                            console.log("Hello! Now: " + this.clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    const clock = {now: () => "2025-09-24T21:00:00Z"};
+                    new Greeter(clock).greet();
+                    </code-block>
+                </tab>
+                <tab title="TypeScript">
+                    <code-block lang="typescript">
+                    interface Clock {
+                        now(): string;
+                    }
+
+                    class SystemClock implements Clock {
+                        now(): string {
+                            return "2025-09-24T21:00:00Z";
+                        }
+                    }
+
+                    class Greeter {
+                        constructor(private clock: Clock) {
+                        }
+
+                        greet(): void {
+                            console.log("Hello! Now: " + this.clock.now()); // Hello! Now: 2025-09-24T21:00:00Z
+                        }
+                    }
+
+                    new Greeter(new SystemClock()).greet();
+                    </code-block>
+                </tab>
+                <tab title="Go">
+                    <code-block lang="go">
+                    package main
+
+                    import "fmt"
+
+                    type Clock interface{ Now() string }
+
+                    type SystemClock struct{}
+                    func (SystemClock) Now() string { return "2025-09-24T21:00:00Z" }
+
+                    type Greeter struct{ clock Clock }
+                    func (g Greeter) Greet() {
+                        fmt.Println("Hello! Now: " + g.clock.Now()) // Hello! Now: 2025-09-24T21:00:00Z
+                    }
+
+                    func main() {
+                        g := Greeter{clock: SystemClock{}}
+                        g.Greet()
+                    }
+                    </code-block>
+                </tab>
+            </tabs>
+
+
+            <note>Контракт Clock можно в будущем заменить (например, на тестовые «фиктивные» часы) без изменения кода
+                Greeter. Это и есть слабая связность.
+            </note>
+        </chapter>
+
+
+    </chapter>
+
+    <chapter title="Композиция и внедрение зависимостей (DI)">
+        <p>Композиция — это сборка приложения из компонентов.
+            <tooltip term="Внедрение зависимостей">DI</tooltip>
+            автоматизирует связывание требуемых портов с адаптерами/реализациями. Допустима ручная композиция, контейнер
+            DI, или плагин-механизм (discovery &amp; loading).
+        </p>
+        <note>Предпочитайте
+            <format style="bold">конструкторное внедрение</format>
+            и явные интерфейсы. Это упрощает тестирование и версионирование.
+        </note>
+        <warning>Антипаттерн:
+            <tooltip term="Сервис-локатор">Service Locator</tooltip>
+            . Он скрывает зависимости, ломает анализ связей и усложняет тесты.
+        </warning>
+    </chapter>
+
+    <chapter title="Жизненный цикл компонента">
+        <p>Обычно включает этапы:
+            <format style="bold">инициализация</format>
+            (чтение конфигурации, проверка окружения),
+            <format style="bold">старт</format>
+            (подключение ресурсов),
+            <format style="bold">работа</format>
+            ,
+            <format style="bold">останов</format>
+            (безопасное завершение, освобождение ресурсов).
+        </p>
+        <list>
+            <li>Методы вроде init()/start()/stop()/dispose().</li>
+            <li>Идентичность и состояние компонента должны быть управляемыми и наблюдаемыми (health-check).</li>
+            <li>Кросс-срезы (логирование, метрики, трассировка) подключайте декораторами/обёртками, не загрязняя
+                доменную логику.
+            </li>
+        </list>
+    </chapter>
+
+    <chapter title="Версионирование, совместимость и эволюция">
+        <p>
+            <format style="bold">SemVer</format>
+            помогает согласовать ожидания: MAJOR — несовместимые изменения контракта; MINOR — добавления, сохраняющие
+            совместимость; PATCH — исправления. Для бинарных библиотек учитывайте
+            <tooltip term="ABI">ABI</tooltip>
+            , для исходных — API-совместимость.
+        </p>
+        <list>
+            <li>Избегайте
+                <format style="bold">ломающих изменений</format>
+                в предоставляемых интерфейсах без MAJOR-bump.
+            </li>
+            <li>Добавляйте по умолчанию необязательные параметры/флаги, а старые помечайте
+                <format style="bold">deprecated</format>
+                с переходным периодом.
+            </li>
+            <li>Вводите
+                <tooltip term="Адаптер">адаптеры</tooltip>
+                между версиями, если нужно поддержать старых клиентов.
+            </li>
+        </list>
+        <warning>«Ад зависимости» (version hell) возникает при пересечении несовместимых версий транзитивных
+            компонентов. Используйте lock-файлы, строгие диапазоны и периодический audit/refresh зависимостей.
+        </warning>
+    </chapter>
+
+    <chapter title="Коммуникации: внутри процесса и между процессами">
+        <p>Связи бывают
+            <format style="bold">внутрипроцессные</format>
+            (вызов метода/функции) и
+            <format style="bold">межпроцессные</format>
+            (RPC, REST/gRPC, сообщения в шине). Чем «дальше» граница, тем грубее должен быть интерфейс (меньше чата),
+            стабильнее схема данных и чётче обработка ошибок.
+        </p>
+        <note>Для сетевых границ проектируйте
+            <format style="bold">крупнозернистые</format>
+            операции и устойчивые DTO: избегайте лишних чатов и N+1 вызовов.
+        </note>
+    </chapter>
+
+    <chapter title="Тестирование компонентов">
+        <list>
+            <li>
+                <format style="bold">Юнит-тесты</format>
+                — проверяют внутреннюю логику.
+            </li>
+            <li>
+                <format style="bold">Контрактные тесты</format>
+                — фиксируют поведение предоставляемых интерфейсов и ожидания требуемых.
+            </li>
+            <li>
+                <format style="bold">Интеграционные тесты</format>
+                — проверяют связки компонентов с реальными адаптерами.
+            </li>
+        </list>
+        <tip>Если компонент публикует API, храните набор «золотых» примеров запрос/ответ; используйте property-based
+            тестирование для критичных инвариантов.
+        </tip>
+    </chapter>
+
+    <chapter title="Наблюдаемость и эксплуатация">
+        <p>Компонент должен экспортировать метрики (счётчики ошибок, латентность), логи с контекстом, трассировки на
+            границах и health-checks. Это ускоряет диагностику и повышает предсказуемость релизов.</p>
+    </chapter>
+
+    <chapter title="Антипаттерны и подводные камни">
+        <list>
+            <li>
+                <format style="bold">God-компонент</format>
+                : «компонент-всё». Тяжело версионировать и тестировать.
+            </li>
+            <li>
+                <format style="bold">Циклические зависимости</format>
+                : затрудняют сборку и эволюцию контрактов.
+            </li>
+            <li>
+                <format style="bold">Протекающая абстракция</format>
+                : наружу выползают детали хранения/передачи данных.
+            </li>
+            <li>
+                <format style="bold">Скрытые зависимости</format>
+                : использование глобальных синглтонов/локаторов.
+            </li>
+            <li>
+                <format style="bold">Чатливые интерфейсы</format>
+                : множество мелких вызовов через границу.
+            </li>
+        </list>
+        <warning>Любая утечка внутренней структуры через контракт делает компонент хрупким: любое изменение деталей
+            ломает клиентов. Скрывайте детали за адаптерами.
+        </warning>
+    </chapter>
+
+    <chapter title="Практический чек-лист проектирования компонента">
+        <list>
+            <li>Определите
+                <tooltip term="Граница компонента">границу</tooltip>
+                и контракты (предоставляемые/требуемые).
+            </li>
+            <li>Спроектируйте порты и адаптеры (хранилище, сеть, очередь, UI).</li>
+            <li>Выберите стратегию композиции (ручная, DI, плагины).</li>
+            <li>Опишите жизненный цикл и ресурсы (конфигурация, пулы, тайм-ауты).</li>
+            <li>Зафиксируйте политику версионирования и депрекейта.</li>
+            <li>Добавьте наблюдаемость: логи, метрики, трассировки, health.</li>
+            <li>Подготовьте тесты: юнит, контрактные, интеграционные.</li>
+            <li>Оцените гранулярность: не слишком крупный и не слишком мелкий.</li>
+        </list>
+        <note>Если сомневаетесь в размере — начните крупнее с чёткими подграницами. Расщепить позже дешевле, чем
+            склеивать разросшиеся мелочи.
+        </note>
+    </chapter>
+
+    <chapter title="Примеры упаковки и поставки (по экосистемам)">
+        <list>
+            <li>C++: статические/динамические библиотеки, pkg-config, контроль ABI.</li>
+            <li>Java: артефакты Maven/Gradle (.jar/.aar), манифесты, OSGi/JPMS.</li>
+            <li>JavaScript/TypeScript: npm-пакеты, export-карта, типы .d.ts.</li>
+            <li>Go: модули (go.mod), семантика совместимости пакетов.</li>
+        </list>
+        <tip>Фиксируйте внешнюю «поверхность» экспорта и публикуйте минимально необходимое API. Всё остальное —
+            внутренности.
+        </tip>
+    </chapter>
+
+</topic>

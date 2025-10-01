@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Индексы" id="Indexes">
+
+    <chapter title="Зачем нужны индексы">
+        <p>Индекс — это дополнительная структура данных, которая ускоряет поиск строк в таблице, уменьшая число чтений
+            со страницы диска. Вместо полного просмотра таблицы база использует указатели из индекса, чтобы быстро найти
+            нужные строки. При этом индекс занимает место на диске и замедляет операции записи, поэтому важно понимать,
+            когда и какие индексы применять.</p>
+        <p>
+            <format style="bold">Ключевая идея:</format>
+            индексы улучшают скорость чтения, но увеличивают стоимость вставок, обновлений и удалений. Цель — найти
+            баланс между скоростью запросов и издержками на обслуживание.
+        </p>
+        <note>Думайте об индексе как о «содержании» книги: он не хранит полные страницы, но знает, где искать нужную
+            информацию.
+        </note>
+    </chapter>
+
+    <chapter title="Типы индексов и их особенности">
+        <list>
+            <li>
+                <format style="bold">B-Tree</format>
+                — индекс по умолчанию; подходит для операторов =, &lt;, &lt;=, &gt;, &gt;=, BETWEEN, ORDER BY. Эффективен для
+                <tooltip term="Селективность">селективных</tooltip>
+                условий, хорошо поддерживает сортировку.
+            </li>
+            <li>
+                <format style="bold">Hash</format>
+                — для равенства (=). Узкая специализация; сегодня надёжен, но редко выигрывает у B-Tree.
+            </li>
+            <li>
+                <format style="bold">GIN</format>
+                —
+                <tooltip term="Инвертированный индекс">инвертированный</tooltip>
+                индекс для множественных значений внутри поля (массива, jsonb, tsvector). Идеален для <code>jsonb</code>
+                и полнотекстового поиска.
+            </li>
+            <li>
+                <format style="bold">GiST</format>
+                — обобщённый сбалансированный индекс для «похожести» и геоданных (поиск ближайших, пересечения
+                областей). Используется PostGIS.
+            </li>
+            <li>
+                <format style="bold">BRIN</format>
+                — компактный индекс по диапазонам страниц. Отлично работает на очень больших, «почти отсортированных» по
+                времени таблицах (журналы событий).
+            </li>
+            <li>
+                <format style="bold">SP-GiST</format>
+                — для разреженных данных и специальных разбиений пространства (квадродеревья и т. п.).
+            </li>
+        </list>
+        <tip>Если вы не уверены, начинайте с B-Tree. Переходите к GIN/GiST/BRIN при специфических паттернах данных и
+            запросов.
+        </tip>
+    </chapter>
+    <chapter title="Как планировщик выбирает индекс">
+        <p>Планировщик оценивает
+            <tooltip term="Кардинальность">кардинальность</tooltip>
+            и
+            <tooltip term="Селективность">селективность</tooltip>
+            условий, используя статистику из <code>ANALYZE</code>. Если ожидания выигрыша превышают стоимость доступа к
+            индексу и последующего чтения строк, будет выбран
+            <tooltip term="Index Scan">Index Scan</tooltip>
+            или
+            <tooltip term="Bitmap Index Scan">Bitmap Index Scan</tooltip>
+            вместо
+            <tooltip term="Seq Scan">Seq Scan</tooltip>
+            .
+        </p>
+        <code-block lang="sql"> EXPLAIN ANALYZE
+        SELECT *
+        FROM orders
+        WHERE customer_id = 42;
+</code-block>
+        <code-block lang="text">
+            Index Scan using orders_customer_id_idx on orders (cost=... rows=... width=...)
+        </code-block>
+        <note>После крупных изменений данных запускайте <code>ANALYZE</code> (или ждите autovacuum), чтобы планировщик
+            видел актуальную картину распределения значений.
+        </note>
+    </chapter>
+    <chapter title="Базовые рецепты: создать, проверить, удалить"> <code-block lang="sql">
+-- Создание простого индекса
+    CREATE INDEX orders_customer_id_idx ON public.orders (customer_id);
+
+-- Проверка использования (через объяснение плана)
+    EXPLAIN ANALYZE
+    SELECT *
+    FROM public.orders
+    WHERE customer_id = 42;
+
+-- Удаление индекса (если не нужен)
+    DROP INDEX IF EXISTS public.orders_customer_id_idx;
+</code-block>
+        <warning>Слишком много индексов на таблице приводит к заметному замедлению INSERT/UPDATE/DELETE, так как каждый
+            индекс нужно поддерживать при изменении строки.
+        </warning>
+    </chapter>
+
+    <chapter title="Сложные и полезные приёмы">
+        <chapter title="Составные индексы и порядок столбцов">
+            <p>Порядок столбцов важен: условие по
+                <format style="bold">левым</format>
+                префиксам использует индекс лучше. Например, индекс <code>(customer_id, created_at)</code> отлично
+                подходит для <code>WHERE customer_id = ? AND created_at &gt;= ?</code> и для сортировки по <code>created_at</code>
+                в рамках одного <code>customer_id</code>.
+            </p>
+            <code-block
+                    lang="sql"> CREATE INDEX idx_orders_customer_created ON public.orders (customer_id, created_at DESC); </code-block>
+            <note>Добавляйте <code>DESC</code> в определение индекса, если часто сортируете по убыванию — это улучшит
+                планы без дополнительных сортировок.
+            </note>
+        </chapter>
+        <chapter title="Частичные индексы (partial)">
+            <p>Позволяют индексировать только нужное подмножество строк, уменьшая размер и ускоряя операции записи.
+                Хорошо подходят для «активных» данных.</p>
+            <code-block lang="sql">
+
+
+CREATE INDEX idx_orders_active
+    ON public.orders (customer_id)
+    WHERE status = 'active';
+</code-block>
+            <warning>Условие в запросе должно точно совпадать с предикатом индекса, иначе он не будет использован.
+            </warning>
+        </chapter>
+
+        <chapter title="Индексы по выражению">
+            <p>Индексирует результат функции/выражения. Пригодно для кейс-инсенситив поиска и предобработки
+                значений.</p>
+            <code-block lang="sql">
+
+
+CREATE INDEX idx_users_lower_email ON public.users (lower(email));
+SELECT *
+FROM public.users
+WHERE lower(email) = 'foo@bar.com
+';
+</code-block>
+            <note>Выражение в запросе должно совпадать с выражением индекса по синтаксису и функциям.</note>
+        </chapter>
+
+        <chapter title="Покрывающие индексы (INCLUDE)">
+            <p>Позволяют добавить «включённые» столбцы, которые не участвуют в упорядочивании, но доступны для
+                <tooltip term="Index Only Scan">Index Only Scan</tooltip>
+                .
+            </p>
+            <code-block lang="sql">
+
+
+CREATE INDEX idx_orders_customer_created_inc
+    ON public.orders (customer_id, created_at) INCLUDE (amount, status);
+</code-block>
+            <tip>Используйте INCLUDE, когда часто выбираете несколько дополнительных полей вместе с условием по
+                индексируемым столбцам.
+            </tip>
+        </chapter>
+
+        <chapter title="GIN для jsonb и массивов">
+            <p>Для <code>jsonb</code> и массивов индекс GIN значительно ускоряет проверки «содержит», поиск по ключам и
+                полнотекст.</p>
+            <code-block lang="sql">
+CREATE INDEX idx_docs_jsonb_gin ON public.docs USING GIN (data jsonb_path_ops);
+
+SELECT *
+FROM public.docs
+WHERE data @> '{"user":{"id":42}}';
+</code-block>
+            <note>Опции операторных классов (<code>jsonb_ops</code>, <code>jsonb_path_ops</code>) влияют на размер и
+                покрываемые операции. Выбирайте под свой паттерн запросов.
+            </note>
+        </chapter>
+
+        <chapter title="Полнотекстовый поиск (tsvector + GIN)">
+  <code-block lang="sql">
+
+
+ALTER TABLE public.articles
+    ADD COLUMN fts tsvector;
+
+UPDATE public.articles
+    SET fts = to_tsvector('russian', title || ' ' || body);
+
+CREATE INDEX idx_articles_fts ON public.articles USING GIN (fts);
+
+SELECT id
+FROM public.articles
+WHERE fts @@ plainto_tsquery('russian', 'индексы постгрес');
+</code-block>
+            <note>Автоматизируйте обновление <code>fts</code> через триггер, чтобы индекс оставался актуальным.</note>
+        </chapter>
+
+        <chapter title="BRIN для огромных таблиц логов">
+            <p>Если таблица растёт по времени, а запросы фильтруют по диапазонам дат, BRIN даст значительный выигрыш при
+                минимальном размере индекса.</p>
+            <code-block lang="sql">
+
+
+CREATE INDEX idx_events_time_brin ON public.events
+    USING BRIN (event_time) WITH (pages_per_range = 64);
+</code-block>
+            <tip>Экспериментируйте с <code>pages_per_range</code>: больше — компактнее индекс, меньше — точнее.</tip>
+        </chapter>
+    </chapter>
+
+    <chapter title="Сканирования и как их читать в EXPLAIN">
+        <list>
+            <li>
+                <format style="bold">Seq Scan</format>
+                — последовательное сканирование всей таблицы. Нормально для маленьких таблиц или низкой селективности.
+            </li>
+            <li>
+                <format style="bold">Index Scan</format>
+                — прямой доступ по индексу к строкам. Хорошо при высокой селективности.
+            </li>
+            <li>
+                <format style="bold">Bitmap Index Scan</format>
+                +
+                <format style="bold">Bitmap Heap Scan</format>
+                — эффективно при средней селективности и объединении нескольких индексов.
+            </li>
+            <li>
+                <format style="bold">Index Only Scan</format>
+                — чтение только индекса без обращения к таблице при наличии актуальной
+                <tooltip term="Карта видимости">карты видимости</tooltip>
+                и покрывающих столбцов.
+            </li>
+        </list>
+        <code-block lang="sql">
+EXPLAIN (ANALYZE, BUFFERS)
+    SELECT customer_id, amount
+    FROM public.orders
+    WHERE customer_id = 42
+    ORDER BY created_at DESC
+    LIMIT 10;
+</code-block>
+        <code-block lang="text"> Index Only Scan using idx_orders_customer_created_inc on orders ... </code-block>
+    </chapter>
+    <chapter title="Стоимость индексов при записи и как её снизить">
+        <p>Каждый INSERT/DELETE/UPDATE обновляет все релевантные индексы. Это увеличивает
+            <tooltip term="Latency">задержку</tooltip>
+            и конкуренцию за ресурсы.
+        </p>
+        <list>
+            <li>Удаляйте неиспользуемые индексы (<code>pg_stat_user_indexes</code>).</li>
+            <li>Используйте частичные индексы для «активной» части данных.</li>
+            <li>Снижайте
+                <tooltip term="Bloat">bloat</tooltip>
+                регулярным обслуживанием.
+            </li>
+            <li>Тонко настраивайте <code>fillfactor</code> и целевые параметры autovacuum.</li>
+        </list>
+        <warning>Дублирующие индексы (одинаковый набор столбцов/выражений) — распространённый источник лишних затрат.
+        </warning>
+    </chapter>
+    <chapter title="Обслуживание: VACUUM, ANALYZE, REINDEX">
+        <list>
+            <li>
+                <format style="bold">VACUUM</format>
+                — помечает удалённые версии строк как свободные, поддерживает карту видимости для Index Only Scan.
+            </li>
+            <li>
+                <format style="bold">ANALYZE</format>
+                — обновляет статистику распределений для планировщика.
+            </li>
+            <li>
+                <format style="bold">REINDEX</format>
+                — перестроение индекса при сильном bloat или ошибках структуры.
+            </li>
+        </list>
+        <code-block lang="sql">
+        VACUUM (VERBOSE) public.orders;
+
+        ANALYZE public.orders;
+
+        REINDEX INDEX CONCURRENTLY public.idx_orders_customer_created_inc;
+</code-block>
+        <note>Используйте
+            <format style="bold">CONCURRENTLY</format>
+            при перестроении и создании индексов в продакшене, чтобы не блокировать запись и чтение.
+        </note>
+    </chapter>
+    <chapter title="Конкурентное создание и блокировки"><p><code>CREATE INDEX</code> без опции <code>CONCURRENTLY</code>
+        ставит блокировки, мешающие записи. В нагруженных системах используйте конкурентное создание.</p>
+        <code-block
+                lang="sql"> CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_user_created ON public.payments (user_id, created_at); </code-block>
+        <warning>Операция <code>CONCURRENTLY</code> дольше и чувствительнее к сбоям. Следите за журналами и повторяйте
+            при необходимости.
+        </warning>
+    </chapter>
+    <chapter title="Практические шаблоны (рецепты)">
+        <chapter title="Последние N записей пользователя">
+            <code-block lang="sql">
+        CREATE INDEX idx_orders_user_created_desc ON public.orders (user_id, created_at DESC);
+
+        SELECT order_id, created_at
+        FROM public.orders
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 20;
+</code-block>
+            <note>DESC в индексе избавит от сортировки и ускорит LIMIT.</note>
+        </chapter>
+
+        <chapter title="Фильтр по статусу и дате">
+          <code-block lang="sql">
+
+
+                CREATE INDEX idx_orders_active_created
+                    ON public.orders (created_at)
+                    WHERE status = 'active';
+
+                SELECT *
+                FROM public.orders
+                WHERE status = 'active'
+                  AND created_at >= now() - interval '7 days';
+            </code-block>
+        </chapter>
+
+        <chapter title="Поиск по email без учёта регистра">
+  <code-block lang="sql">
+CREATE INDEX idx_users_lower_email ON public.users (lower(email));
+
+SELECT id
+FROM public.users
+WHERE lower(email) = $1;
+</code-block>
+        </chapter>
+
+        <chapter title="jsonb: есть ли ключ со значением">
+  <code-block lang="sql">
+CREATE INDEX idx_profiles_data_gin ON public.profiles USING GIN (data);
+
+SELECT id
+FROM public.profiles
+WHERE data @> '{"role":"admin"}';
+</code-block>
+        </chapter>
+
+        <chapter title="Полнотекст: найти статьи по фразе">
+            <code-block lang="sql">
+                CREATE INDEX idx_articles_fts ON public.articles USING GIN (to_tsvector('russian', title || ' ' || body));
+
+                SELECT id
+                FROM public.articles
+                WHERE to_tsvector('russian', title || ' ' || body)
+                      @@ plainto_tsquery('russian', 'индексы постгрес');
+            </code-block>
+        </chapter>
+
+        <chapter title="BRIN для временных данных">
+  <code-block lang="sql">
+CREATE INDEX idx_logs_ts_brin ON public.logs USING BRIN (ts);
+SELECT *
+FROM public.logs
+WHERE ts BETWEEN $1 AND $2;
+</code-block>
+            <tip>Пересоздайте BRIN после крупной переливки данных, если нарушилась монотонность времени.</tip>
+        </chapter>
+    </chapter>
+
+    <chapter title="Диагностика и мониторинг">
+        <list>
+            <li><code>EXPLAIN (ANALYZE, BUFFERS)</code> — измеряйте фактическое время и чтение страниц.</li>
+            <li><code>pg_stat_user_indexes</code> — счётчики обращений к индексам. Ненужные индексы видны по
+                нулевым/низким hit.
+            </li>
+            <li><code>pg_stat_all_tables</code> — мониторинг вакуума/автовакуума и др.</li>
+            <li><code>pg_indexes</code> — список индексов и их определения.</li>
+        </list>
+            <code-block lang="sql">
+                 SELECT relname AS table, indexrelname AS index, idx_scan
+                 FROM pg_stat_user_indexes
+                 ORDER BY idx_scan ASC NULLS FIRST
+                 LIMIT 20;
+            </code-block>
+        <note>Если <code>idx_scan</code> долго остаётся близким к нулю — кандидат на удаление.</note>
+    </chapter>
+    <chapter title="Частые ошибки и анти-паттерны">
+        <list>
+            <li>Создание индекса «на всякий случай» на каждый столбец.</li>
+            <li>Дублирующие индексы с одинаковыми наборами столбцов.</li>
+            <li>Ожидание, что индекс ускорит запрос с низкой селективностью (например, <code>status IN (...)</code> на
+                таблице, где почти все строки имеют эти статусы).
+            </li>
+            <li>Невнимание к порядку столбцов в составном индексе.</li>
+            <li>Несовпадение выражения в запросе и в индексе по выражению.</li>
+        </list>
+        <warning>Индекс не «починит» плохо написанный запрос. Сначала упрощайте условия, проверяйте планы, добавляйте
+            индексы целенаправленно.
+        </warning>
+    </chapter>
+    <chapter title="Чек-лист перед созданием индекса">
+        <list>
+            <li>Запрос стабильный и часто исполняется?</li>
+            <li>Есть ли достаточная селективность условия?</li>
+            <li>Помогает ли индекс убрать сортировку/LIMIT?</li>
+            <li>Не существует ли уже подходящего индекса?</li>
+            <li>Готовы ли вы к издержкам на запись и обслуживанию?</li>
+            <li>Нужен ли частичный/выражение/INCLUDE для покрытия?</li>
+            <li>Создавать ли <code>CONCURRENTLY</code> в продакшене?</li>
+        </list>
+    </chapter>
+</topic>

@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Многопоточность в JS" id="Threads">
+
+    <warning>
+        <p>❗❗❗Перед прочтением изучите теоретический материал про многопоточность❗❗❗</p>
+    </warning>
+
+    <chapter title="Зачем многопоточность в Node.js">
+        <p>Node.js исторически опирается на однопоточный
+            <tooltip term="Event Loop"><code>Event Loop</code></tooltip>
+            и неблокирующий ввод/вывод. Это идеально для сетевых приложений, но плохо для CPU-тяжёлых задач (парсинг
+            больших файлов, криптография, сжатие, обработка изображений, ML-инференс).
+            <format style="bold">Многопоточность</format>
+            через модуль
+            <tooltip term="worker_threads"><code>worker_threads</code></tooltip>
+            позволяет вынести такие расчёты в отдельные потоки, не блокируя главный цикл событий.
+        </p>
+        <note>
+            <p>
+                <format style="bold">Ключевая идея:</format>
+                JavaScript-код в Node по умолчанию выполняется в одном потоке.
+                <tooltip term="Worker"><code>Worker</code></tooltip>
+                создаёт
+                <format style="bold">ещё один</format>
+                поток с отдельным JS-движком и собственным Event Loop.
+            </p>
+        </note>
+    </chapter>
+    <chapter title="Архитектура: Event Loop, libuv и Worker">
+        <p>Каждый
+            <tooltip term="Isolate V8">изолят V8</tooltip>
+            исполняет JS и имеет свой
+            <tooltip term="Event Loop"><code>Event Loop</code></tooltip>
+            . Node использует
+            <tooltip term="libuv"><code>libuv</code></tooltip>
+            с внутренним
+            <tooltip term="Пул потоков"><code>пулом потоков</code></tooltip>
+            для некоторых операций (fs, crypto), однако это не исполняет ваш JS параллельно.
+            <tooltip term="Worker"><code>Worker</code></tooltip>
+            создаёт новый изолят и ОС-поток, где ваш JS действительно идёт параллельно.
+        </p>
+        <tip>
+            <p>Один процесс Node может содержать множество
+                <tooltip term="Worker">воркеров</tooltip>
+                , каждый со своей памятью и циклом событий.
+            </p>
+        </tip>
+    </chapter>
+    <chapter title="Когда выбирать worker_threads, а когда нет">
+        <list>
+            <li>
+                <format style="bold">CPU-bound задачи</format>
+                : изображения, видео, PDF, криптография, сложная сериализация —
+                <tooltip term="worker_threads"><code>worker_threads</code></tooltip>
+                .
+            </li>
+            <li>
+                <format style="bold">I/O-bound</format>
+                (базы, HTTP, очереди) — чаще достаточно встроенного неблокирующего I/O.
+            </li>
+            <li>
+                <format style="bold">Изоляция памяти и надёжность</format>
+                : для недоверенного кода и «жёстких» перезапусков лучше
+                <tooltip term="child_process"><code>child_process</code></tooltip>
+                (отдельный процесс).
+            </li>
+            <li>
+                <format style="bold">Масштабирование по ядрам</format>
+                : распределение соединений по ядрам —
+                <tooltip term="cluster"><code>cluster</code></tooltip>
+                или несколько процессов за балансировщиком.
+            </li>
+        </list>
+        <warning>
+            <p>Не используйте воркеры для каждой мелкой операции. Создание потока — дорогая операция. Объединяйте задачи
+                в
+                <tooltip term="Пул потоков"><code>пул</code></tooltip>
+                и переиспользуйте.
+            </p>
+        </warning>
+    </chapter>
+    <chapter title="API: базовые сущности и каналы связи">
+        <list>
+            <li>
+                <tooltip term="Worker"><code>Worker</code></tooltip>
+                — класс для создания потока.
+            </li>
+            <li>
+                <tooltip term="isMainThread"><code>isMainThread</code></tooltip>
+                — признак «мы в главном потоке?».
+            </li>
+            <li>
+                <tooltip term="parentPort"><code>parentPort</code></tooltip>
+                — порт связи с родителем (внутри воркера).
+            </li>
+            <li>
+                <tooltip term="workerData"><code>workerData</code></tooltip>
+                — «снэпшот» входных данных при запуске воркера.
+            </li>
+            <li>
+                <tooltip term="MessageChannel"><code>MessageChannel</code></tooltip>
+                ,
+                <tooltip term="MessagePort"><code>MessagePort</code></tooltip>
+                — двунаправленные порты.
+            </li>
+            <li>
+                <tooltip term="TransferList"><code>transferList</code></tooltip>
+                — список «передаваемых» объектов (например,
+                <tooltip term="ArrayBuffer"><code>ArrayBuffer</code></tooltip>
+                ).
+            </li>
+            <li>
+                <tooltip term="SharedArrayBuffer"><code>SharedArrayBuffer</code></tooltip>
+                и
+                <tooltip term="Atomics"><code>Atomics</code></tooltip>
+                — разделяемая память и атомарные операции.
+            </li>
+        </list>
+        <note>
+            <p>Передача сообщений использует
+                <tooltip term="Structured Clone"><code>Structured Clone</code></tooltip>
+                : большинство структур копируются прозрачно;
+                <tooltip term="Transferable"><code>Transferable</code></tooltip>
+                объекты можно передавать без копии, передавая «владение».
+            </p>
+        </note>
+    </chapter>
+    <chapter title="Пример 1: простой воркер (два файла)"><p>Рассчитаем тяжёлую функцию в отдельном потоке.</p>
+        <code-block lang="js">
+            // main.js
+        const { Worker, isMainThread } = require(&quot;node:worker_threads&quot;);
+
+        if (isMainThread) {
+            const worker = new Worker(__filename, {workerData: {n: 45}});
+            worker.once("message", (result) => {
+                console.log("fib:", result); // fib: 1134903170
+            });
+            worker.once("error", (e) => console.error("error:", e)); // error: ...
+            worker.once("exit", (code) => console.log("exit:", code)); // exit: 0
+        } else {
+            const {parentPort, workerData} = require("node:worker_threads");
+
+            function fib(n) {
+                return n &lt; 2 ? n : fib(n - 1) + fib(n - 2);
+            }
+
+            const result = fib(workerData.n);
+            parentPort.postMessage(result);
+        }</code-block>
+        <warning><p>Рекурсивный <code>fib</code> — демонстрационная «печка», он неэффективен. В реальности используйте
+            алгоритмы с линейной сложностью или memoization.</p></warning>
+    </chapter>
+
+    <chapter title="Пример 2: воркер как отдельный модуль (многофайловый)"><p>Так чаще организуют код в реальных
+        проектах.</p>
+        <code-block lang="js">// main.js const { Worker } = require(&quot;node:worker_threads&quot;); const path = require(&quot;node:path&quot;);
+
+        function runTask(payload) {
+            return new Promise((resolve, reject) => {
+                const worker = new Worker(path.join(__dirname, "worker.js"), {workerData: payload});
+                worker.once("message", resolve);
+                worker.once("error", reject);
+                worker.once("exit", (code) => {
+                    if (code !== 0) reject(new Error("exit " + code));
+                });
+            });
+        }
+
+        (async () => {
+            const res = await runTask({op: "sum", items: [1, 2, 3]});
+            console.log("sum:", res); // sum: 6
+        })();</code-block>
+        <code-block lang="js">// worker.js
+        const {workerData, parentPort} = require("node:worker_threads");
+
+        function compute(data) {
+            if (data.op === "sum") return data.items.reduce((a, b) => a + b, 0);
+            return null;
+        }
+
+        parentPort.postMessage(compute(workerData));</code-block>
+        <tip><p>Отдельный файл повышает повторное использование и облегчает бандлинг/тестирование.</p></tip>
+    </chapter>
+
+    <chapter title="Пример 3: простой пул воркеров (переиспользование потоков)"><p>Создаём фиксированное число воркеров
+        и очередь задач.</p>
+        <code-block lang="js">
+        // pool.js
+        const { Worker } = require(&quot;node:worker_threads&quot;);
+        const path = require(&quot;node:path&quot;);
+
+        class WorkerPool {
+            constructor(size = Math.max(1, require("node:os").cpus().length - 1)) {
+                this.size = size;
+                this.free = [];
+                this.busy = new Set();
+                this.queue = [];
+                for (let i = 0; i &lt; size; i++) this.free.push(this._create());
+            }
+
+            _create() {
+                const w = new Worker(path.join(__dirname, "worker.js"));
+                w.on("message", (msg) => {
+                    w.currentResolve &amp;&amp; w.currentResolve(msg);
+                    w.currentResolve = w.currentReject = null;
+                    this._release(w);
+                });
+                w.on("error", (err) => {
+                    w.currentReject &amp;&amp; w.currentReject(err);
+                    this.busy.delete(w);
+                    // Создаём новый на замену
+                    const nw = this._create();
+                    this.free.push(nw);
+                    this._drain();
+                });
+                w.on("exit", (code) => {
+                    this.busy.delete(w);
+                    if (code !== 0) {
+                        const nw = this._create();
+                        this.free.push(nw);
+                    }
+                    this._drain();
+                });
+                return w;
+            }
+
+            exec(payload) {
+                return new Promise((resolve, reject) => {
+                    this.queue.push({payload, resolve, reject});
+                    this._drain();
+                });
+            }
+
+            _drain() {
+                while (this.free.length > 0 &amp;&amp; this.queue.length > 0) {
+                    const w = this.free.pop();
+                    const job = this.queue.shift();
+                    this.busy.add(w);
+                    w.currentResolve = job.resolve;
+                    w.currentReject = job.reject;
+                    w.postMessage(job.payload);
+                }
+            }
+
+            _release(w) {
+                this.busy.delete(w);
+                this.free.push(w);
+                this._drain();
+            }
+
+            async destroy() {
+                const all = [...this.free, ...this.busy];
+                await Promise.all(all.map((w) => w.terminate()));
+                this.free = [];
+                this.busy.clear();
+            }
+        }
+
+        module.exports = {WorkerPool};</code-block>
+        <code-block lang="js">// worker.js
+        const {parentPort} = require("node:worker_threads");
+
+        parentPort.on("message", (task) => {
+            let result = null;
+            if (task.type === "mul") result = task.a * task.b;
+            if (task.type === "sleep") {
+                const end = Date.now() + task.ms;
+                while (Date.now() &lt; end) {
+                }
+                result = task.ms;
+            }
+            parentPort.postMessage({id: task.id, result});
+        });</code-block>
+        <code-block lang="js">// main.js
+        const {WorkerPool} = require("./pool");
+
+        (async () =&gt; {
+            const pool = new WorkerPool(4);
+            const jobs = [];
+            for (let i = 0; i &lt; 8; i++) jobs.push(pool.exec({type: "mul", a: i, b: i + 1, id: i}));
+            const res = await Promise.all(jobs);
+            console.log(res.length); // 8
+            await pool.destroy();
+        })();
+        </code-block>
+        <warning><p>«Залипание» в <code>while</code> выше — намеренная CPU-нагрузка. Никогда не делайте так в главном
+            потоке.</p></warning>
+    </chapter>
+
+    <chapter title="Передача данных: Structured Clone, Transferable, SharedArrayBuffer">
+        <chapter title="Копирование и передача владения">
+            <p>По умолчанию объекты копируются по
+                <tooltip term="Structured Clone">Structured Clone</tooltip>
+                . Для больших бинарных данных выгоднее передавать «владение»
+                <tooltip term="ArrayBuffer"><code>ArrayBuffer</code></tooltip>
+                через
+                <tooltip term="TransferList"><code>transferList</code></tooltip>
+                .
+            </p>
+            <code-block lang="js">
+            // transfer.js
+            const { Worker, isMainThread, parentPort } = require(&quot;node:worker_threads&quot;);
+
+            if (isMainThread) {
+                const worker = new Worker(__filename);
+                const buf = new ArrayBuffer(1024 * 1024);
+                const u8 = new Uint8Array(buf);
+                u8[0] = 7;
+                worker.postMessage({buf}, [buf]);
+                worker.once("message", (m) => console.log(m)); // { first: 7 }
+            } else {
+                parentPort.once("message", ({buf}) => {
+                    const view = new Uint8Array(buf);
+                    parentPort.postMessage({first: view[0]});
+                });
+            }</code-block>
+            <note>
+                <p>После передачи в
+                    <tooltip term="TransferList">transferList</tooltip>
+                    исходный буфер у отправителя становится «detached» (использование приводит к ошибкам).
+                </p>
+            </note>
+        </chapter>
+        <chapter title="Разделяемая память и Atomics">
+            <p>
+                <tooltip term="SharedArrayBuffer"><code>SharedArrayBuffer</code></tooltip>
+                позволяет разделять память между потоками, а
+                <tooltip term="Atomics"><code>Atomics</code></tooltip>
+                — синхронизировать доступ.
+            </p>
+            <code-block lang="js">// shared.js
+            const {Worker, isMainThread, parentPort, workerData} = require("node:worker_threads");
+
+            if (isMainThread) {
+                const sab = new SharedArrayBuffer(4);
+                const view = new Int32Array(sab);
+                const w = new Worker(__filename, {workerData: sab});
+                Atomics.store(view, 0, 0);
+                setTimeout(() => {
+                    Atomics.store(view, 0, 42);
+                    Atomics.notify(view, 0, 1);
+                }, 100);
+                w.once("message", (v) => console.log(v)); // 42
+            } else {
+                const view = new Int32Array(workerData);
+                Atomics.wait(view, 0, 0);
+                parentPort.postMessage(Atomics.load(view, 0));
+            }</code-block>
+            <warning>
+                <p>Злоупотребление
+                    <tooltip term="SharedArrayBuffer">SAB</tooltip>
+                    усложняет код и повышает риск гонок. Используйте только для действительно «горячих» путей.
+                </p>
+            </warning>
+        </chapter>
+    </chapter>
+
+    <chapter title="Двусторонние каналы: MessageChannel/MessagePort">
+        <p>
+            <tooltip term="MessageChannel"><code>MessageChannel</code></tooltip>
+            создаёт пару портов. Их можно передать воркеру и использовать как выделенную шину.
+        </p>
+        <code-block lang="js">
+        // channel.js
+        const { Worker, MessageChannel, isMainThread, parentPort } = require(&quot;node:worker_threads&quot;);
+
+        if (isMainThread) {
+            const worker = new Worker(__filename, {workerData: null});
+            const {port1, port2} = new MessageChannel();
+            worker.postMessage({port: port2}, [port2]);
+            port1.on("message", (m) => console.log("got:", m)); // got: pong
+            port1.postMessage("ping");
+        } else {
+            parentPort.once("message", ({port}) => {
+                port.on("message", (m) => port.postMessage(m === "ping" ? "pong" : m));
+            });
+        }</code-block>
+        <tip><p>Порты удобны для multiplexing и для передачи в «пул», когда воркер обслуживает несколько клиентов.</p>
+        </tip>
+    </chapter>
+
+    <chapter title="Отмена задач и таймауты"><p>Прямой «убийства» функции нет — есть <code>worker.terminate()</code>,
+        которое завершит поток целиком. Для &laquo;мягкой&raquo; отмены пошлите сигнал и регулярно проверяйте его в
+        воркере.</p>
+        <code-block lang="js">
+            // cancel.js
+            const {Worker, isMainThread, parentPort} = require(&quot;node:worker_threads&quot;);
+
+            if (isMainThread) {
+                const w = new Worker(__filename);
+                const timer = setTimeout(() => w.postMessage({type: "cancel"}), 50);
+                w.once("message", (m) => console.log(m)); // { status: "canceled" }
+                w.postMessage({type: "start"});
+            } else {
+                let canceled = false;
+                parentPort.on("message", (m) => {
+                    if (m.type === "cancel") canceled = true;
+                    if (m.type === "start") {
+                        let s = 0;
+                        for (let i = 0; i &lt; 1e9; i++) {
+                            s += i;
+                            if (canceled) break;
+                        }
+                        parentPort.postMessage({status: canceled ? "canceled" : "done"});
+                    }
+                });
+            }</code-block>
+        <note><p>Для унификации протокола используйте собственные коды сообщений: <code>{type:
+            "start"|"cancel"|"status"}</code>.</p></note>
+    </chapter>
+
+    <chapter title="ESM, TypeScript и бандлинг">
+        <list>
+            <li>
+                <format style="bold">ESM</format>
+                : <code>new Worker(new URL(&quot;worker.mjs&quot;, import.meta.url), { type: &quot;module&quot;
+                })</code>.
+            </li>
+            <li>
+                <format style="bold">Бандлеры</format>
+                : убедитесь, что воркер лежит как отдельный asset; относительные пути из <code>__filename</code>/<code>import.meta.url</code>
+                надёжнее «магических» строк.
+            </li>
+        </list>
+        <warning><p>Пути до воркера часто «ломаются» при упаковке. Всегда тестируйте финальный артефакт (Docker/CI) с
+            реальными путями.</p></warning>
+    </chapter>
+    <chapter title="Ошибки, выход, утечки">
+        <list>
+            <li><code>worker.on(&quot;error&quot;)</code> — перехватывайте исключения.</li>
+            <li><code>worker.on(&quot;exit&quot;)</code> — код выхода &ne; 0 =&mdash; аварийное завершение.</li>
+            <li><code>worker.terminate()</code> — «жёсткое» завершение (освободит ресурсы).</li>
+            <li><code>resourceLimits</code> — ограничение heap/stack при создании воркера.</li>
+        </list>
+        <warning><p>Не забывайте отписываться от событий и очищать очереди в пуле, иначе можно «нарастить» ссылки и
+            получить утечку памяти.</p></warning>
+    </chapter>
+    <chapter title="Производительность: измеряем и считаем"><p>Замеряйте «до/после» и учитывайте расходы на
+        сериализацию/копирование.</p>
+        <code-block lang="js">
+        // perf.js
+        const { Worker } = require(&quot;node:worker_threads&quot;);
+        const { performance } = require(&quot;node:perf_hooks&quot;);
+        const path = require(&quot;node:path&quot;);
+
+        (async () => {
+            const start = performance.now();
+            const w = new Worker(path.join(__dirname, "worker.js"), {workerData: {n: 45}});
+            const t = await new Promise((res, rej) => {
+                w.once("message", res);
+                w.once("error", rej);
+            });
+            const dt = performance.now() - start;
+            console.log(Math.round(dt)); // 1234
+        })();</code-block>
+        <note>
+            <p>Большие структуры лучше передавать как
+                <tooltip term="Transferable">переносимые</tooltip>
+                буферы; мелкие данные — как обычные сообщения.
+            </p>
+        </note>
+    </chapter>
+
+    <chapter title="Расширенный многофайловый пример: обработка изображений в пуле"><p>Схема: главный поток читает
+        список задач, пул раздаёт их воркерам, воркеры считают и возвращают результат. Здесь имитируем CPU-нагрузку.</p>
+        <code-block lang="js">
+        // pool.js
+        const { Worker } = require(&quot;node:worker_threads&quot;);
+        const path = require(&quot;node:path&quot;);
+        const os = require(&quot;node:os&quot;);
+
+        class Pool {
+            constructor(file, size = Math.max(1, os.cpus().length - 1)) {
+                this.file = file;
+                this.size = size;
+                this.queue = [];
+                this.id = 0;
+                this.workers = Array.from({length: size}, () => this._spawn());
+            }
+
+            _spawn() {
+                const w = new Worker(this.file);
+                w.idle = true;
+                w.on("message", (msg) => {
+                    w.current &amp;&amp; w.current.resolve(msg);
+                    w.current = null;
+                    w.idle = true;
+                    this._schedule();
+                });
+                w.on("error", (e) => {
+                    w.current &amp;&amp; w.current.reject(e);
+                    Object.assign(w, this._spawn()); // замена
+                });
+                return w;
+            }
+
+            exec(payload, transfer = []) {
+                return new Promise((resolve, reject) => {
+                    this.queue.push({payload, resolve, reject, transfer});
+                    this._schedule();
+                });
+            }
+
+            _schedule() {
+                const w = this.workers.find(x => x.idle);
+                if (!w) return;
+                const job = this.queue.shift();
+                if (!job) return;
+                w.idle = false;
+                w.current = job;
+                w.postMessage(job.payload, job.transfer);
+            }
+
+            async destroy() {
+                await Promise.all(this.workers.map((w) => w.terminate()));
+            }
+        }
+
+        module.exports = {Pool};
+        </code-block>
+        <code-block lang="js">
+        // img.worker.js
+        const {parentPort} = require("node:worker_threads");
+
+        parentPort.on("message", ({buf, factor}) =&gt; {
+            const view = new Uint8Array(buf);
+            let sum = 0;
+            for (let i = 0; i &lt; view.length; i++) sum += (view[i] * factor) | 0;
+            parentPort.postMessage({sum});
+        });
+        </code-block>
+        <code-block lang="js">
+        // main.js
+        const {Pool} = require("./pool");
+        const path = require("node:path");
+
+        (async () =&gt; {
+            const pool = new Pool(path.join(__dirname, "img.worker.js"), 4);
+            const buf = new ArrayBuffer(1024 * 1024);
+            const u8 = new Uint8Array(buf);
+            for (let i = 0; i &lt; u8.length; i++) u8[i] = i &amp; 255;
+            const res = await pool.exec({buf, factor: 3}, [buf]);
+            console.log(res.sum &gt; 0); // true
+            await pool.destroy();
+        })();</code-block>
+        <tip>
+            <p>Обратите внимание на
+                <tooltip term="TransferList">transferList</tooltip>
+                при вызове <code>pool.exec</code> — мы передаём большой буфер без копирования.
+            </p>
+        </tip>
+    </chapter>
+
+    <chapter title="Чеклист лучших практик">
+        <list>
+            <li>Оценивайте тип задачи:
+                <format style="bold">CPU-bound → воркеры</format>
+                ,
+                <format style="bold">I/O-bound → обычный асинхронный код</format>
+                .
+            </li>
+            <li>Используйте
+                <tooltip term="Пул потоков">пул</tooltip>
+                , а не бесконечное создание новых воркеров.
+            </li>
+            <li>Определите протокол сообщений (типы, версии, поля ошибок).</li>
+            <li>Минимизируйте копирование: передавайте буферы через
+                <tooltip term="TransferList">transferList</tooltip>
+                .
+            </li>
+            <li>Ограничивайте ресурсы <code>resourceLimits</code> для «жадных» задач.</li>
+            <li>Логируйте <code>error</code>, отслеживайте <code>exit</code>, пишите метрики времени и очередей.</li>
+            <li>Тестируйте пути к воркеру в собранном окружении (Docker/CI).</li>
+        </list>
+    </chapter>
+    <chapter title="Типичные ошибки и подводные камни">
+        <list>
+            <li>
+                <format style="bold">Блокировка Event Loop</format>
+                : запуск тяжёлого JS в главном потоке тормозит всё приложение.
+            </li>
+            <li>
+                <format style="bold">Чрезмерная сериализация</format>
+                : частые большие сообщения без
+                <tooltip term="Transferable">transfer</tooltip>
+                — потеря времени.
+            </li>
+            <li>
+                <format style="bold">Ломаются пути</format>
+                : относительные пути до воркера после бандлинга/обфускации.
+            </li>
+            <li>
+                <format style="bold">Отсутствие стратегии отмены</format>
+                : «вечные» воркеры без <code>terminate()</code> и протокола <code>cancel</code>.
+            </li>
+            <li>
+                <format style="bold">Утечки</format>
+                : забытые слушатели и ссылки в пуле.
+            </li>
+        </list>
+        <warning><p>Не запускайте недоверенный код в воркере «как есть»: поток разделяет права процесса. Для жёсткой
+            изоляции — отдельный процесс/контейнер.</p></warning>
+    </chapter>
+    <chapter title="Сравнение: worker_threads vs child_process vs cluster">
+        <list>
+            <li>
+                <tooltip term="worker_threads"><code>worker_threads</code></tooltip>
+                : общая память процесса, низкие накладные расходы, быстрые сообщения, слабая изоляция.
+            </li>
+            <li>
+                <tooltip term="child_process"><code>child_process</code></tooltip>
+                : сильная изоляция, IPC медленнее, больше памяти.
+            </li>
+            <li>
+                <tooltip term="cluster"><code>cluster</code></tooltip>
+                : масштабирование входящих соединений по ядрам, каждый «воркер» — это процесс.
+            </li>
+        </list>
+        <note>
+            <p>Если вам нужна и многопоточность, и масштабирование по ядрам — комбинируйте: несколько процессов, внутри
+                каждого — пул
+                <tooltip term="Worker">воркеров</tooltip>
+                .
+            </p>
+        </note>
+    </chapter>
+</topic>

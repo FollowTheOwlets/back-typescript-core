@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Асинхронность и неблокирующие вызовы. Промисы" id="Async">
+
+    <chapter title="Что такое асинхронность">
+        <p>
+            <tooltip term="Асинхронность">Асинхронность</tooltip> — это возможность выполнять
+            несколько операций параллельно, не блокируя основной поток выполнения программы.
+            В <tooltip term="JavaScript">JavaScript</tooltip> код исполняется в одном потоке,
+            поэтому без асинхронности любая длительная операция (например, запрос к серверу)
+            могла бы «заморозить» интерфейс до её завершения.
+        </p>
+        <p>
+            Чтобы этого избежать, используются <format style="bold">неблокирующие вызовы</format>,
+            которые позволяют запустить операцию в фоновом режиме и продолжить выполнение кода дальше.
+        </p>
+    </chapter>
+
+    <chapter title="Неблокирующие вызовы">
+        <p>
+            <tooltip term="Неблокирующий вызов">Неблокирующий вызов</tooltip> — это такой вызов функции,
+            который не останавливает выполнение программы, пока он выполняется.
+            Вместо этого программа регистрирует обработчик результата, который будет вызван позже.
+        </p>
+
+        <list>
+            <li><format style="bold">Пример:</format> запрос данных с сервера через <code>fetch</code>.</li>
+            <li><format style="bold">Результат:</format> пока сервер отвечает, скрипт продолжает выполнять другие действия.</li>
+        </list>
+
+        <warning>
+            Если не использовать неблокирующие вызовы, любое долгое действие будет «замораживать» интерфейс,
+            что приведёт к плохому пользовательскому опыту.
+        </warning>
+    </chapter>
+
+    <chapter title="Промисы">
+        <p>
+            <tooltip term="Промис">Промис</tooltip> — это специальный объект, который представляет
+            результат асинхронной операции. Он может находиться в одном из трёх состояний:
+        </p>
+
+        <list>
+            <li><format style="bold">pending</format> — ожидание (операция ещё выполняется);</li>
+            <li><format style="bold">fulfilled</format> — успешно завершено (результат получен);</li>
+            <li><format style="bold">rejected</format> — завершено с ошибкой.</li>
+        </list>
+
+        <code-block lang="javascript">
+      // Создание промиса
+      const promise = new Promise((resolve, reject) =&gt; {
+          const success = true;
+          if (success) {
+              resolve("Операция прошла успешно");
+          } else {
+              reject("Произошла ошибка");
+          }
+      });
+
+      // Использование промиса
+      promise
+              .then(result =&gt; {
+                  console.log(result); // "Операция прошла успешно"
+              })
+              .catch(error =&gt; {
+                  console.log(error); // "Произошла ошибка"
+              });
+    </code-block>
+
+        <note>
+            Промисы помогают структурировать асинхронный код и избегать
+            <tooltip term="Callback Hell">«ада коллбеков»</tooltip>,
+            где множество вложенных функций затрудняют понимание программы.
+        </note>
+    </chapter>
+
+    <chapter title="Цепочки промисов">
+        <p>
+            Одним из главных преимуществ промисов является возможность
+            выстраивать <format style="bold">цепочки</format> асинхронных вызовов.
+        </p>
+
+        <code-block lang="javascript">
+      fetch("https://api.example.com/data")
+              .then(response =&gt; response.json())
+              .then(data =&gt; {
+                  console.log("Полученные данные:", data);
+              })
+              .catch(error =&gt; {
+                  console.log("Ошибка запроса:", error);
+              });
+    </code-block>
+
+        <tip>
+            С помощью цепочек можно обрабатывать результат поэтапно,
+            что делает код более читаемым и модульным.
+        </tip>
+    </chapter>
+
+    <chapter title="Async/Await">
+        <p>
+            <tooltip term="async/await">Async/Await</tooltip> — это синтаксический сахар над промисами,
+            который позволяет писать асинхронный код так, будто он синхронный.
+            Ключевое слово <code>async</code> объявляет функцию асинхронной,
+            а оператор <code>await</code> приостанавливает её выполнение,
+            пока промис не завершится.
+        </p>
+
+        <code-block lang="javascript">
+      async function getData() {
+          try {
+              const response = await fetch("https://api.example.com/data");
+              const data = await response.json();
+              console.log("Полученные данные:", data);
+          } catch (error) {
+              console.log("Ошибка запроса:", error);
+          }
+      }
+
+      getData();
+    </code-block>
+
+        <note>
+            Подход <code>async/await</code> делает асинхронный код проще для чтения и понимания,
+            так как он визуально похож на последовательный.
+        </note>
+
+        <warning>
+            При использовании <code>await</code> нельзя забывать об обработке ошибок через
+            <code>try...catch</code>. Иначе приложение может завершиться с неожиданной ошибкой.
+        </warning>
+    </chapter>
+
+    <chapter title="Fetch API">
+        <p>
+            <tooltip term="Fetch API">Fetch API</tooltip> — это встроенный инструмент JavaScript
+            для выполнения HTTP-запросов (о них поговорим отдельно). Он возвращает промис, который разрешается объектом <code>Response</code>.
+        </p>
+
+        <code-block lang="javascript">
+      // Простой GET-запрос
+      fetch("https://petstore.swagger.io/v2/store/inventory")
+              .then(response =&gt; {
+                  if (!response.ok) {
+                      throw new Error("Ошибка сети: " + response.status);
+                  }
+                  return response.json();
+              })
+              .then(data =&gt; {
+                  console.log("Данные:", data);
+              })
+              .catch(error =&gt; {
+                  console.error("Произошла ошибка:", error);
+              });
+    </code-block>
+
+        <code-block lang="javascript">
+      // POST-запрос с телом
+      fetch("https://petstore.swagger.io/v2/store/inventory", {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json"
+          }
+      })
+              .then(response =&gt; response.json())
+              .then(result =&gt; {
+                  console.log("Сервер ответил:", result);
+              });
+    </code-block>
+        <note>
+            Запусти код из примера выше и посмотри что будет.
+            Это знаменитое бесплатное <a href="https://petstore.swagger.io/">API</a>
+        </note>
+        <note>
+            <code>fetch</code> по умолчанию не отклоняет промис при ошибке HTTP (например, 404 или 500).
+            Он считает запрос успешным, если сервер ответил. Поэтому важно вручную проверять <code>response.ok</code>.
+        </note>
+    </chapter>
+
+    <chapter title="Лучшие практики">
+        <list>
+            <li>Всегда добавляйте <code>.catch</code> или используйте <code>try...catch</code> с <code>async/await</code> для обработки ошибок.</li>
+            <li>Используйте <code>async/await</code> для более чистого и читаемого кода.</li>
+            <li>При работе с несколькими асинхронными задачами изучите <code>Promise.all</code> и <code>Promise.race</code>.</li>
+            <li>В запросах через <code>fetch</code> всегда проверяйте <code>response.ok</code> и обрабатывайте ошибки HTTP.</li>
+        </list>
+        <warning>
+            Если не обрабатывать ошибки промисов, программа может работать непредсказуемо,
+            а некоторые ошибки будут «теряться».
+        </warning>
+    </chapter>
+</topic>

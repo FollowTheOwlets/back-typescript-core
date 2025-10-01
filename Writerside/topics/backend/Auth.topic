@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Авторизация и Аутентификация" id="Auth">
+
+    <chapter title="Зачем это нужно">
+        <p>В любой информационной системе важно понимать,
+            <format style="bold">кто</format>
+            к ней обращается и
+            <format style="bold">что</format>
+            этому участнику позволено делать. Эти две задачи разделяются на процессы
+            <tooltip term="Аутентификация">аутентификации</tooltip>
+            (подтверждение личности) и
+            <tooltip term="Авторизация">авторизации</tooltip>
+            (проверка прав доступа). Разделение обязанностей снижает риски, упрощает поддержку и повышение уровня
+            безопасности.
+        </p>
+    </chapter>
+    <chapter title="Идентификация, аутентификация и авторизация — в чём различие">
+        <list>
+            <li>
+                <format style="bold">
+                    <tooltip term="Идентификация">Идентификация</tooltip>
+                </format>
+                — объявление своей личности: &laquo;Я — пользователь X&raquo;.
+            </li>
+            <li>
+                <format style="bold">
+                    <tooltip term="Аутентификация">Аутентификация</tooltip>
+                </format>
+                — доказательство, что вы и есть X (пароль, одноразовый код, ключ и т.п.).
+            </li>
+            <li>
+                <format style="bold">
+                    <tooltip term="Авторизация">Авторизация</tooltip>
+                </format>
+                — определение, какие действия вам разрешены (чтение, запись, администрирование и т.п.).
+            </li>
+        </list>
+        <note>Думайте об этом как о трёх шагах: назвать себя &rarr; доказать &rarr; получить разрешение.</note>
+    </chapter>
+    <chapter title="Факторы аутентификации"><p>Надёжность подтверждения личности повышается комбинацией разных
+        факторов:</p>
+        <list>
+            <li>
+                <format style="bold">Знание</format>
+                — то, что знает пользователь (пароль, PIN).
+            </li>
+            <li>
+                <format style="bold">Обладание</format>
+                — то, что у пользователя есть (телефон, аппаратный токен).
+            </li>
+            <li>
+                <format style="bold">Присущая характеристика</format>
+                — биометрия (отпечаток, лицо).
+            </li>
+            <li>
+                <format style="bold">Контекст</format>
+                — место, время, устройство, поведенческие признаки.
+            </li>
+        </list>
+        <tip>Комбинация факторов называется
+            <tooltip term="MFA">многофакторной аутентификацией</tooltip>
+            ; она существенно усложняет жизнь злоумышленнику.
+        </tip>
+    </chapter>
+    <chapter title="Сеансы и токены доступа">
+        <p>После успешной аутентификации система должна &laquo;помнить&raquo; пользователя. Для этого используют
+            <tooltip term="Сеанс">сеанс</tooltip>
+            (session) или
+            <tooltip term="Токен доступа">токен доступа</tooltip>
+            .
+        </p>
+        <list>
+            <li>
+                <format style="bold">Сеансы</format>
+                чаще всего поддерживаются куками и хранят состояние на стороне сервера.
+            </li>
+            <li>
+                <format style="bold">Токены</format>
+                обычно статeless: сервер проверяет их валидность без хранения состояния.
+            </li>
+        </list>
+        <note>Выбор зависит от архитектуры: монолитам часто удобны сеансы, распределённым системам — токены.</note>
+    </chapter>
+    <chapter title="OAuth2: делегирование доступа">
+        <p>
+            <tooltip term="OAuth2">OAuth2</tooltip>
+            решает задачу безопасного
+            <format style="bold">делегирования</format>
+            доступа к ресурсам. Пользователь (Владелец ресурса) разрешает Приложению-клиенту выполнять ограничённые
+            действия на Сервере ресурсов без передачи пароля. Разрешения выражаются через
+            <tooltip term="Scope">scopes</tooltip>
+            (области доступа).
+        </p>
+        <list>
+            <li>
+                <format style="bold">Авторизационный сервер</format>
+                выдаёт токены.
+            </li>
+            <li>
+                <format style="bold">Сервер ресурсов</format>
+                защищает данные и проверяет токены.
+            </li>
+            <li>
+                <format style="bold">Клиент</format>
+                запрашивает доступ к данным от имени пользователя.
+            </li>
+        </list>
+        <warning>OAuth2 сам по себе не определяет,
+            <format style="bold">кто</format>
+            пользователь — только выдаёт доступ по согласию. Для информации о личности обычно используют
+            <tooltip term="OpenID Connect">OpenID Connect</tooltip>
+            .
+        </warning>
+    </chapter>
+    <chapter title="OpenID Connect: слой идентичности поверх OAuth2">
+        <p>
+            <tooltip term="OpenID Connect">OIDC</tooltip>
+            добавляет к OAuth2
+            <format style="bold">идентификацию</format>
+            пользователя. Он вводит
+            <tooltip term="ID Token">ID Token</tooltip>
+            c набором
+            <tooltip term="Claim">claims</tooltip>
+            (утверждений о пользователе: идентификатор, email, время выпуска и т.п.). Благодаря этому клиент может
+            знать, кто вошёл, и привязать сеанс к конкретной личности.
+        </p>
+        <tip>OIDC стандартизует &laquo;user info endpoint&raquo;, форматы токенов и механизмы обнаружения конфигурации
+            провайдера, упрощая интеграции и SSO.
+        </tip>
+    </chapter>
+    <chapter title="JWT: формат компактных токенов">
+        <p>
+            <tooltip term="JWT">JSON Web Token</tooltip>
+            — это компактный, URL-безопасный формат для переноса утверждений. Он обычно состоит из
+            <format style="bold">заголовка</format>
+            ,
+            <format style="bold">полезной нагрузки</format>
+            (claims) и
+            <format style="bold">подписи</format>
+            или
+            <format style="bold">MAC</format>
+            . Проверив подпись и целостность, система принимает решение об авторизации.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Подпись</format>
+                : асимметричная (RS/EC) или симметричная (HMAC).
+            </li>
+            <li>
+                <format style="bold">Стандартные claims</format>
+                : <code>iss</code>, <code>sub</code>, <code>aud</code>, <code>exp</code>, <code>iat</code>,
+                <code>nbf</code>.
+            </li>
+            <li>
+                <format style="bold">Пользовательские claims</format>
+                : роли, разрешения, контекстные сведения.
+            </li>
+        </list>
+        <warning>JWT неизменяем, но
+            <format style="bold">не шифрован</format>
+            по умолчанию. Не кладите в него чувствительные данные. Для конфиденциальности применяют JWE (шифрование),
+            для целостности — JWS (подпись).
+        </warning>
+    </chapter>
+    <chapter title="Модели авторизации: роли, атрибуты, политики">
+        <list>
+            <li>
+                <format style="bold">
+                    <tooltip term="RBAC">RBAC</tooltip>
+                </format>
+                — доступ по ролям (роль агрегирует разрешения).
+            </li>
+            <li>
+                <format style="bold">
+                    <tooltip term="ABAC">ABAC</tooltip>
+                </format>
+                — доступ по атрибутам субъекта, объекта и контекста.
+            </li>
+            <li>
+                <format style="bold">
+                    <tooltip term="PBAC">PBAC/Policy-based</tooltip>
+                </format>
+                — доступ по политикам (правила, написанные на DSL/языке политик).
+            </li>
+        </list>
+        <note>Часто применяют гибрид: роли для грубого разграничения, атрибуты и политики — для точной настройки.</note>
+    </chapter>
+    <chapter title="Жизненный цикл токенов: срок, обновление, отзыв"><p>Безопасная работа с токенами требует управления
+        жизненным циклом:</p>
+        <list>
+            <li>
+                <format style="bold">
+                    <tooltip term="Время жизни токена">TTL</tooltip>
+                </format>
+                — короткие сроки уменьшают окно атаки.
+            </li>
+            <li>
+                <format style="bold">
+                    <tooltip term="Refresh Token">Refresh token</tooltip>
+                </format>
+                — отдельный долгоживущий токен для обновления доступа.
+            </li>
+            <li>
+                <format style="bold">Отзыв</format>
+                — механизмы немедленной блокировки (чёрные списки, ротация ключей, версии сессий).
+            </li>
+            <li>
+                <format style="bold">Ротация ключей</format>
+                — периодическая смена криптоключей и публикация их через
+                <tooltip term="JWKS">JWKS</tooltip>
+                .
+            </li>
+        </list>
+        <tip>Минимизируйте объём прав и срок действия каждого токена по принципу наименьших привилегий.</tip>
+    </chapter>
+    <chapter title="SSO и федерация">
+        <p>
+            Единый вход позволяет пользователю аутентифицироваться один раз и получать доступ к нескольким приложениям.
+            <tooltip term="Федерация идентичности">Федерация</tooltip>
+            связывает доверенные домены: один выступает как поставщик идентичности, другие — как потребители.
+        </p>
+        <note>SSO снижает количество паролей и улучшает UX, но повышает требования к защите центральной точки входа.
+        </note>
+    </chapter>
+    <chapter title="Хранение и защита секретов"><p>Если система управляет паролями или ключами, необходимо:</p>
+        <list>
+            <li>Хэшировать пароли адаптивными алгоритмами (
+                <tooltip term="Argon2">Argon2</tooltip>
+                ,
+                <tooltip term="PBKDF2">PBKDF2</tooltip>
+                ,
+                <tooltip term="bcrypt">bcrypt</tooltip>
+                ), использовать соль и перец (secret pepper).
+            </li>
+            <li>Изолировать секреты в защищённом хранилище (менеджер секретов, HSM).</li>
+            <li>Обновлять криптополитику при изменениях угроз и стандартов.</li>
+        </list>
+        <warning>Никогда не храните пароли в открытом виде и не передавайте их без
+            <tooltip term="TLS">TLS</tooltip>
+            .
+        </warning>
+    </chapter>
+    <chapter title="Типичные угрозы и защиты">
+        <list>
+            <li>
+                <format style="bold">
+                    <tooltip term="Фишинг">Фишинг</tooltip>
+                </format>
+                — защищайтесь MFA, проверкой доменов, обучением пользователей.
+            </li>
+            <li>
+                <format style="bold">Перехват токенов</format> — используйте HTTPS, ограничивайте время жизни, привязывайте к аудитории/устройству, применяйте
+                безопасные куки.
+            </li>
+            <li>
+                <format style="bold">Реплей-атаки</format> — nonce, одноразовые коды, короткий TTL.
+            </li>
+            <li>
+                <format style="bold">Подбор паролей</format> — замедляющие хэши, капчи, ограничение попыток, обнаружение аномалий.
+            </li>
+            <li>
+                <format style="bold">Утечка ключей</format> — ротация, сегрегация, мониторинг, отозвать токены, перевыпустить ключи.
+            </li>
+        </list>
+        <note>Логи аутентификации и авторизации должны быть централизованы, защищены и анализироваться для обнаружения
+            инцидентов.
+        </note>
+    </chapter>
+    <chapter title="Принципы проектирования политики доступа">
+        <list>
+            <li>
+                <format style="bold">Минимально необходимые привилегии</format>
+                — выдавайте только те права, что нужны для задачи.
+            </li>
+            <li>
+                <format style="bold">Подотчётность</format>
+                — каждое действие должно быть атрибутировано субъекту.
+            </li>
+            <li>
+                <format style="bold">Разделение обязанностей</format>
+                — критичные операции требуют участия нескольких ролей.
+            </li>
+            <li>
+                <format style="bold">Прозрачность</format>
+                — политики понятны и проверяемы.
+            </li>
+            <li>
+                <format style="bold">Адаптивность</format>
+                — учитывайте риск-контекст (время, гео, устройство).
+            </li>
+        </list>
+    </chapter>
+    <chapter title="Как соединяются понятия темы">
+        <p>На практике цепочка выглядит так: пользователь проходит
+            <tooltip term="Аутентификация">аутентификацию</tooltip>
+            у
+            <tooltip term="Поставщик идентичности">поставщика идентичности</tooltip>
+            (часто через OIDC), получает
+            <tooltip term="ID Token">ID Token</tooltip>
+            и
+            <tooltip term="Access Token">Access Token</tooltip>
+            . Клиент предъявляет
+            <tooltip term="Access Token">токен доступа</tooltip>
+            серверу ресурсов. Сервер проверяет подпись, срок действия и область (
+            <tooltip term="Scope">scope</tooltip>
+            ) и принимает решение об
+            <tooltip term="Авторизация">авторизации</tooltip>
+            согласно ролям, атрибутам и политикам.
+        </p>
+    </chapter>
+</topic>

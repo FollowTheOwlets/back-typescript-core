@@ -1,0 +1,187 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:34.9596415"><title>Основы JavaScript ES5 | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"-fglahw_2","level":0,"title":"1. Основной синтаксис","anchor":"#-fglahw_2"},{"id":"-fglahw_3","level":0,"title":"2. Типы данных","anchor":"#-fglahw_3"},{"id":"-fglahw_4","level":0,"title":"3. Примитивы","anchor":"#-fglahw_4"},{"id":"-fglahw_5","level":0,"title":"4. Объекты (ссылочные типы)","anchor":"#-fglahw_5"},{"id":"-fglahw_6","level":0,"title":"5. Подробнее о массивах","anchor":"#-fglahw_6"},{"id":"-fglahw_7","level":0,"title":"6. Типы преобразований","anchor":"#-fglahw_7"},{"id":"-fglahw_8","level":0,"title":"7. Явное и неявное преобразование типов","anchor":"#-fglahw_8"},{"id":"-fglahw_9","level":0,"title":"8. Область видимости и объявление","anchor":"#-fglahw_9"},{"id":"-fglahw_10","level":0,"title":"9. Подробнее об Object","anchor":"#-fglahw_10"},{"id":"-fglahw_11","level":0,"title":"10. Служебные методы и use strict","anchor":"#-fglahw_11"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Основы JavaScript ES5 | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/javascript-es5.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Основы JavaScript ES5 | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/javascript-es5.html#webpage",
+    "url": "writerside-documentation//1.0.0/javascript-es5.html",
+    "name": "Основы JavaScript ES5 | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="JavaScript-ES5" data-main-title="Основы JavaScript ES5" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs="_JavaScript.topic|JavaScript"><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="JavaScript-ES5" id="JavaScript-ES5.topic">Основы JavaScript ES5</h1><section class="chapter"><h2 id="-fglahw_2" data-toc="-fglahw_2">1. Основной синтаксис</h2><p id="-fglahw_12"><span id="-fglahw_20"><b>JavaScript</b></span> &mdash; динамически типизируемый язык с синтаксисом, похожим на C. Программы состоят из <span class="tooltip" id="-fglahw_21" title="Минимальные команды языка, выполняемые последовательно">инструкций</span>, разделяемых точкой с запятой. Пробелы и переносы строк обычно игнорируются синтаксисом, но повышают читаемость.</p><p id="-fglahw_13"><span id="-fglahw_22"><b>Переменные</b></span> объявляются через <code class="code" id="-fglahw_23">var</code> и видимы в пределах функции (функциональная область видимости). Присваивание выполняется оператором <code class="code" id="-fglahw_24">=</code>. Имена чувствительны к регистру.</p><div class="code-block" data-lang="javascript">
+// Объявление и присваивание
+var x = 6;
+var msg = &quot;Hello&quot;;
+
+// Выражение и оператор
+var sum = x + 4;       // 10
+console.log(sum);      // 10 </div><aside class="prompt" data-type="note" data-title="" id="-fglahw_15"><p id="-fglahw_25">Используйте понятные имена: <code class="code" id="-fglahw_26">totalPrice</code>, <code class="code" id="-fglahw_27">userName</code>. Короткие <code class="code" id="-fglahw_28">x</code>/<code class="code" id="-fglahw_29">y</code> уместны только в локальной математике.</p></aside><aside class="prompt" data-type="warning" data-title="" id="-fglahw_16"><p id="-fglahw_30">В ES5 нет блочной области видимости у <code class="code" id="-fglahw_31">var</code>. Переменная, объявленная в <code class="code" id="-fglahw_32">for</code> или <code class="code" id="-fglahw_33">if</code>, &laquo;протечёт&raquo; наружу в ту же функцию. Это частый источник ошибок.</p></aside><p id="-fglahw_17"><span id="-fglahw_34"><b>Операторы</b></span> &mdash; символы/слова, производящие значения: арифметические (<code class="code" id="-fglahw_35">+</code>, <code class="code" id="-fglahw_36">-</code>, <code class="code" id="-fglahw_37">\*</code>, <code class="code" id="-fglahw_38">/</code>, <code class="code" id="-fglahw_39">%</code>), сравнения (<code class="code" id="-fglahw_40">===</code>, <code class="code" id="-fglahw_41">!==</code>, <code class="code" id="-fglahw_42">&lt;</code>, <code class="code" id="-fglahw_43">&gt;</code>, <code class="code" id="-fglahw_44">&gt; =</code>, <code class="code" id="-fglahw_45">&gt;=</code>), логические (<code class="code" id="-fglahw_46">&amp;&amp;</code>, <code class="code" id="-fglahw_47">||</code>, <code class="code" id="-fglahw_48">!</code>), тернарный (<code class="code" id="-fglahw_49">?:</code>), присваивания (<code class="code" id="-fglahw_50">=</code>, <code class="code" id="-fglahw_51">+=</code>, &hellip;).</p><div class="code-block" data-lang="javascript">
+// Сравнение и логика
+var a = 3, b = &quot;3&quot;;
+console.log(a === b);      // false (строгое сравнение)
+console.log(a == b);       // true  (нестрогое сравнение: приводит типы)
+console.log(a &lt; 10 &amp;&amp; a &gt; 1); // true </div><aside class="prompt" data-type="tip" data-title="" id="-fglahw_19"><p id="-fglahw_52"><span id="-fglahw_53"><b>Правило</b></span>: предпочитайте <code class="code" id="-fglahw_54">===</code>/<code class="code" id="-fglahw_55">!==</code> вместо <code class="code" id="-fglahw_56">==</code>/<code class="code" id="-fglahw_57">!=</code>, чтобы избежать неявных преобразований.</p></aside></section><section class="chapter"><h2 id="-fglahw_3" data-toc="-fglahw_3">2. Типы данных</h2><p id="-fglahw_58">В ES5 есть 6 типов: пять <span class="tooltip" id="-fglahw_62" title="Значения, не являющиеся объектами и не имеющие методов">примитивов</span> и один ссылочный тип &mdash; <span id="-fglahw_63"><b>объект</b></span>.</p><ul class="list _bullet" id="-fglahw_59"><li class="list__item" id="-fglahw_64"><p><span id="-fglahw_66"><b>Примитивы</b></span>: <code class="code" id="-fglahw_67">undefined</code>, <code class="code" id="-fglahw_68">null</code>, <code class="code" id="-fglahw_69">boolean</code>, <code class="code" id="-fglahw_70">number</code>, <code class="code" id="-fglahw_71">string</code>.</p></li><li class="list__item" id="-fglahw_65"><p><span id="-fglahw_72"><b>Объекты</b></span>: коллекции свойств с возможностью иметь методы и прототип.</p></li></ul><div class="code-block" data-lang="javascript">
+// typeof — быстрый тест типа (с особенностями)
+console.log(typeof 42);            // &quot;number&quot;
+console.log(typeof &quot;hi&quot;);          // &quot;string&quot;
+console.log(typeof true);          // &quot;boolean&quot;
+console.log(typeof undefined);     // &quot;undefined&quot;
+console.log(typeof null);          // &quot;object&quot; (историческая особенность!)
+console.log(typeof {});            // &quot;object&quot;
+console.log(typeof function(){});  // &quot;function&quot; (частный случай объекта)
+    </div><aside class="prompt" data-type="warning" data-title="" id="-fglahw_61"><p id="-fglahw_73"><code class="code" id="-fglahw_74">typeof null</code> возвращает <code class="code" id="-fglahw_75">&quot;object&quot;</code> &mdash; это известная историческая особенность языка. Для проверки на <code class="code" id="-fglahw_76">null</code> используйте строгое сравнение: <code class="code" id="-fglahw_77">value === null</code>.</p></aside></section><section class="chapter"><h2 id="-fglahw_4" data-toc="-fglahw_4">3. Примитивы</h2><p id="-fglahw_78"><span id="-fglahw_85"><b>Number</b></span> в ES5 &mdash; это 64-битный формат IEEE-754. Существуют специальные значения: <code class="code" id="-fglahw_86">NaN</code>, <code class="code" id="-fglahw_87">Infinity</code>, <code class="code" id="-fglahw_88">-Infinity</code>.</p><div class="code-block" data-lang="javascript">
+// NaN &quot;липучий&quot;: любые операции с NaN дают NaN
+console.log(0 / 0);            // NaN
+console.log(NaN === NaN);      // false
+console.log(isNaN(&quot;foo&quot;));     // true (строка приводится к NaN)
+    </div><p id="-fglahw_80"><span id="-fglahw_89"><b>String</b></span> &mdash; неизменяемая последовательность UTF-16 кодовых единиц. Индексация доступна, но менять символы по индексу нельзя.</p><div class="code-block" data-lang="javascript">
+var s = &quot;Hello&quot;;
+console.log(s[1]);       // &quot;e&quot;
+s[1] = &quot;A&quot;;
+console.log(s);          // &quot;Hello&quot;
+    </div><p id="-fglahw_82"><span id="-fglahw_90"><b>Boolean</b></span> имеет значения <code class="code" id="-fglahw_91">true</code> и <code class="code" id="-fglahw_92">false</code>. В логическом контексте примитивы приводятся к булеву значению: &laquo;ложные&raquo; &mdash; <code class="code" id="-fglahw_93">0</code>, <code class="code" id="-fglahw_94">NaN</code>, <code class="code" id="-fglahw_95">&quot;&quot;</code>, <code class="code" id="-fglahw_96">null</code>, <code class="code" id="-fglahw_97">undefined</code>, <code class="code" id="-fglahw_98">false</code>. Остальное &mdash; &laquo;истинные&raquo;.</p><p id="-fglahw_83"><span id="-fglahw_99"><b>undefined</b></span> означает &laquo;значение не присвоено&raquo;. <span id="-fglahw_100"><b>null</b></span> &mdash; осознанное &laquo;пустое значение&raquo;.</p><aside class="prompt" data-type="tip" data-title="" id="-fglahw_84"><p id="-fglahw_101">Используйте <code class="code" id="-fglahw_102">null</code> для &laquo;нет данных&raquo;, а <code class="code" id="-fglahw_103">undefined</code> пусть сигнализирует &laquo;не инициализировано&raquo; &mdash; это упрощает договорённости в коде.</p></aside></section><section class="chapter"><h2 id="-fglahw_5" data-toc="-fglahw_5">4. Объекты (ссылочные типы)</h2><p id="-fglahw_104"><span id="-fglahw_109"><b>Объект</b></span> &mdash; это набор пар &laquo;ключ-значение&raquo;. Ключи &mdash; строки. Каждое свойство имеет атрибуты: <span class="tooltip" id="-fglahw_110" title="Можно ли изменять значение">writable</span>, <span class="tooltip" id="-fglahw_111" title="Участвует ли в перечислении">enumerable</span>, <span class="tooltip" id="-fglahw_112" title="Можно ли удалить/перенастроить">configurable</span>. Объекты связаны цепочкой <span class="tooltip" id="-fglahw_113" title="Объект-шаблон, от которого наследуются свойства">прототипов</span>.</p><div class="code-block" data-lang="javascript">
+var user = { name: &quot;Ann&quot;, age: 20 };
+console.log(user.name);     // &quot;Ann&quot;
+user.role = &quot;admin&quot;;
+console.log(&quot;role&quot; in user); // true
+    </div><aside class="prompt" data-type="warning" data-title="" id="-fglahw_106"><p id="-fglahw_114">Присваивание объекта переменной копирует <span id="-fglahw_115"><b>ссылку</b></span>, а не содержимое. Изменение через одну переменную видно через другую, указывающую на тот же объект.</p></aside><div class="code-block" data-lang="javascript">
+var a = { n: 1 };
+var b = a;
+b.n = 2;
+console.log(a.n); // 2
+    </div><aside class="prompt" data-type="note" data-title="" id="-fglahw_108"><p id="-fglahw_116">Для &laquo;копий&raquo; используйте явное клонирование (поверхностное): <code class="code" id="-fglahw_117">var copy = {}; for (var k in obj) if (obj.hasOwnProperty(k)) copy[k] = obj[k];</code>. Глубокое &mdash; вручную или специализированными утилитами.</p></aside></section><section class="chapter"><h2 id="-fglahw_6" data-toc="-fglahw_6">5. Подробнее о массивах</h2><p id="-fglahw_118"><span id="-fglahw_125"><b>Array</b></span> &mdash; это объект со специальным поведением: числовые индексы и свойство <code class="code" id="-fglahw_126">length</code>. Массивы могут быть &laquo;рваными&raquo; (с пропусками индексов).</p><div class="code-block" data-lang="javascript">
+var arr = [1, 2, 3];
+arr.push(4);            // [1,2,3,4]
+var x = arr.pop();      // x=4, [1,2,3]
+arr.unshift(0);         // [0,1,2,3]
+arr.shift();            // [1,2,3]
+console.log(arr.length);// 3
+    </div><p id="-fglahw_120">Методы обхода ES5: <code class="code" id="-fglahw_127">forEach</code>, <code class="code" id="-fglahw_128">map</code>, <code class="code" id="-fglahw_129">filter</code>, <code class="code" id="-fglahw_130">some</code>, <code class="code" id="-fglahw_131">every</code>, <code class="code" id="-fglahw_132">reduce</code>, <code class="code" id="-fglahw_133">reduceRight</code>, <code class="code" id="-fglahw_134">indexOf</code>, <code class="code" id="-fglahw_135">lastIndexOf</code>, <code class="code" id="-fglahw_136">isArray</code>.</p><div class="code-block" data-lang="javascript">
+// map/filter/reduce
+var nums = [1,2,3,4];
+var doubled = nums.map(function(n){ return n*2; }); // [2,4,6,8]
+var even = nums.filter(function(n){ return n % 2 === 0; }); // [2,4]
+var sum = nums.reduce(function(acc,n){ return acc + n; }, 0); // 10
+console.log(sum); // 10
+    </div><aside class="prompt" data-type="warning" data-title="" id="-fglahw_122"><p id="-fglahw_137">Не используйте <code class="code" id="-fglahw_138">for..in</code> для массивов: он перечисляет <span id="-fglahw_139"><b>все перечислимые свойства</b></span>, включая добавленные вручную, и порядок не гарантирован. Для индексов применяйте <code class="code" id="-fglahw_140">for</code> или методы итерации.</p></aside><aside class="prompt" data-type="note" data-title="" id="-fglahw_123"><p id="-fglahw_141"><code class="code" id="-fglahw_142">Array.isArray(value)</code> &mdash; надёжная проверка массива в ES5. Конструктор <code class="code" id="-fglahw_143">Array(len)</code> создаёт &laquo;пустые слоты&raquo;, которые не обходятся многими методами &mdash; предпочитайте литералы <code class="code" id="-fglahw_144">[]</code>.</p></aside><div class="code-block" data-lang="javascript">
+// slice/splice
+var a = [1,2,3,4,5];
+console.log(a.slice(1,4)); // [2,3,4]
+a.splice(2,1,&quot;X&quot;);         // a = [1,2,&quot;X&quot;,4,5]
+console.log(a);            // [1,2,&quot;X&quot;,4,5]
+    </div></section><section class="chapter"><h2 id="-fglahw_7" data-toc="-fglahw_7">6. Типы преобразований</h2><p id="-fglahw_145">JS неявно приводит типы согласно внутренним абстрактным операциям ES5:</p><ul class="list _bullet" id="-fglahw_146"><li class="list__item" id="-fglahw_149"><p><span id="-fglahw_152"><b>ToBoolean</b></span>: ложные &mdash; <code class="code" id="-fglahw_153">0</code>, <code class="code" id="-fglahw_154">NaN</code>, <code class="code" id="-fglahw_155">&quot;&quot;</code>, <code class="code" id="-fglahw_156">null</code>, <code class="code" id="-fglahw_157">undefined</code>, <code class="code" id="-fglahw_158">false</code>.</p></li><li class="list__item" id="-fglahw_150"><p><span id="-fglahw_159"><b>ToNumber</b></span>: <code class="code" id="-fglahw_160">&quot;42&quot;</code> &rarr; <code class="code" id="-fglahw_161">42</code>, <code class="code" id="-fglahw_162">&quot; &quot;</code> &rarr; <code class="code" id="-fglahw_163">0</code>, <code class="code" id="-fglahw_164">&quot;foo&quot;</code> &rarr; <code class="code" id="-fglahw_165">NaN</code>, <code class="code" id="-fglahw_166">true</code> &rarr; <code class="code" id="-fglahw_167">1</code>.</p></li><li class="list__item" id="-fglahw_151"><p><span id="-fglahw_168"><b>ToString</b></span>: <code class="code" id="-fglahw_169">42</code> &rarr; <code class="code" id="-fglahw_170">&quot;42&quot;</code>, <code class="code" id="-fglahw_171">null</code> &rarr; <code class="code" id="-fglahw_172">&quot;null&quot;</code>, объект &rarr; <code class="code" id="-fglahw_173">&quot;[object Object]&quot;</code> по умолчанию.</p></li></ul><div class="code-block" data-lang="javascript">
+// Смешение + : число и строка
+console.log(1 + &quot;2&quot;);       // &quot;12&quot; (конкатенация)
+console.log(1 + 2 + &quot;3&quot;);   // &quot;33&quot;
+console.log(&quot;1&quot; + 2 + 3);   // &quot;123&quot;
+    </div><aside class="prompt" data-type="warning" data-title="" id="-fglahw_148"><p id="-fglahw_174">Оператор <code class="code" id="-fglahw_175">+</code> сначала пробует конкатенацию строк, если хотя бы один операнд &mdash; строка (после ToPrimitive/ToString). Это частая причина неожиданных результатов.</p></aside></section><section class="chapter"><h2 id="-fglahw_8" data-toc="-fglahw_8">7. Явное и неявное преобразование типов</h2><p id="-fglahw_176"><span id="-fglahw_181"><b>Явное</b></span>: используйте конструкторы как функции (<code class="code" id="-fglahw_182">Number(x)</code>, <code class="code" id="-fglahw_183">String(x)</code>, <code class="code" id="-fglahw_184">Boolean(x)</code>), унарный <code class="code" id="-fglahw_185">+</code>, <code class="code" id="-fglahw_186">parseInt</code>/<code class="code" id="-fglahw_187">parseFloat</code>. <span id="-fglahw_188"><b>Неявное</b></span>: происходит при сравнении <code class="code" id="-fglahw_189">==</code>, в логических операторах, при конкатенации строк, математике и т.д.</p><div class="code-block" data-lang="javascript">
+// Явное
+console.log(Number(&quot;10&quot;));     // 10
+console.log(+ &quot;10&quot;);           // 10
+console.log(Boolean(&quot;&quot;));      // false
+console.log(String(42));       // &quot;42&quot;
+console.log(parseInt(&quot;0xF&quot;, 16)); // 15
+
+// Неявное
+console.log(&quot;5&quot; * 2);          // 10 (строка стала числом)
+console.log(&quot;5&quot; - 2);          // 3
+console.log(&quot;5&quot; + 2);          // &quot;52&quot; (строка победила)
+console.log(0 == false);       // true </div><aside class="prompt" data-type="note" data-title="" id="-fglahw_178"><p id="-fglahw_190">Для проверки &laquo;пустого&raquo;/&laquo;заданного&raquo; значения используйте логическое ИЛИ: <code class="code" id="-fglahw_191">var name = input || &quot;Guest&quot;;</code> Но помните: <code class="code" id="-fglahw_192">0</code>, <code class="code" id="-fglahw_193">&quot;&quot;</code>, <code class="code" id="-fglahw_194">false</code> тоже считаются &laquo;пустыми&raquo;.</p></aside><aside class="prompt" data-type="note" data-title="" id="-fglahw_179"><p id="-fglahw_195">При парсинге чисел из строк указывайте основание системы счисления: <code class="code" id="-fglahw_196">parseInt(&quot;08&quot;, 10)</code>. Иначе ведущий 0 может интерпретироваться как восьмеричный литерал в старых окружениях.</p></aside><aside class="prompt" data-type="warning" data-title="" id="-fglahw_180"><p id="-fglahw_197"><code class="code" id="-fglahw_198">??</code> (<span class="tooltip" id="-fglahw_199" title="Оператор объединения с null">nullish coalescing</span>) отсутствует в ES5. Если он встречается в коде, это уже не ES5 и потребуются транспиляция/полифилы. В ES5 аналог через явные проверки: <code class="code" id="-fglahw_200">value == null ? fallback : value</code>.</p></aside></section><section class="chapter"><h2 id="-fglahw_9" data-toc="-fglahw_9">8. Область видимости и объявление</h2><p id="-fglahw_201"><span id="-fglahw_209"><b>Функциональная область</b></span>: переменные <code class="code" id="-fglahw_210">var</code> видны во всей функции. <span id="-fglahw_211"><b>Поднятие</b></span> (<span class="tooltip" id="-fglahw_212" title="Логическое перемещение объявлений вверх области">hoisting</span>) означает, что объявления <code class="code" id="-fglahw_213">var</code> и <code class="code" id="-fglahw_214">function</code> обрабатываются до выполнения кода.</p><div class="code-block" data-lang="javascript">
+// Hoisting переменной
+console.log(a);  // undefined (объявление поднято, присваивание — нет)
+var a = 10;
+
+// Hoisting функции (declaration)
+foo();           // &quot;ok&quot;
+function foo(){ console.log(&quot;ok&quot;); }
+
+// Выражение функции не поднимает саму инициализацию
+bar();           // TypeError: bar is not a function
+var bar = function(){}; </div><p id="-fglahw_203"><span id="-fglahw_215"><b>Замыкание</b></span> &mdash; функция &laquo;запоминает&raquo; окружающие переменные на момент создания.</p><div class="code-block" data-lang="javascript">
+function counter(){
+var n = 0;
+return function(){
+n += 1;
+return n;
+};
+}
+var c = counter();
+console.log(c()); // 1
+console.log(c()); // 2 </div><aside class="prompt" data-type="warning" data-title="" id="-fglahw_205"><p id="-fglahw_216">Цикл с <code class="code" id="-fglahw_217">var</code> и замыканиями захватывает одну общую переменную. Для &laquo;фиксации&raquo; значения на итерации используйте немедленно вызываемое функциональное выражение (IIFE).</p></aside><div class="code-block" data-lang="javascript">
+// IIFE для «захвата» i
+var fns = [];
+for (var i = 0; i &lt; 3; i++) {
+    (function (j) {
+        fns.push(function () {
+            console.log(j);
+        }); // 0,1,2
+    })(i);
+}
+fns[0](); // 0
+fns[1](); // 1
+fns[2](); // 2 </div><aside class="prompt" data-type="note" data-title="" id="-fglahw_207"><p id="-fglahw_218"><code class="code" id="-fglahw_219">this</code> в ES5 зависит от способа вызова: простая функция &mdash; глобальный объект (или <code class="code" id="-fglahw_220">undefined</code> в строгом режиме), метод &mdash; объект слева от точки, конструктор с <code class="code" id="-fglahw_221">new</code> &mdash; новый объект. Зафиксировать контекст помогает <code class="code" id="-fglahw_222">Function.prototype.bind</code>.</p></aside><div class="code-block" data-lang="javascript">
+var obj = {
+x: 10,
+getX: function(){ return this.x; }
+};
+var unbound = obj.getX;
+console.log(unbound());          // undefined в strict, иначе число из глобального контекста
+var bound = unbound.bind(obj);
+console.log(bound());            // 10 </div></section><section class="chapter"><h2 id="-fglahw_10" data-toc="-fglahw_10">9. Подробнее об Object</h2><p id="-fglahw_223"><span id="-fglahw_233"><b>Создание</b></span>: литерал <code class="code" id="-fglahw_234">{}</code> или <code class="code" id="-fglahw_235">Object.create(proto)</code> для явного прототипа.</p><div class="code-block" data-lang="javascript">
+// Прототип от null
+var dict = Object.create(null);
+dict.key = &quot;value&quot;;
+console.log(&quot;toString&quot; in dict); // false
+    </div><p id="-fglahw_225"><span id="-fglahw_236"><b>Дескрипторы свойств</b></span>: <code class="code" id="-fglahw_237">Object.defineProperty</code>, <code class="code" id="-fglahw_238">Object.defineProperties</code>, <code class="code" id="-fglahw_239">Object.getOwnPropertyDescriptor</code>.</p><div class="code-block" data-lang="javascript">
+// Незаписываемое свойство
+var user = {};
+Object.defineProperty(user, &quot;id&quot;, {
+  value: 123,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+console.log(user.id); // 123
+user.id = 456;
+console.log(user.id); // 123
+    </div><p id="-fglahw_227"><span id="-fglahw_240"><b>Геттеры/сеттеры</b></span> позволяют вычислять значения при чтении/записи.</p><div class="code-block" data-lang="javascript">
+var point = {
+  _x: 0,
+  get x(){ return this._x; },
+  set x(v){ if (typeof v === &quot;number&quot;) this._x = v; }
+};
+point.x = 5;
+console.log(point.x); // 5
+    </div><p id="-fglahw_229"><span id="-fglahw_241"><b>Статусы расширяемости</b></span>: <code class="code" id="-fglahw_242">Object.preventExtensions</code>, <code class="code" id="-fglahw_243">Object.seal</code>, <code class="code" id="-fglahw_244">Object.freeze</code>, а также проверки <code class="code" id="-fglahw_245">Object.isExtensible</code>, <code class="code" id="-fglahw_246">Object.isSealed</code>, <code class="code" id="-fglahw_247">Object.isFrozen</code>.</p><div class="code-block" data-lang="javascript">
+var o = { a: 1 };
+Object.freeze(o);
+o.a = 2;
+console.log(o.a); // 1
+    </div><aside class="prompt" data-type="note" data-title="" id="-fglahw_231"><p id="-fglahw_248"><code class="code" id="-fglahw_249">Object.keys(obj)</code> &mdash; собственные перечислимые ключи; <code class="code" id="-fglahw_250">for..in</code> проходит по всей цепочке прототипов. Для фильтрации используйте <code class="code" id="-fglahw_251">hasOwnProperty</code>.</p></aside><div class="code-block" data-lang="javascript">
+for (var k in o) {
+  if (o.hasOwnProperty(k)) {
+    console.log(k);
+  }
+}
+    </div></section><section class="chapter"><h2 id="-fglahw_11" data-toc="-fglahw_11">10. Служебные методы и use strict</h2><p id="-fglahw_252"><span id="-fglahw_260"><b>Служебные методы</b></span> ядра ES5:</p><ul class="list _bullet" id="-fglahw_253"><li class="list__item" id="-fglahw_261"><p><code class="code" id="-fglahw_268">Object.getPrototypeOf(obj)</code> &mdash; получить прототип.</p></li><li class="list__item" id="-fglahw_262"><p><code class="code" id="-fglahw_269">Object.create(proto, descriptors)</code> &mdash; создать с прототипом/дескрипторами.</p></li><li class="list__item" id="-fglahw_263"><p><code class="code" id="-fglahw_270">Object.defineProperty/defineProperties</code> &mdash; управлять атрибутами.</p></li><li class="list__item" id="-fglahw_264"><p><code class="code" id="-fglahw_271">Object.keys(obj)</code>, <code class="code" id="-fglahw_272">Object.getOwnPropertyNames(obj)</code> &mdash; список ключей/всех имён.</p></li><li class="list__item" id="-fglahw_265"><p><code class="code" id="-fglahw_273">Array.isArray(value)</code> &mdash; проверка массива.</p></li><li class="list__item" id="-fglahw_266"><p><code class="code" id="-fglahw_274">Function.prototype.call/apply/bind</code> &mdash; явное управление <code class="code" id="-fglahw_275">this</code> и аргументами.</p></li><li class="list__item" id="-fglahw_267"><p><code class="code" id="-fglahw_276">JSON.parse</code>/<code class="code" id="-fglahw_277">JSON.stringify</code> &mdash; сериализация данных.</p></li></ul><div class="code-block" data-lang="javascript">
+// call/apply
+function sum(a,b){ return a + b; }
+console.log(sum.call(null, 2, 3));     // 5
+console.log(sum.apply(null, [2, 3]));  // 5
+
+// JSON
+var data = { ok: true, items: [1,2,3] };
+var s = JSON.stringify(data);
+console.log(s);                        // строка JSON
+console.log(JSON.parse(s).ok);         // true </div><p id="-fglahw_255"><span id="-fglahw_278"><b>Строгий режим</b></span> &mdash; директива <code class="code" id="-fglahw_279">&quot;use strict&quot;</code> включает более строгие правила интерпретации и раннее обнаружение ошибок.</p><div class="code-block" data-lang="javascript">
+&quot;use strict&quot;;
+function demo(){
+// Здесь строгий режим
+return this; // undefined (а не глобальный объект)
+}
+console.log(demo() === undefined); // true </div><ul class="list _bullet" id="-fglahw_257"><li class="list__item" id="-fglahw_280"><p>Запрещены неявные глобальные переменные (присваивание не объявленной переменной вызывает ошибку).</p></li><li class="list__item" id="-fglahw_281"><p>Удаление неконфигурируемых свойств &mdash; ошибка (<code class="code" id="-fglahw_285">delete Object.prototype</code>).</p></li><li class="list__item" id="-fglahw_282"><p>Запрещены дублирующиеся имена параметров.</p></li><li class="list__item" id="-fglahw_283"><p>Запрещён <code class="code" id="-fglahw_286">with</code>, изменение <code class="code" id="-fglahw_287">arguments.callee</code>/<code class="code" id="-fglahw_288">caller</code>.</p></li><li class="list__item" id="-fglahw_284"><p><code class="code" id="-fglahw_289">this</code> в обычной функции &mdash; <code class="code" id="-fglahw_290">undefined</code> (без <code class="code" id="-fglahw_291">new</code>/<code class="code" id="-fglahw_292">call</code>/<code class="code" id="-fglahw_293">apply</code>/<code class="code" id="-fglahw_294">bind</code>).</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="-fglahw_258"><p id="-fglahw_295">Включая строгий режим в модуле/файле, убедитесь, что сторонний код совместим: некоторые старые практики (например, неявные глобалы) начнут бросать ошибки.</p></aside><aside class="prompt" data-type="tip" data-title="" id="-fglahw_259"><p id="-fglahw_296">Рекомендуется начинать файл/самовызывающуюся функцию с <code class="code" id="-fglahw_297">&quot;use strict&quot;</code>: это локализует влияние и не ломает старые скрипты на странице.</p></aside></section><div class="last-modified">24 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="npmmanager.html" class="navigation-links__prev">NPM</a><a href="arraystringjs.html" class="navigation-links__next">Методы массивов и строк в JavaScript</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

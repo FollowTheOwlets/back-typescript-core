@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="back-typescript"
+                 name="Backend Typescript"
+                 start-page="Enter.md">
+
+    <toc-element topic="Enter.md"/>
+    <toc-element topic="_JavaScript.topic">
+        <toc-element topic="FirstProgram.topic"/>
+        <toc-element topic="NPMManager.topic"/>
+        <toc-element topic="JavaScript-ES5.topic"/>
+        <toc-element topic="ArrayStringJs.topic"/>
+        <toc-element topic="ES6.topic"/>
+        <toc-element topic="Classes.topic"/>
+        <toc-element topic="Async.topic"/>
+        <toc-element topic="Threads.topic"/>
+        <toc-element topic="TypeScript.topic"/>
+        <toc-element topic="NodeJS.topic">
+            <toc-element topic="npm.topic"/>
+            <toc-element topic="V8.topic"/>
+        </toc-element>
+    </toc-element>
+    <toc-element topic="_Theory.topic">
+        <toc-element topic="FuncProg.topic"/>
+        <toc-element topic="OOP.topic"/>
+        <toc-element topic="SOLID.topic"/>
+        <toc-element topic="AOP.topic"/>
+        <toc-element topic="COP.topic"/>
+        <toc-element topic="Design_Patterns.md"/>
+        <toc-element topic="_Arch.topic">
+            <toc-element topic="DomainModel.topic"/>
+            <toc-element topic="MonoArch.topic"/>
+            <toc-element topic="MicroArch.topic"/>
+            <toc-element topic="MicroPatterns.topic"/>
+        </toc-element>
+    </toc-element>
+    <toc-element topic="_Backend.topic">
+        <toc-element topic="HTTP.topic"/>
+        <toc-element topic="AltProtocols.topic"/>
+        <toc-element topic="Auth.topic"/>
+        <toc-element topic="API.topic"/>
+        <toc-element topic="OpenRelemetry.topic"/>
+    </toc-element>
+    <toc-element topic="Локальная-разработка-составных-сервисов.topic"/>
+    <toc-element topic="_Data.topic">
+        <toc-element topic="SUBD.md"/>
+        <toc-element topic="SQL.md">
+            <toc-element topic="DB_Theory.md"/>
+            <toc-element topic="RequestsDB.md"/>
+        </toc-element>
+        <toc-element topic="NoSQL.md">
+            <toc-element topic="Redis.topic"/>
+        </toc-element>
+        <toc-element topic="Indexes.topic"/>
+        <toc-element topic="S3.topic"/>
+    </toc-element>
+    <toc-element topic="_ExpressJS.topic">
+        <toc-element topic="CORS.topic"/>
+        <toc-element topic="MVC.topic"/>
+        <toc-element topic="ExpressExamples.md"/>
+    </toc-element>
+    <toc-element topic="_NestJS.topic">
+        <toc-element topic="NestJSLayers.md"/>
+        <toc-element topic="Работа-с-документацией.md"/>
+    </toc-element>
+    <toc-element topic="_Командная-разработка.topic">
+        <toc-element topic="AgileDates.topic"/>
+        <toc-element topic="CI-CD.topic"/>
+    </toc-element>
+</instance-profile>

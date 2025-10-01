@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rules SYSTEM "https://resources.jetbrains.com/writerside/1.0/redirection-rules.dtd">
+<rules>
+    <!-- format is as follows
+    <rule id="<unique id>">
+        <accepts>page.html</accepts>
+    </rule>
+    -->
+    <rule id="734f6ece">
+        <description>Created after removal of "Базы Данных" from Backend Typescript</description>
+        <accepts>_DB.html</accepts>
+    </rule>
+    <rule id="3d6b1db">
+        <description>Created after removal of "Валидация и Спецификация" from Backend Typescript</description>
+        <accepts>Валидация-и-Спецификация.html</accepts>
+    </rule>
+</rules>

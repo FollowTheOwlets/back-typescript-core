@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Функциональная парадигма" id="FuncProg">
+
+    <p>
+        <format style="bold">Функциональная парадигма</format>
+        — это стиль разработки, в котором программа строится из комбинации функций. Её опорные идеи:
+        <tooltip term="Чистая функция">чистые функции</tooltip>
+        ,
+        <tooltip term="Имутабельность">иммутабельные</tooltip>
+        данные,
+        <tooltip term="Функция высшего порядка">функции высшего порядка</tooltip>
+        ,
+        <tooltip term="Композиция функций">композиция</tooltip>
+        и декларативный подход: описываем «что нужно получить», а не «как и в каком порядке выполнять шаги».
+    </p>
+
+    <chapter title="Ключевые идеи и почему это работает">
+        <list>
+            <li>
+                <format style="bold">Чистые функции</format>
+                : одинаковые входы → всегда одинаковый результат; побочные эффекты отсутствуют.
+            </li>
+            <li>
+                <tooltip term="Имутабельность"><format style="bold">Имутабельность</format></tooltip>
+                : вместо изменения объекта создаётся новая версия. Это упрощает отладку и конкурентный доступ.
+            </li>
+            <li>
+                <format style="bold">Функции высшего порядка</format>
+                : принимают/возвращают функции (например, <code>map</code>, <code>filter</code>, <code>reduce</code>).
+            </li>
+            <li>
+                <format style="bold">Композиция</format>
+                : сборка сложного поведения из маленьких функций.
+            </li>
+            <li>
+                <format style="bold">Декларативность</format>
+                : меньше инструкций управления потоком, больше описания преобразований данных.
+            </li>
+        </list>
+        <note>В языках общего назначения (C++, Java, JavaScript/TypeScript, Go) можно эффективно применять
+            функциональный стиль точечно: для обработки коллекций, валидации данных, трансформаций, построения
+            конвейеров.
+        </note>
+        <warning>Переусердствовать легко: чрезмерное количество маленьких функций и слоёв абстракций может ухудшить
+            читабельность. Балансируйте между декларативностью и простотой.
+        </warning>
+    </chapter>
+
+    <chapter title="Чистые функции: определение и практика">
+        <p>
+            <format style="bold">Чистая функция</format>
+            (
+            <tooltip term="Референциальная прозрачность">референциально прозрачная</tooltip>
+            ) не зависит от внешнего изменяемого состояния и не производит побочных эффектов (I/O, логирование,
+            изменение глобальных переменных, использование случайности и текущего времени).
+        </p>
+        <tip>Чем больше логики вынесено в чистые функции, тем легче писать тесты (достаточно проверять
+            «вход→выход»).
+        </tip>
+        <chapter title="Пример: простая чистая функция сложения">
+            <tabs>
+                <tab title="C++">
+                <code-block lang="cpp">
+          
+                #include &lt;iostream&gt;
+                    
+                int add(int a, int b) { return a + b; }
+                    
+                int main() {
+                    std::cout &lt;&lt; add(2, 3) &lt;&lt; "\n"; // 5
+                } 
+                </code-block>
+                </tab>
+                <tab title="Java">
+                <code-block lang="java">
+                public class Main {
+                    static int add(int a, int b) { return a + b; }
+                    public static void main(String[] args) {
+                        System.out.println(add(2, 3)); // 5
+                    }
+                } 
+                </code-block>
+                </tab>
+                <tab title="JavaScript"> 
+                    <code-block lang="javascript">
+                    const add = (a, b) => a + b;
+                    console.log(add(2, 3)); // 5 </code-block>
+                </tab>
+                <tab title="TypeScript"> 
+                    <code-block lang="typescript">
+                        const add = (a: number, b: number): number => a + b;
+                        console.log(add(2, 3)); // 5 
+                    </code-block>
+                </tab>
+                <tab title="Go"> 
+                    <code-block lang="go">
+                        package main
+                        import "fmt"
+                        func add(a, b int) int { return a + b }
+                        func main() {
+                            fmt.Println(add(2, 3)) // 5
+                        } 
+                </code-block>
+                </tab>
+            </tabs>
+        </chapter>
+
+
+        <warning>Код, использующий <code>Date.now()</code>, <code>Math.random()</code>, чтение файла или БД внутри
+            функции, делает её нечистой. Держите эффекты на краях системы и передавайте данные в чистые функции
+            параметрами.
+        </warning>
+
+
+    </chapter>
+
+    <chapter title="Имутабельность: как обновлять без мутаций">
+        <p>
+        <tooltip term="Имутабельность"><format style="bold">Имутабельность</format></tooltip>
+            уменьшает количество скрытых связей. Вместо «изменить объект» мы создаём «новый объект на основе
+            старого».
+        </p>
+
+
+        <chapter title="Пример: обновление точки без мутаций">
+            <tabs>
+                <tab title="C++">
+                <code-block lang="cpp">
+
+                    #include &lt;iostream&gt;
+                    struct Point { int x; int y; };
+                              
+                    int main() {
+                        Point p1{1, 2};
+                        Point p2{3, p1.y}; // новая версия с изменённым x
+                        std::cout &lt;&lt; p1.x &lt;&lt; "," &lt;&lt; p1.y &lt;&lt; "\n"; // 1,2
+                        std::cout &lt;&lt; p2.x &lt;&lt; "," &lt;&lt; p2.y &lt;&lt; "\n"; // 3,2
+                    } 
+                </code-block>
+                </tab>
+                <tab title="Java"> 
+                    <code-block lang="java">
+                        // Java 16+: record даёт иммутабельную модель данных
+                        record Point(int x, int y) {}
+                        
+                        public class Main {
+                            public static void main(String[] args) {
+                                var p1 = new Point(1, 2);
+                                var p2 = new Point(3, p1.y());
+                                System.out.println(p1.x() + "," + p1.y()); // 1,2
+                                System.out.println(p2.x() + "," + p2.y()); // 3,2
+                            }
+                        } 
+                    </code-block>
+                </tab>
+                <tab title="JavaScript"> 
+                    <code-block lang="javascript">
+                        const p1 = {x: 1, y: 2};
+                        const p2 = {...p1, x: 3};
+                        console.log(p1.x + "," + p1.y); // 1,2
+                        console.log(p2.x + "," + p2.y); // 3,2
+                    </code-block>
+                </tab>
+                <tab title="TypeScript"> 
+                    <code-block lang="typescript">
+                        type Point = { x: number; y: number };
+                        const p1: Point = {x: 1, y: 2};
+                        const p2: Point = {...p1, x: 3};
+                        console.log(`${p1.x},${p1.y}`); // 1,2
+                        console.log(`${p2.x},${p2.y}`); // 3,2 
+                    </code-block>
+                </tab>
+                <tab title="Go"> 
+                    <code-block lang="go">
+                        package main
+                        import "fmt"
+                        type Point struct { X, Y int }
+                        
+                        func main() {
+                            p1 := Point{1, 2}
+                            p2 := Point{3, p1.Y} // копия со сменой X
+                            fmt.Println(p1.X, p1.Y) // 1 2
+                            fmt.Println(p2.X, p2.Y) // 3 2
+                        } 
+                </code-block>
+                </tab>
+            </tabs>
+        </chapter>
+
+
+        <warning>Осторожно с поверхностными копиями: для вложенных структур используйте глубокое копирование или
+            неизменяемые/persistent контейнеры, иначе внутренности всё ещё могут мутировать.
+        </warning>
+        <tip>В JavaScript/TypeScript старайтесь делать типы <code>readonly</code> и использовать
+            утилиты-«строители», возвращающие новые объекты.
+        </tip>
+
+
+    </chapter>
+
+    <chapter title="Функции высшего порядка и композиция">
+        <p>
+            <format style="bold">Функции высшего порядка</format>
+            принимают/возвращают другие функции. Это позволяет собирать
+            <tooltip term="Конвейер преобразований">конвейеры преобразований</tooltip>
+            : <code>map</code> → <code>filter</code> → <code>reduce</code>.
+            <format style="bold">Композиция</format>
+            — объединение простых функций в более сложную.
+        </p>
+        <note>Держите функции маленькими и одноцелевыми — композиция становится естественной.</note>
+        <warning>Не прячьте сложные эффекты внутри функций, используемых в композиции — это ломает предсказуемость и
+            тестируемость.
+        </warning>
+    </chapter>
+
+    <chapter title="Каррирование и частичное применение">
+        <p>
+            <format style="bold">Каррирование</format>
+            превращает функцию <code>f(a, b, c)</code> в вид <code>f(a)(b)(c)</code>.
+            <format style="bold">Частичное применение</format>
+            фиксирует некоторые аргументы и возвращает новую функцию. Это упрощает переиспользование и композицию.
+        </p>
+        <tip>Используйте частичное применение, чтобы подставить «политику» (настройки, сравнение, форматтер)
+            заранее, получив чистые функции конкретного назначения.
+        </tip>
+    </chapter>
+
+    <chapter title="Рекурсия: три обязательные части и практические аспекты">
+        <p>
+            <format style="bold">Рекурсия</format>
+            — функция вызывает сама себя для решения подзадачи меньшего размера. Любая корректная рекурсивная
+            функция состоит из
+            <format style="bold">трёх обязательных частей</format>
+            :
+        </p>
+        <list>
+            <li>
+                <format style="bold">Прерывание (база)</format>
+                : условие, при котором возвращаем результат без дальнейших вызовов.
+            </li>
+            <li>
+                <format style="bold">Логика шага</format>
+                : вычисления для текущего состояния (до/после рекурсивного вызова).
+            </li>
+            <li>
+                <format style="bold">Повторный вызов</format>
+                : вызов той же функции с уменьшенной задачей, приближающейся к базе.
+            </li>
+        </list>
+
+
+        <chapter title="Пример: факториал (база, шаг, рекурсивный вызов)">
+            <tabs>
+                <tab title="C++">
+                    <code-block lang="cpp">
+                        #include &lt;iostream&gt;
+
+                        long long fact(int n) {
+                            if (n &lt;= 1) return 1;           // база
+                            return n * fact(n - 1);         // логика * рекурсивный вызов
+                        }
+                        int main() {
+                            std::cout &lt;&lt; fact(5) &lt;&lt; "\n"; // 120
+                        }
+                    </code-block>
+                </tab>
+                <tab title="Java">
+                    <code-block lang="java">
+                        public class Main {
+                            static long fact(int n) {
+                                if (n &lt;= 1) return 1;        // база
+                                return n * fact(n - 1);      // логика * рекурсивный вызов
+                            }
+                            public static void main(String[] args) {
+                                System.out.println(fact(5)); // 120
+                            }
+                        }
+                    </code-block>
+                </tab>
+                <tab title="JavaScript">
+                    <code-block lang="javascript">
+                        function fact(n) {
+                            if (n &lt;= 1) return 1;          // база
+                            return n * fact(n - 1);        // логика * рекурсивный вызов
+                        }
+
+                        console.log(fact(5)); // 120
+                    </code-block>
+                </tab>
+                <tab title="TypeScript">
+                    <code-block lang="typescript">
+                        function fact(n: number): number {
+                            if (n &lt;= 1) return 1;          // база
+                            return n * fact(n - 1);        // логика * рекурсивный вызов
+                        }
+
+                        console.log(fact(5)); // 120
+                    </code-block>
+                </tab>
+                <tab title="Go"> 
+                    <code-block lang="go">
+                        package main
+                        import "fmt"
+                        func fact(n int) int {
+                            if n &lt;= 1 { return 1 }         // база
+                            return n * fact(n-1)           // логика * рекурсивный вызов
+                        }
+                        func main() {
+                            fmt.Println(fact(5)) // 120
+                        } 
+                </code-block>
+                </tab>
+            </tabs>
+        </chapter>
+
+
+        <warning>Глубокая рекурсия может привести к переполнению стека. В JavaScript/TypeScript оптимизация
+            хвостовых вызовов не гарантируется средой исполнения; в Java/Go — тоже. Для больших входов используйте
+            итеративный вариант или «аккумулятор + цикл».
+        </warning>
+
+        <chapter title="Хвостовая рекурсия и безопасная альтернатива">
+            <p>
+                <format style="bold">Хвостовая рекурсия</format>
+                — рекурсивный вызов является последним действием. Теоретически компилятор/рантайм может
+                оптимизировать её до цикла, но в перечисленных языках на это
+                <format style="bold">нельзя рассчитывать</format>
+                как на гарантированный механизм.
+            </p>
+            <tabs>
+                <tab title="JavaScript (итеративная альтернатива)">
+                    <code-block lang="javascript">
+
+
+                    function factIter(n) {
+                        let acc = 1;
+                        for (let i = 2; i &lt;= n; i++) acc *= i;
+                        return acc;
+                    }
+
+                    console.log(factIter(5)); // 120 
+                    </code-block>
+                </tab>
+                <tab title="TypeScript (итеративная альтернатива)">
+                    <code-block lang="typescript">
+                        function factIter(n: number): number {
+                            let acc = 1;
+                            for (let i = 2; i &lt;= n; i++) acc *= i;
+                            return acc;
+                        }
+
+                        console.log(factIter(5)); // 120
+                    </code-block>
+                </tab>
+                <tab title="Java (итеративная альтернатива)"> 
+                    <code-block lang="java">
+                        public class Main {
+                            static long factIter(int n) {
+                            long acc = 1;
+                            for (int i = 2; i &lt;= n; i++) acc *= i;
+                                return acc;
+                            }
+                            public static void main(String[] args) {
+                                System.out.println(factIter(5)); // 120
+                            }
+                        } 
+                    </code-block>
+                </tab>
+                <tab title="C++ (итеративная альтернатива)"> 
+                    <code-block lang="cpp">
+                        #include &lt;iostream&gt;
+                        long long factIter(int n) {
+                            long long acc = 1;
+                            for (int i = 2; i &lt;= n; ++i) acc *= i;
+                            return acc;
+                        }
+                        
+                        int main() {
+                            std::cout &lt;&lt; factIter(5) &lt;&lt; "\n"; // 120
+                        } 
+                </code-block>
+                </tab>
+                <tab title="Go (итеративная альтернатива)"> 
+                    <code-block lang="go">
+                    package main
+                    import "fmt"
+                        
+                    func factIter(n int) int {
+                        acc := 1
+                        for i := 2; i &lt;= n; i++ { acc *= i }
+                        return acc
+                    }
+                        
+                    func main() {
+                        fmt.Println(factIter(5)) // 120
+                    }
+                </code-block>
+                </tab>
+            </tabs>
+            <tip>Если рекурсия неизбежна (например, обход дерева), контролируйте глубину, используйте явный
+                стек/очередь и проверяйте базу на каждом шаге.
+            </tip>
+        </chapter>
+    </chapter>
+
+    <chapter title="Ленивые вычисления (lazy) и потоки данных">
+        <p>
+            <format style="bold">Ленивость</format>
+            откладывает вычисления до момента, когда результат действительно нужен. Это полезно для бесконечных
+            последовательностей или дорогих операций.
+        </p>
+        <note>В Java можно опираться на <code>Stream</code>, в JS — на генераторы <code>function*</code>, в Go — на
+            каналы + итераторы на стороне пользователя.
+        </note>
+    </chapter>
+
+    <chapter title="Побочные эффекты: как ими управлять">
+        <p>
+            <format style="bold">Побочные эффекты</format>
+            неизбежны (I/O, сеть, время). Принцип:
+            <format style="bold">изолируйте эффекты на границах</format>
+            , передавайте чистым функциям «голые» данные.
+        </p>
+        <list>
+            <li>Инъекция зависимостей: передавайте <code>now()</code>, <code>rng()</code>, клиенты БД параметрами.
+            </li>
+            <li>Явные типы результатов:
+                <tooltip term="Option/Maybe">Option/Maybe</tooltip>
+                ,
+                <tooltip term="Either/Result">Either/Result</tooltip>
+                , ошибки как значения (Go).
+            </li>
+            <li>Чёткие слои: «порт» (эффект) и «ядро» (чистая логика).</li>
+        </list>
+        <warning>Общий изменяемый стейт приводит к гонкам и «призракам» багов. Используйте иммутабельность и
+            передачу состояния явно.
+        </warning>
+    </chapter>
+
+    <chapter title="Когда функциональный стиль особенно уместен">
+        <list>
+            <li>Трансформации коллекций, агрегации, фильтрации.</li>
+            <li>Валидация и нормализация входных данных.</li>
+            <li>Построение конвейеров (ETL, обработка событий).</li>
+            <li>Чистые вычислительные ядра, которые легко тестировать.</li>
+        </list>
+        <warning>Там, где нужна тонкая ручная оптимизация циклов/памяти, функциональные абстракции иногда добавляют
+            накладные расходы. Измеряйте и выбирайте подход по метрикам.
+        </warning>
+    </chapter>
+
+    <chapter title="Практические советы">
+        <list>
+            <li>Стремитесь к
+                <format style="bold">референциальной прозрачности</format>
+                : одна и та же функция для одних и тех же аргументов возвращает один и тот же результат.
+            </li>
+            <li>Сначала пишите чистую логику, затем «оборачивайте» её эффектами.</li>
+            <li>Предпочитайте неизменяемые структуры и <code>readonly</code>-контракты.</li>
+            <li>Стройте конвейеры из <code>map</code>/<code>filter</code>/<code>reduce</code>; дробите шаги на
+                маленькие функции.
+            </li>
+            <li>Для рекурсии всегда проверяйте: есть ли база, уменьшается ли задача, не переполнится ли стек.</li>
+        </list>
+    </chapter>
+</topic>

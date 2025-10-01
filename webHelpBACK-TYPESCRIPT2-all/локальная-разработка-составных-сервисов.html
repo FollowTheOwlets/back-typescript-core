@@ -1,0 +1,311 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#C14424" data-link-color="#C14424"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2025-10-01T18:55:35.201283"><title>Локальная разработка составных сервисов | Backend Typescript</title><script type="application/json" id="virtual-toc-data">[{"id":"jhkhc4_2","level":0,"title":"Что такое Docker","anchor":"#jhkhc4_2"},{"id":"jhkhc4_3","level":0,"title":"Как установить","anchor":"#jhkhc4_3"},{"id":"jhkhc4_4","level":0,"title":"Как использовать","anchor":"#jhkhc4_4"},{"id":"jhkhc4_5","level":0,"title":"Docker Compose","anchor":"#jhkhc4_5"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.css" rel="stylesheet"><link rel="icon" type="image/png" sizes="16x16" href="images/logo.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Локальная разработка составных сервисов | Backend Typescript"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Backend Typescript Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation//1.0.0/локальная-разработка-составных-сервисов.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Локальная разработка составных сервисов | Backend Typescript"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation//1.0.0/локальная-разработка-составных-сервисов.html#webpage",
+    "url": "writerside-documentation//1.0.0/локальная-разработка-составных-сервисов.html",
+    "name": "Локальная разработка составных сервисов | Backend Typescript",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Backend Typescript Help"
+}</script><!-- End Schema.org --></head><body data-id="Локальная-разработка-составных-сервисов" data-main-title="Локальная разработка составных сервисов" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Backend Typescript 1.0.0 Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="Локальная-разработка-составных-сервисов" id="Локальная-разработка-составных-сервисов.topic">Локальная разработка составных сервисов</h1><section class="chapter"><h2 id="jhkhc4_2" data-toc="jhkhc4_2">Что такое Docker</h2><p id="jhkhc4_6">Docker &mdash; это платформа для упаковки, распределения и запуска приложений в изолированных средах, называемых <span class="tooltip" id="jhkhc4_10" title="Изолированная среда исполнения приложения, созданная из образа и использующая ядро хоста">контейнерами</span>. Контейнер содержит приложение и все его зависимости (библиотеки, системные утилиты, конфигурацию), что обеспечивает одинаковое поведение на любых машинах, где установлен Docker.</p><p id="jhkhc4_7">В отличие от виртуальных машин , контейнеры используют ядро хостовой операционной системы и запускаются значительно быстрее, занимают меньше ресурсов и легче масштабируются. Основные сущности Docker: <span id="jhkhc4_11"><b>образ</b></span> (шаблон файловой системы и метаданные), <span id="jhkhc4_12"><b>контейнер</b></span> (запущенный экземпляр образа), <span id="jhkhc4_13"><b>Dockerfile</b></span> (рецепт сборки образа), <span id="jhkhc4_14"><b>реестр</b></span> (хранилище образов, например Docker Hub), <span id="jhkhc4_15"><b>том</b></span> (персистентное хранилище данных) и <span id="jhkhc4_16"><b>сеть</b></span> (логическая связность контейнеров).</p><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_8"><p>Контейнеры идеальны для микросервисной архитектуры, т.к. каждую службу можно изолировать, версионировать и разворачивать независимо.</p></aside><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_9"><p>Не путайте контейнер с образом: образ &mdash; неизменяемый шаблон, контейнер &mdash; изменяемый процесс/экземпляр, созданный из образа.</p></aside></section><section class="chapter"><h2 id="jhkhc4_3" data-toc="jhkhc4_3">Как установить</h2><p id="jhkhc4_17">Установка Docker зависит от ОС. Ниже &mdash; основные шаги для популярных систем. Перед установкой убедитесь, что у вас есть права администратора.</p><section class="chapter"><h3 id="jhkhc4_18" data-toc="jhkhc4_18">Windows 10/11 (Docker Desktop)</h3><ul class="list _bullet" id="jhkhc4_21"><li class="list__item" id="jhkhc4_23"><p>Включите поддержку виртуализации в BIOS/UEFI и включите Hyper-V или WSL2 (рекомендуется WSL2).</p></li><li class="list__item" id="jhkhc4_24"><p>Скачайте Docker Desktop с официального сайта и установите, выбрав backend WSL2.</p></li><li class="list__item" id="jhkhc4_25"><p>После установки запустите Docker Desktop &mdash; значок кита должен показывать &laquo;Running&raquo;.</p></li></ul><aside class="prompt" data-type="note" data-title="" id="jhkhc4_22"><p>Для разработчиков на Windows оптимально настроить <span class="tooltip" id="jhkhc4_26" title="Подсистема Windows для Linux второго поколения, предоставляющая полноценное Linux-ядро">WSL2</span>, создать дистрибутив Ubuntu и хранить проектные файлы внутри файловой системы Linux для высокой производительности.</p></aside></section><section class="chapter"><h3 id="jhkhc4_19" data-toc="jhkhc4_19">macOS (Docker Desktop)</h3><ul class="list _bullet" id="jhkhc4_27"><li class="list__item" id="jhkhc4_29"><p>Скачайте Docker Desktop для macOS (Apple Silicon/Intel &mdash; соответствующий дистрибутив).</p></li><li class="list__item" id="jhkhc4_30"><p>Перетащите приложение в Applications, запустите и пройдите первичную настройку.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_28"><p>На Apple Silicon (M1/M2/M3) используйте образы для архитектуры arm64 или мультиархитектурные (manifest list). Это уменьшит проблемы совместимости и ускорит запуск.</p></aside></section><section class="chapter"><h3 id="jhkhc4_20" data-toc="jhkhc4_20">Linux (Engine + CLI)</h3><p id="jhkhc4_31">На Linux обычно устанавливают собственно Docker Engine и CLI.</p><p> <a href="https://timeweb.cloud/tutorials/docker/kak-ustanovit-docker-na-ubuntu-22-04" id="jhkhc4_32" data-external="true" rel="noopener noreferrer" target="_blank">Подробная инструкция</a></p><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_33"><p>Не запускайте Docker daemon с нестандартными флагами безопасности без понимания последствий. Использование группы docker даёт её членам права, сопоставимые с root, поэтому добавляйте в неё только доверенных пользователей.</p></aside></section></section><section class="chapter"><h2 id="jhkhc4_4" data-toc="jhkhc4_4">Как использовать</h2><p id="jhkhc4_34">Работа с Docker делится на несколько типичных задач: поиск и загрузка образов, запуск контейнеров, сборка собственных образов, управление томами и сетями, логирование и отладка.</p><section class="chapter"><h3 id="jhkhc4_35" data-toc="jhkhc4_35">Базовые команды</h3><p id="jhkhc4_41">Проверить версию</p><div class="code-block" data-lang="bash">
+              docker version
+            </div><p id="jhkhc4_43">Поиск образа в реестре</p><div class="code-block" data-lang="bash">
+              docker search nginx
+            </div><p id="jhkhc4_45">Загрузка образа</p><div class="code-block" data-lang="bash">
+              docker pull nginx:1.27
+            </div><p id="jhkhc4_47">Список образов и контейнеров</p><div class="code-block" data-lang="bash">
+              docker images
+              docker ps # только запущенные
+              docker ps -a # все (включая завершённые)
+            </div><p id="jhkhc4_49">Запуск контейнера (первый опыт)</p><div class="code-block" data-lang="bash">
+              docker run --name my-nginx -p 8080:80 -d nginx:1.27
+            </div><p id="jhkhc4_51">Просмотр логов и состояния</p><div class="code-block" data-lang="bash">
+              docker logs -f my-nginx
+              docker exec -it my-nginx sh
+            </div><p id="jhkhc4_53">Остановка и удаление</p><div class="code-block" data-lang="bash">
+              docker stop my-nginx
+              docker rm my-nginx
+            </div><p id="jhkhc4_55">Очистка &quot;мусора&quot;</p><div class="code-block" data-lang="bash">
+              docker system prune -f
+            </div><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_57"><p>Флаг -p 8080:80 пробрасывает порт 80 контейнера на 8080 хоста. После запуска откройте http://localhost:8080 .</p></aside><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_58"><p>Не используйте latest без необходимости: фиксируйте версию образа (например, nginx:1.27) для воспроизводимости.</p></aside></section><section class="chapter"><h3 id="jhkhc4_36" data-toc="jhkhc4_36">Сборка собственных образов (Dockerfile)</h3><p id="jhkhc4_59">Dockerfile описывает шаги сборки: базовый образ, копирование файлов, установка зависимостей, команда запуска. Каждый шаг кэшируется слоями, что ускоряет повторные сборки.</p><div class="code-block" data-lang="dockerfile">
+                # --- build stage ---
+                FROM node:20-slim AS builder
+                WORKDIR /app
+
+                # Установим все зависимости (включая dev) для сборки
+                COPY package*.json ./
+                RUN npm ci
+
+                # Скопируем конфиги и исходники
+                COPY tsconfig*.json ./
+                # Если есть nest-cli.json — тоже скопируйте:
+                # COPY nest-cli.json ./
+                COPY src ./src
+
+                # Сборка (не требует nest CLI, если скрипт ниже на tsc)
+                RUN npm run build
+
+                # --- runtime stage ---
+                FROM node:20-slim AS runner
+                WORKDIR /app
+
+                # Только прод-зависимости
+                COPY package*.json ./
+                RUN npm ci --omit=dev
+
+                # Готовые артефакты
+                COPY --from=builder /app/dist ./dist
+                COPY data_for_llm ./data_for_llm
+                COPY config ./config
+
+                ENV NODE_ENV=production
+                EXPOSE 3000
+                CMD [&quot;node&quot;, &quot;dist/main.js&quot;]
+
+            </div><div class="code-block" data-lang="bash">
+                #Сборка и запуск
+
+                docker build -t myapp:1.0.0 .
+                docker run --name myapp -p 3000:3000 -d myapp:1.0.0
+            </div><aside class="prompt" data-type="note" data-title="" id="jhkhc4_62"><p>Использование multi-stage сборки уменьшает финальный размер образа и исключает сборочные инструменты из итогового слоя.</p></aside><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_63"><p>Не копируйте секреты в образ (ключи, .env с чувствительными данными). Используйте переменные окружения, секреты оркестратора или временные монтирования.</p></aside></section><section class="chapter"><h3 id="jhkhc4_37" data-toc="jhkhc4_37">Работа с томами и монтированием</h3><p id="jhkhc4_64"><span id="jhkhc4_71"><b>Том</b></span> (volume) &mdash; это управляемое Docker персистентное хранилище. Оно удобно для баз данных и пользовательских данных, переживает пересоздание контейнера.</p><p id="jhkhc4_65">Создать и использовать том</p><div class="code-block" data-lang="bash">
+                docker volume create pgdata
+                docker run --name pg -e POSTGRES_PASSWORD=secret -v pgdata:/var/lib/postgresql/data -p 5432:5432 -d postgres:16
+            </div><p id="jhkhc4_67">Применить bind mount (локальная папка)</p><div class="code-block" data-lang="bash">
+                docker run --name web -v $(pwd)/public:/usr/share/nginx/html:ro -p 8080:80 -d nginx:1.27
+            </div><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_69"><p>Используйте :ro для read-only монтирования, когда запись не требуется &mdash; это повышает безопасность.</p></aside><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_70"><p>Bind mount зависит от структуры файлов на хосте и прав доступа. Для переносимости в CI/CD отдавайте предпочтение томам и копированию в образ.</p></aside></section><section class="chapter"><h3 id="jhkhc4_38" data-toc="jhkhc4_38">Сети и связь контейнеров</h3><p id="jhkhc4_72">По умолчанию контейнеры в одной пользовательской сети могут обращаться друг к другу по имени сервиса. Создание отдельной сети повышает изоляцию.</p><p id="jhkhc4_73">Создать сеть</p><div class="code-block" data-lang="bash">
+                docker network create app-net
+            </div><p id="jhkhc4_75">Запустить два контейнера в одной сети</p><div class="code-block" data-lang="bash">
+                docker run --name redis --network app-net -d redis:7
+                docker run --name api --network app-net -e REDIS_HOST=redis -p 3000:3000 -d myapp:1.0.0
+            </div><aside class="prompt" data-type="note" data-title="" id="jhkhc4_77"><p>Внутри сети адрес redis будет доступен по DNS-имени &quot;redis&quot; без указания IP.</p></aside></section><section class="chapter"><h3 id="jhkhc4_39" data-toc="jhkhc4_39">Логи, ресурсы и здоровье</h3><div class="code-block" data-lang="bash">
+
+                #Логи и статистика
+
+                docker logs -f api
+                docker stats
+
+                #Ограничения ресурсов
+
+                docker run --cpus=&quot;1.5&quot; --memory=&quot;512m&quot; -d myapp:1.0.0
+
+                #Проверка здоровья (healthcheck) через Dockerfile
+                #Пример (в Dockerfile):
+                HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localhost:3000/health
+                 || exit 1
+            </div><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_79"><p>Healthcheck полезен для оркестраторов и перезапуска контейнеров при деградации приложения.</p></aside><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_80"><p>Слишком агрессивные лимиты CPU/RAM могут привести к OOM kill и деградации производительности. Тестируйте ограничения в средах, близких к продакшену.</p></aside></section><section class="chapter"><h3 id="jhkhc4_40" data-toc="jhkhc4_40">Лучшие практики</h3><ul class="list _bullet" id="jhkhc4_81"><li class="list__item" id="jhkhc4_82"><p>Фиксируйте версии образов и базовых слоёв (например, node:20-alpine), чтобы сборки были детерминированы.</p></li><li class="list__item" id="jhkhc4_83"><p>Используйте .dockerignore для исключения лишних файлов (node_modules, .git, локальные артефакты) &mdash; это ускорит сборку и уменьшит контекст.</p></li><li class="list__item" id="jhkhc4_84"><p>Запускайте процессы от непривилегированного пользователя (USER), минимизируйте attack surface.</p></li><li class="list__item" id="jhkhc4_85"><p>Стройте образы как можно меньше (alpine, multi-stage), следите за регулярными обновлениями безопасности.</p></li><li class="list__item" id="jhkhc4_86"><p>Не храните секреты в образах. Применяйте переменные окружения, секреты CI/CD, внешние хранилища.</p></li></ul></section></section><section class="chapter"><h2 id="jhkhc4_5" data-toc="jhkhc4_5">Docker Compose</h2><p id="jhkhc4_87">Docker Compose &mdash; инструмент описания и запуска многоконтейнерных приложений с помощью файла декларативной конфигурации (обычно compose.yml или docker-compose.yml). Он позволяет определить сервисы, сети, тома и зависимости, а затем запускать всё одной командой.</p><section class="chapter"><h3 id="jhkhc4_88" data-toc="jhkhc4_88">Минимальный пример</h3><div class="code-block" data-lang="yaml">
+
+
+services:
+web:
+image: nginx:1.27
+ports:
+    - &quot;8080:80&quot;
+</div><div class="code-block" data-lang="bash">
+
+                #Запуск и остановка
+
+                docker compose up -d
+                docker compose ps
+                docker compose logs -f
+                docker compose down
+            </div><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_95"><p>Команда docker compose up -d запускает все определённые сервисы в фоне. Без -d &mdash; в foreground с выводом логов.</p></aside></section><section class="chapter"><h3 id="jhkhc4_89" data-toc="jhkhc4_89">API + БД (типовой стек)</h3><div class="code-block" data-lang="yaml">
+
+
+services:
+    db:
+        image: postgres:16
+        environment:
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: app
+            POSTGRES_USER: app
+        volumes:
+            - dbdata:/var/lib/postgresql/data
+        healthcheck:
+            test: [ &quot;CMD-SHELL&quot;, &quot;pg_isready -U app&quot; ]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+
+    api:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+        environment:
+            DATABASE_URL: postgres://app:secret@db:5432/app
+            NODE_ENV: production
+        depends_on:
+            db:
+                condition: service_healthy
+        ports:
+            - &quot;3000:3000&quot;
+        deploy:
+            resources:
+                limits:
+                    cpus: &quot;1.5&quot;
+                    memory: &quot;512M&quot;
+
+volumes:
+    dbdata:
+</div><aside class="prompt" data-type="note" data-title="" id="jhkhc4_97"><p>Секция depends_on с condition: service_healthy позволяет дождаться готовности БД согласно healthcheck перед запуском api.</p></aside></section><section class="chapter"><h3 id="jhkhc4_90" data-toc="jhkhc4_90">Сети, профили, override</h3><p id="jhkhc4_98">Compose автоматически создаёт сеть для проекта. Можно явно задавать несколько сетей и подключать сервисы выборочно. Профили (profiles) позволяют включать/выключать группы сервисов для разных сценариев (локальная разработка, CI, прод).</p><div class="code-block" data-lang="yaml">
+
+
+services:
+    cache:
+        image: redis:7
+        networks: [ backend ]
+
+    api:
+        build: ..
+        networks: [ backend ]
+        profiles: [ dev ]
+
+networks:
+    backend:
+</div><div class="code-block" data-lang="bash">
+
+#Включить профиль dev
+docker compose --profile dev up -d
+</div><aside class="prompt" data-type="tip" data-title="" id="jhkhc4_101"><p>Для разных окружений удобно хранить дополнительные файлы compose.override.yml, которые будут автоматически подхватываться и переопределять базовые значения.</p></aside></section><section class="chapter"><h3 id="jhkhc4_91" data-toc="jhkhc4_91">Распространённые приёмы и подводные камни</h3><ul class="list _bullet" id="jhkhc4_102"><li class="list__item" id="jhkhc4_104"><p>Храните переменные окружения в .env рядом с compose-файлом, но не кладите чувствительные секреты в git.</p></li><li class="list__item" id="jhkhc4_105"><p>Для hot-reload в разработке используйте bind mount исходников: - ./:/app, а в продакшене &mdash; только собранные артефакты внутри образа.</p></li><li class="list__item" id="jhkhc4_106"><p>Следите за несовместимостью архитектур (amd64 vs arm64). Используйте мультиарх образы или задайте --platform при сборке/запуске.</p></li><li class="list__item" id="jhkhc4_107"><p>Проверяйте healthchecks &mdash; без них depends_on не гарантирует готовность сервиса на уровне приложения.</p></li></ul><aside class="prompt" data-type="warning" data-title="" id="jhkhc4_103"><p>Не используйте :latest в продакшене и не давайте контейнерам избыточные привилегии &mdash; это риск безопасности. Также избегайте запуска от root, если это не требуется.</p></aside></section><section class="chapter"><h3 id="jhkhc4_92" data-toc="jhkhc4_92">Пара советов от автора</h3><aside class="prompt" data-type="note" data-title="" id="jhkhc4_108"><p>Чтобы не хламить свой нутбук или ПК разными базами, утилитами и не устанавливать все подряд, проще запустить это в докере.</p></aside><aside class="prompt" data-type="note" data-title="" id="jhkhc4_109"><p>Не стесняйтесь запускать через докер даже admin панели</p></aside><p id="jhkhc4_110">Вот пример, чтобы поиграть. Скопируйте его в любую папку в файл docker-compose.yaml</p><div class="code-block" data-lang="dockerfile">
+                version: '3.8'
+
+                services:
+                  minio:
+                    image: quay.io/minio/minio:latest
+                    ports:
+                      - &quot;9000:9000&quot;
+                      - &quot;9090:9090&quot;
+                    entrypoint: &gt;
+                      sh -c &quot;
+                        minio server /data --console-address ':9090' &amp;
+                        sleep 5 &amp;&amp;
+                        mc alias set local http://localhost:9000 minioadmin minioadmin &amp;&amp;
+                        mc mb --region=ru-central1 local/rolf-dev || true &amp;&amp;
+                        tail -f /dev/null
+                      &quot;
+                    environment:
+                      MINIO_ROOT_USER: minioadmin
+                      MINIO_ROOT_PASSWORD: minioadmin
+                    volumes:
+                      - ./data/minio_cache_1:/data1
+                      - ./data/minio_cache_2:/data2
+
+                  jaeger:
+                    image: jaegertracing/all-in-one:1.62.0
+                    environment:
+                      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+                      COLLECTOR_OTLP_ENABLED: 'true'
+                    ports:
+                      - '6831:6831/udp' # Thrift UDP (agent)
+                      - '6832:6832/udp' # Thrift UDP (agent)
+                      - '5778:5778' # Configuration (agent)
+                      - '16686:16686' # Jaeger UI
+                      - '4317:4317' # OTLP gRPC
+                      - '4318:4318' # OTLP HTTP
+                      - '14250:14250' # Collector gRPC
+                      - '14268:14268' # Collector HTTP
+                      - '14269:14269' # Collector Admin
+                      - '9411:9411' # Zipkin
+                    restart: unless-stopped
+                    volumes:
+                      - ./data/jaeger:/tmp
+
+                  redis:
+                    image: redis/redis-stack:latest
+                    volumes:
+                      - ./data/redis:/data
+                    environment:
+                      REDIS_ARGS: &quot;--requirepass redispass&quot;
+                    ports:
+                      - '6379:6379'
+
+                  kafka:
+                    image: apache/kafka:latest
+                    ports:
+                      - &quot;9092:9092&quot;
+                    expose:
+                      - &quot;29092&quot;
+                    environment:
+                      KAFKA_NODE_ID: 1
+                      KAFKA_PROCESS_ROLES: broker,controller
+                      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://localhost:9093
+                      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,INTERNAL://crm-host-kafka:29092
+                      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+                      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+                      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+                      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+                      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+                      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+                      KAFKA_NUM_PARTITIONS: 1
+                      KAFKA_CREATE_TOPICS: &quot;topic-test:1:1&quot;
+
+
+                  kafka-ui:
+                    image: provectuslabs/kafka-ui:latest
+                    ports:
+                      - &quot;8080:8080&quot;
+                    depends_on:
+                      - kafka
+                    environment:
+                      KAFKA_CLUSTERS_0_NAME: local-kafka
+                      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+
+                  postgres:
+                    image: postgres
+                    environment:
+                      - POSTGRES_PASSWORD=mypassword
+                      - POSTGRES_USER=myuser
+                      - POSTGRES_DB=default_nest_database
+                    ports:
+                      - '5433:5432'
+                    volumes:
+                      - ./data/postgres:/var/lib/postgresql/data
+
+                  pgadmin:
+                    image: dpage/pgadmin4:latest
+                    environment:
+                      PGADMIN_DEFAULT_EMAIL: admin@domain.com
+                      PGADMIN_DEFAULT_PASSWORD: adminpassword
+                    ports:
+                      - '8082:80'
+                    depends_on:
+                      - postgres
+                    restart: unless-stopped
+
+
+                  mongo:
+                    image: 'mongo:latest'
+                    ports:
+                      - '27017:27017'
+                    volumes:
+                      - ./data/mongo:/data/db
+                    environment:
+                      - MONGODB_DATABASE=db_billing_navigator
+                    restart: unless-stopped
+
+                  mongo-express:
+                    image: mongo-express:latest
+                    ports:
+                      - '8081:8081'
+                    environment:
+                      # подключаемся к сервису mongodb по его имени в сети
+                      ME_CONFIG_MONGODB_SERVER: mongo
+                      ME_CONFIG_MONGODB_PORT: 27017
+                      ME_CONFIG_BASICAUTH_USERNAME: admin
+                      ME_CONFIG_BASICAUTH_PASSWORD: secret
+                      ME_CONFIG_MONGODB_ADMINUSERNAME: ''      # если у вас нет аутентификации, оставьте пустым
+                      ME_CONFIG_MONGODB_ADMINPASSWORD: ''
+                      ME_CONFIG_MONGODB_AUTH_DATABASE: 'db_billing_navigator'
+                      ME_CONFIG_OPTIONS_EDITORTHEME: 'default'
+                    depends_on:
+                      - mongo
+                    restart: unless-stopped
+
+            </div></section></section><div class="last-modified">28 сентября 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="openrelemetry.html" class="navigation-links__prev">Трассировки и мониторинг. Траблшутинг</a><a href="data.html" class="navigation-links__next">Хранение данных</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.22.0-b776/app.js"></script></body></html>

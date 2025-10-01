@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Аспектно-ориентированное программирование" id="AOP">
+
+    <chapter title="О чем эта тема и зачем АОП">
+        <p>
+            <format style="bold">Аспектно-ориентированное программирование (АОП)</format>
+            — подход, который помогает изолировать
+            <tooltip term="Сквозная функциональность">сквозные функциональности</tooltip>
+            (логирование, метрики, безопасность, транзакции, кэширование) от бизнес-кода. Идея: вы описываете,
+            <format style="bold">где</format>
+            (в каких точках выполнения) и
+            <format style="bold">что</format>
+            делать дополнительно, а инфраструктура «вплетает» это поведение в ваш код автоматически.
+        </p>
+        <note>АОП не заменяет ООП и паттерны. Это дополняющий слой, позволяющий держать нефункциональные требования
+            отдельно от бизнес-логики.
+        </note>
+    </chapter>
+    <chapter title="Базовые понятия">
+        <p>
+            <format style="bold">Аспект</format>
+            — модуль, в котором описано дополнительное поведение (советы) и критерии применения (
+            <tooltip term="Срез (Pointcut)">срезы</tooltip>
+            ).
+        </p>
+        <p>
+            <format style="bold">Точка соединения (Join Point)</format>
+            — конкретное место в выполнении программы (вызов метода, обработка исключения, доступ к полю), где аспект
+            может быть применен.
+        </p>
+        <p>
+            <format style="bold">Срез (Pointcut)</format>
+            — выражение, отбирающее множество точек соединения (например, «все public-методы в пакете service..»).
+        </p>
+        <p>
+            <format style="bold">Совет (Advice)</format>
+            — код, исполняемый в выбранных точках:
+            <format style="bold">before</format>
+            ,
+            <format style="bold">after</format>
+            ,
+            <format style="bold">after returning</format>
+            ,
+            <format style="bold">after throwing</format>
+            ,
+            <format style="bold">around</format>
+            (обертка).
+        </p>
+        <p>
+            <format style="bold">Сплетение (Weaving)</format>
+            — процесс внедрения аспектов в приложение: на этапе компиляции, загрузки классов или во время выполнения
+            (через
+            <tooltip term="Прокси">прокси</tooltip>
+            или модификацию байткода).
+        </p>
+    </chapter>
+    <chapter title="Схема взаимодействия (модель исполнения)">
+        <list>
+            <li>Клиент вызывает целевой метод.</li>
+            <li>Вызов проходит через инфраструктуру (прокси/интерсепторы), формируется цепочка аспектов.</li>
+            <li>
+                <format style="bold">Around</format>
+                -совет получает контроль, может вызвать <code>proceed()</code> для продолжения или прервать выполнение.
+            </li>
+            <li>Внутри/после выполнения целевого метода срабатывают
+                <format style="bold">before/after/after returning/after throwing</format>
+                .
+            </li>
+            <li>Результат (или исключение) возвращается, возможно, уже модифицированный аспектом.</li>
+        </list>
+        <tip>Думайте об аспектах как о «слоях луковицы»: порядок подключения слоев определяет, что обернет что.</tip>
+    </chapter>
+    <chapter title="Типы советов (advices) и когда их применять">
+        <list>
+            <li>
+                <format style="bold">Before</format>
+                — валидация прав, привязка контекста трассировки, дешевые пред-проверки.
+            </li>
+            <li>
+                <format style="bold">After</format>
+                — очистка ресурсов, сброс контекста, публикация событий «всегда».
+            </li>
+            <li>
+                <format style="bold">After returning</format>
+                — пост-обработка успешного результата, метрики «успех».
+            </li>
+            <li>
+                <format style="bold">After throwing</format>
+                — унификация ошибок, метрики «ошибка», алерты.
+            </li>
+            <li>
+                <format style="bold">Around</format>
+                — измерение времени, ретраи, таймауты, кэширование, транзакции.
+            </li>
+        </list>
+        <note>
+            <format style="bold">Around</format>
+            — самый гибкий, но и самый опасный тип: он отвечает за вызов целевого метода через <code>proceed</code>.
+            Неверное использование — частый источник багов.
+        </note>
+    </chapter>
+    <chapter title="Способы сплетения (weaving)">
+        <list>
+            <li>Во время компиляции — модификация артефактов сборки. Плюсы: производительность. Минусы: сложность
+                сборки.
+            </li>
+            <li>При загрузке классов (LTW) — агенты/расширители загрузчика. Баланс гибкости и производительности.</li>
+            <li>Во время выполнения — динамические прокси/интерсепторы. Проще интегрировать, возможна цена в
+                производительности.
+            </li>
+        </list>
+    </chapter>
+    <chapter title="Где применять АОП на практике">
+        <list>
+            <li>Логирование и трассировка (корреляция запросов,
+                <tooltip term="Контекст трассировки">контекст трассировки</tooltip>
+                ).
+            </li>
+            <li>Метрики (latency, error rate, счетчики вызовов).</li>
+            <li>Безопасность (проверка ролей/прав).</li>
+            <li>Транзакции и единицы работы.</li>
+            <li>Кэширование, дедупликация,
+                <tooltip term="Идемпотентность">идемпотентность</tooltip>
+                .
+            </li>
+            <li>Валидация входных данных, idempotency-keys, rate-limit.</li>
+            <li>Аудит и соответствие требованиям.</li>
+        </list>
+    </chapter>
+    <chapter title="Минимальные примеры: один и тот же аспект логирования на пяти языках">
+        <tabs>
+            <tab title="Java (Spring AOP)">
+                <code-block lang="java">
+                import org.aspectj.lang.ProceedingJoinPoint;
+                import org.aspectj.lang.annotation.Around;
+                import org.aspectj.lang.annotation.Aspect;
+                import org.springframework.stereotype.Component;
+
+                @Aspect
+                @Component
+                public class LoggingAspect {
+                    @Around("execution(* com.example..service..*(..))")
+                    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+                        long t0 = System.nanoTime();
+                        try {
+                            Object rs = pjp.proceed();
+                            System.out.println("OK " + pjp.getSignature() + " took=" + (System.nanoTime()-t0)/1_000_000 + "ms"); // output: OK ...
+                            return rs;
+                        } catch (Throwable ex) {
+                            System.out.println("ERR " + pjp.getSignature() + " ex=" + ex.getClass().getSimpleName()); // output: ERR ...
+                            throw ex;
+                        }
+                    }
+                }
+                </code-block>
+            </tab>
+            <tab title="TypeScript (метод-декоратор)">
+<code-block lang="typescript">
+function Log(): MethodDecorator {
+    return (_t, _k, desc: PropertyDescriptor) => {
+        const orig = desc.value;
+        desc.value = async function (...args: any[]) {
+            const t0 = performance.now();
+            try {
+                const rs = await orig.apply(this, args);
+                console.log("OK", (performance.now() - t0).toFixed(2) + "ms"); // output: OK 3.12ms
+                return rs;
+            } catch (e) {
+                console.log("ERR", (performance.now() - t0).toFixed(2) + "ms"); // output: ERR 1.02ms
+                throw e;
+            }
+        };
+    };
+}
+
+class Service {
+    @Log()
+    async work() {
+        return 42;
+    }
+}
+</code-block>
+            </tab>
+            <tab title="JavaScript (Proxy)">
+<code-block lang="javascript">
+function logProxy(obj) {
+    return new Proxy(obj, {
+        get(t, k, r) {
+            const v = Reflect.get(t, k, r);
+            if (typeof v !== "function") return v;
+            return async function (...args) {
+                const t0 = performance.now();
+                try {
+                    const rs = await v.apply(this, args);
+                    console.log("OK", k, (performance.now() - t0).toFixed(2) + "ms"); // output: OK method 2.01ms
+                    return rs;
+                } catch (e) {
+                    console.log("ERR", k, (performance.now() - t0).toFixed(2) + "ms"); // output: ERR method 0.77ms
+                    throw e;
+                }
+            };
+        }
+    });
+}
+</code-block>
+            </tab>
+            <tab title="Go (HTTP middleware)">
+<code-block lang="go">
+package main
+
+import (
+"log"
+"net/http"
+"time"
+)
+
+func Log(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        t0 := time.Now()
+        next.ServeHTTP(w, r)
+        log.Println("OK", r.URL.Path, time.Since(t0)) // output: OK /api 12ms
+    })
+}
+
+func main() {
+    http.Handle("/api", Log(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("hi"))
+    })))
+    http.ListenAndServe(":8080", nil)
+}
+</code-block>
+            </tab>
+            <tab title="C++ (RAII scope-aspect)">
+<code-block lang="cpp">
+#include &lt;iostream&gt;
+#include &lt;chrono>
+#include &lt;string>
+
+struct ScopeAspect {
+    std::string name;
+    std::chrono::high_resolution_clock::time_point t0;
+    ScopeAspect(const std::string& n): name(n), t0(std::chrono::high_resolution_clock::now()) {}
+    ~ScopeAspect() {
+        auto dt = std::chrono::duration_cast&lt;std: :chrono: :milliseconds&gt;(
+        std::chrono::high_resolution_clock::now() - t0).count();
+        std::cout &lt;&lt; "OK " &lt;&lt; name &lt;&lt; " " &lt;&lt; dt &lt;&lt; "ms\n"; // output: OK work 1ms
+    }
+};
+
+int work() {
+    ScopeAspect _a("work");
+    return 42;
+}
+</code-block>
+            </tab>
+        </tabs>
+        <tip>Примеры выше представляют «runtime-weaving»: вызов проходит через обертку/прокси/миддлвар. В JVM возможен
+            LTW и компиляционное сплетение для ещё меньших накладных расходов.
+        </tip>
+    </chapter>
+
+    <chapter title="Правила написания срезов (pointcuts) безопасно">
+        <list>
+            <li>Отбирайте только нужные пакеты/классы/аннотации (минимальный охват).</li>
+            <li>Фильтруйте по сигнатурам: модификатор доступа, имя метода, количество/типы аргументов.</li>
+            <li>Используйте аннотации-маркеры для явного таргетинга.</li>
+        </list>
+        <warning>Слишком «широкий» срез приводит к неожиданным срабатываниям и деградации производительности.</warning>
+    </chapter>
+    <chapter title="Порядок и композиция аспектов">
+        <p>Когда аспектов несколько, важен
+            <tooltip term="Порядок аспектов">порядок</tooltip>
+            . Например:
+            <format style="bold">трассировка</format>
+            — внешняя оболочка, затем
+            <format style="bold">аутентификация</format>
+            , потом
+            <format style="bold">транзакция</format>
+            , затем
+            <format style="bold">кэш</format>
+            . Так вы получите корректные спаны, контролируемые транзакционные границы и метрики.
+        </p>
+        <note>Фиксируйте порядок централизованно (приоритеты/ордеры). Документируйте мотивировку.</note>
+    </chapter>
+    <chapter title="Асинхронность, потоки и контекст"><p>В асинхронном коде переносите контекст явно (TraceId, UserId),
+        не полагайтесь только на ThreadLocal. Для реактивных/корутинных сред используйте инструменты контекст-пропагации
+        фреймворка.</p>
+        <warning>Потеря контекста в асинхронных цепочках ломает корреляцию логов и трассировок.</warning>
+    </chapter>
+    <chapter title="Производительность">
+        <p>Накладные расходы приходятся на построение цепочки перехватчиков, извлечение метаданных и возможные
+            аллокации.
+            <format style="bold">Around</format>
+            может добавить 3–30% времени в горячих точках при большом числе аспектов. В критичных путях используйте
+            LTW/compile-time или локальные обертки без рефлексии.
+        </p>
+        <tip>Измеряйте P95/P99 до и после. Поддерживайте «ограниченный охват» и дешевые ветки для частых вызовов.</tip>
+    </chapter>
+    <chapter title="Тестирование и отладка аспектов">
+        <list>
+            <li>Юнит-тесты для советов (проверка побочных эффектов и порядка вызовов).</li>
+            <li>Интеграционные тесты со «включенным» фреймворком и срезами.</li>
+            <li>Визуализация цепочек (логирование порядка срабатывания аспектов).</li>
+        </list>
+        <note>Добавляйте «маркерные» логи начало/конец совета, чтобы видеть реальный порядок на проде.</note>
+    </chapter>
+    <chapter title="Когда нужен АОП?">
+        <list>
+            <li>
+                <format style="bold">Декоратор</format>
+                — хороший выбор для нескольких целевых методов.
+            </li>
+            <li>
+                <format style="bold">Middleware/пипелайн</format>
+                — оптимален для HTTP/сообщений.
+            </li>
+            <li>
+                <format style="bold">События/хуки</format>
+                — когда важна реактивность и слабая связность.
+            </li>
+        </list>
+        <warning>Если «сквозная» логика привязана к доменной модели и требует понимания бизнес-контекста — АОП может
+            скрыть важную зависимость. Лучше вынести в явный сервис/паттерн.
+        </warning>
+    </chapter>
+    <chapter title="Чеклист внедрения">
+        <list>
+            <li>Выделите сквозные требования и зафиксируйте цели.</li>
+            <li>Определите точки соединения и критерии (срезы).</li>
+            <li>Выберите технику сплетения (compile/LTW/runtime).</li>
+            <li>Опишите порядок аспектов.</li>
+            <li>Покройте тестами и метриками, замерьте регресс производительности.</li>
+            <li>Документируйте правила добавления новых аспектов.</li>
+        </list>
+    </chapter>
+</topic>

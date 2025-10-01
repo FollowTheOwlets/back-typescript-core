@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Трассировки и мониторинг. Траблшутинг" id="OpenRelemetry">
+
+    <p> В production-системах неизбежно возникают инциденты: ошибки, деградация производительности, нестабильность сетей
+        и внешних зависимостей. Чтобы быстро находить первопричину и подтверждать гипотезы данными, применяют стек
+        наблюдаемости:
+        <tooltip term="Трейс">трассировки</tooltip>
+        ,
+        <tooltip term="Метрики">метрики</tooltip>
+        ,
+        <tooltip term="Логи">логи</tooltip>
+        (часто дополняют
+        <tooltip term="Профилирование">профилированием</tooltip>
+        ). В этом топике мы последовательно разберём архитектуру наблюдаемости и роль
+        <tooltip term="OpenTelemetry">OpenTelemetry</tooltip>
+        ,
+        <tooltip term="Jaeger">Jaeger</tooltip>
+        ,
+        <tooltip term="Prometheus">Prometheus</tooltip>
+        и
+        <tooltip term="Grafana">Grafana</tooltip>
+        в траблшутинге.
+    </p>
+    <chapter title="Картина в целом: три столпа наблюдаемости и как их связать">
+        <p> Наблюдаемость состоит из трёх основных потоков данных:
+            <format style="bold">трассировки</format>
+            (кто, когда и что вызвал),
+            <format style="bold">метрики</format>
+            (числа и временные ряды для трендов и порогов),
+            <format style="bold">логи</format>
+            (подробные события и текст для контекста). Эффективный траблшутинг требует корреляции: из алерта по метрике
+            перейти к связанным трейсам и логам той же операции с тем же <code>trace_id</code>.
+        </p>
+        <list>
+            <li>
+                <format style="bold">SLO/SLI/SLA</format>
+                : определите целевые уровни качества (например, <tooltip term="Перцентиль 95 (P95)">P95</tooltip> latency ≤ 300&nbsp;мс, ошибки ≤ 1%).
+            </li>
+            <li>
+                <format style="bold">Golden signals</format>
+                : <tooltip term="Latency">latency</tooltip>, traffic, errors, <tooltip term="Saturation">saturation</tooltip> (перегрузка).
+            </li>
+            <li>
+                <format style="bold">Инструментирование</format>
+                : добавьте SDK/агенты, чтобы сервисы отдавали трейсинг и метрики.
+            </li>
+            <li>
+                <format style="bold">Хранилища</format>
+                : временные ряды (Prometheus), распределённые трейс-хранилища (Jaeger/Tempo и др.), системы логов.
+            </li>
+            <li>
+                <format style="bold">Дашборды и алерты</format>
+                : визуализация (Grafana), правила алертинга (Prometheus Alertmanager или Grafana Alerting).
+            </li>
+        </list>
+        <note>Корреляция достигается благодаря распространению контекста: передавайте <code>traceparent</code> (W3C
+            Trace Context) между сервисами и в логи.
+        </note>
+    </chapter>
+    <chapter title="OpenTelemetry: единый язык данных наблюдаемости">
+        <p>
+            <tooltip term="OpenTelemetry">OpenTelemetry (OTel)</tooltip>
+            — открытый стандарт и набор SDK/агентов для сбора
+            <format style="bold">трейсов</format>
+            ,
+            <format style="bold">метрик</format>
+            и
+            <format style="bold">логов</format>
+            с едиными
+            <tooltip term="Семантические соглашения">семантическими соглашениями</tooltip>
+            . OTel отделяет сбор (SDK, автоподключаемые инструменты,
+            <tooltip term="Collector">Collector</tooltip>
+            ) от доставки (экспортеры) и хранилищ (Jaeger/Tempo, Prometheus/OTLP-метрики, лог-системы).
+        </p>
+        <chapter title="Ключевые понятия OTel">
+            <list>
+                <li>
+                    <format style="bold">Span</format>
+                    : атомарная операция (RPC, запрос к БД, вызов очереди) со временем начала/окончания, атрибутами,
+                    статусом.
+                </li>
+                <li>
+                    <format style="bold">Trace</format>
+                    : дерево/граф <code>span</code>-ов, отражающее путь запроса через сервисы.
+                </li>
+                <li>
+                    <format style="bold">Context propagation</format>
+                    : перенос <code>trace_id/span_id</code> через заголовки (W3C <code>traceparent</code>,
+                    <code>baggage</code>).
+                </li>
+                <li>
+                    <format style="bold">Sampler</format>
+                    : политика отбора (always_on/off, parentbased, вероятностная, tail-based через Collector).
+                </li>
+                <li>
+                    <format style="bold">OTLP</format>
+                    : бинарный протокол/формат доставки (gRPC/HTTP) для трёх типов сигналов (traces/metrics/logs).
+                </li>
+            </list>
+            <tip>Начните с вероятностного семплинга 5–10% на высоконагруженных сервисах и включайте целевой семплинг для
+                ошибок.
+            </tip>
+            <warning>Не добавляйте PII/секреты в атрибуты спанов и логи. Настройте редактирование/маскирование на
+                стороне Collector.
+            </warning>
+        </chapter>
+
+        <chapter title="OpenTelemetry Collector: централизованный приём, обработка, экспорт">
+            <p>
+                Collector — отдельный сервис, принимающий данные по OTLP, делающий парсинг/фильтрацию/семплинг и
+                отправку в хранилища.
+                Его удобно деплоить как sidecar/agent на узел или как централизованный gateway.
+            </p>
+            <code-block lang="yaml">
+                receivers:
+                    otlp:
+                        protocols:
+                            grpc:
+                            http:
+
+                    processors:
+                        batch:
+                        attributes:
+                            actions:
+                                - key: http.request.header.authorization
+                                  action: delete
+
+                    exporters:
+                        otlphttp:
+                            endpoint: http://jaeger-collector:4318
+                        prometheus:
+                            endpoint: 0.0.0.0:9464
+
+                    service:
+                        pipelines:
+                            traces:
+                                receivers: [otlp]
+                                processors: [batch, attributes]
+                                exporters: [otlphttp]
+                            metrics:
+                                receivers: [otlp]
+                                processors: [batch]
+                                exporters: [prometheus]
+            </code-block>
+            <tip>Секция <code>attributes</code> позволяет маскировать чувствительные поля до сохранения в хранилище.
+            </tip>
+        </chapter>
+    </chapter>
+
+    <chapter title="Jaeger: просмотр и анализ распределённых трасс">
+        <p>
+            <tooltip term="Jaeger">Jaeger</tooltip>
+            — система хранения и визуализации трейсингов. Позволяет видеть путь запроса через микросервисы, длительность
+            каждого этапа, ошибки и узкие места. Компоненты: <code>agent</code> (приём), <code>collector</code>
+            (агрегация), <code>query</code> и <code>UI</code>. Хранение: Elasticsearch, Cassandra или встроенные
+            варианты для dev.
+        </p>
+        <list>
+            <li>
+                <format style="bold">Поиск</format>
+                по сервису, операции, тегам (атрибутам), временному окну.
+            </li>
+            <li>
+                <format style="bold">Service map</format>
+                и сравнение трейсов (baseline vs regression).
+            </li>
+            <li>
+                <format style="bold">Root cause</format>
+                : быстро выявляйте самый долгий/ошибочный span.
+            </li>
+        </list>
+        <warning>Высокая подробность + долгий ретеншн =&gt; рост стоимости хранения. Включайте семплинг и
+            ретеншн-политики.
+        </warning>
+        <tip>Передавайте <code>trace_id</code> в ответы API и логи — это ускоряет переход из пользовательской ошибки к
+            конкретному трейс-экземпляру.
+        </tip>
+    </chapter>
+    <chapter title="Prometheus: метрики и алертинг">
+        <p>
+            Prometheus
+            — TSDB и движок запросов
+            <tooltip term="PromQL">PromQL</tooltip>
+            c pull-моделью (он опрашивает /metrics у таргетов). Поддерживает
+            <format style="bold">Counter</format>
+            ,
+            <format style="bold">Gauge</format>
+            ,
+            <format style="bold">Histogram</format>
+            ,
+            <format style="bold">Summary</format>
+            . Для кастомных сервисов используйте клиентские библиотеки; для системных метрик — экспортеры (например,
+            <code>node_exporter</code>).
+        </p>
+        <chapter title="Мини-конфиг Prometheus (scrape targets)"> 
+            <code-block lang="yaml">
+                global:
+                scrape_interval: 15s
+
+                scrape_configs:
+                    - job_name: "app"
+                      static_configs:
+                          - targets: ["app:9100"]
+
+                    - job_name: "otel-collector"
+                      static_configs:
+                          - targets: ["otel-collector:9464"]
+            </code-block>
+
+            <note>Экспонируйте бизнес-метрики (например, <code>orders_created_total</code>) и используйте гистограммы
+                для латентности с разумными бакетами.
+            </note>
+        </chapter>
+        <chapter title="Примеры PromQL для траблшутинга">
+            <p>Ошибки RPS по статусам</p>
+            <code-block lang="promql">sum by (status_code) (rate(http_requests_total[5m]))</code-block>
+            <p>P95 латентность (Histogram)</p>
+            <code-block lang="promql">histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))</code-block>
+            <p>Доля ошибок 5xx</p>
+            <code-block lang="promql">sum(rate(http_requests_total{status_code="5xx"}[5m])) / sum(rate(http_requests_total[5m]))</code-block>
+            <p>Насыщение CPU</p>
+            <code-block lang="promql">avg by (instance) (rate(process_cpu_seconds_total[5m]))</code-block>
+            <warning>Высокая
+                <format style="bold">кардинальность</format>
+                (много уникальных комбинаций лейблов) резко увеличивает нагрузку и стоимость. Не помещайте в лейблы
+                значения с высокой изменчивостью (например, <code>user_id</code>).
+            </warning>
+        </chapter>
+        <chapter title="Alerting (Alertmanager) — пример">
+<code-block lang="yaml">
+groups:
+    name: errors
+rules:
+    alert: HighErrorRate
+    expr: sum(rate(http_requests_total{status_code="5xx"}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+    for: 10m
+    labels:
+        severity: critical
+    annotations:
+        summary: "Ошибка > 5% в течение 10m"
+        description: "Проверьте последние развёртывания и внешние зависимости."
+
+</code-block>
+
+            <tip>Алерты должны ссылаться на дашборды с готовыми панелями для диагностики (латентность, нагрузка, ошибки,
+                saturation).
+            </tip>
+        </chapter>
+
+    </chapter>
+    <chapter title="Grafana: дашборды, корреляция и алерты">
+        <p>
+            <tooltip term="Grafana">Grafana</tooltip>
+            — платформа визуализации и оповещений. Поддерживает источники данных Prometheus, Loki (логи), Tempo/Jaeger
+            (трейсы) и др. Хорошая практика — строить &quot;runbook-дашборды&quot;: от верхнего уровня SLI к деталям
+            (узкие места CPU/IO, внешние API, БД).
+        </p>
+        <list>
+            <li>
+                <format style="bold">Вариабельность</format>
+                : переменные (service, instance, namespace) для быстрой фильтрации.
+            </li>
+            <li>
+                <format style="bold">Аннотации</format>
+                : помечайте релизы и инциденты — коррелируйте скачки метрик с событиями.
+            </li>
+            <li>
+                <format style="bold">Exemplars</format>
+                : показывайте ссылки на конкретные трейсы в точках графика гистограммы.
+            </li>
+            <li>
+                <format style="bold">Unified Alerting</format>
+                : централизуйте правила и маршрутизацию уведомлений.
+            </li>
+        </list>
+        <tip>Добавляйте панель с последними ошибками из логов и ссылками на трейс по <code>trace_id</code> — это
+            ускоряет переход от симптома к причине.
+        </tip>
+    </chapter>
+    <chapter title="Корреляция логов, метрик и трейсов на практике">
+        <list>
+            <li>Логи выводите в структурированном виде (JSON) и добавляйте поля <code>trace_id</code> и
+                <code>span_id</code>.
+            </li>
+            <li>Передавайте заголовки <code>traceparent</code> во все исходящие HTTP/RPC вызовы и в ответы клиентам.
+            </li>
+            <li>Используйте
+                <tooltip term="Exemplar">exemplar</tooltip>
+                -ы в гистограммах, чтобы из точки латентности перейти к трейсу.
+            </li>
+        </list>
+        <code-block lang="json">
+            {
+            "level": "error",
+            "msg": "Payment declined",
+            "trace_id": "2f9c8e4b8a3c4d1e",
+            "span_id": "7b1e",
+            "order_id": "123e4567-e89b-12d3-a456-426614174000"
+        }
+        </code-block>
+        <note>Структурные логи упрощают парсинг и индексирование, а также снижают риск утечки через свободный текст.
+        </note>
+    </chapter>
+    <chapter title="Методики траблшутинга: RED, USE, чек-листы">
+        <list>
+            <li>
+                <format style="bold">RED</format>
+                (Rate, Errors, Duration) — для пользовательских сервисов: следите за RPS, ошибками и длительностью.
+            </li>
+            <li>
+                <format style="bold">USE</format>
+                (Utilization, Saturation, Errors) — для ресурсов: CPU, память, диск, сеть.
+            </li>
+            <li>
+                <format style="bold">Чек-лист инцидента</format>
+                : верифицируйте алерт, оцените blast radius, зафиксируйте таймлайн, включите фича-флаги/откаты, соберите
+                трейсы/метрики/логи, оформите postmortem с действиями.
+            </li>
+        </list>
+        <warning>Без фиксированных SLO расследование превращается в &quot;ощущения&quot;. Формализуйте целевые
+            показатели заранее.
+        </warning>
+    </chapter>
+    <chapter title="Производительность и стоимость: семплинг, бакеты, ретеншн">
+        <list>
+            <li>
+                <format style="bold">Семплинг трейсов</format>
+                : снижает объём, оставляет репрезентативную картину. Tail-based в Collector выбирает интересные трейсы
+                (ошибки, высокую латентность).
+            </li>
+            <li>
+                <format style="bold">Гистограммы</format>
+                : заранее продумайте бакеты (например, 10, 25, 50, 100, 250, 500, 1000&nbsp;мс). Слишком мелкие бакеты =&gt;
+                рост кардинальности.
+            </li>
+            <li>
+                <format style="bold">Ретеншн</format>
+                : разные сроки хранения для &quot;сырых&quot; и агрегированных данных. Используйте recording rules.
+            </li>
+        </list>
+        <tip>Включайте
+            <format style="bold">релабелинг</format>
+            и
+            <format style="bold">дропаут</format>
+            метрик в Prometheus для шумных меток.
+        </tip>
+    </chapter>
+    <chapter title="Безопасность и соответствие требованиям">
+        <list>
+            <li>Санитизируйте атрибуты спанов и поля логов (удаляйте токены, номера карт, персональные данные).</li>
+            <li>Ограничьте доступ к UI и API наблюдаемости (SSO, RBAC, сетевые политики).</li>
+            <li>Шифруйте трафик OTLP и хранение, если требуется по политике.</li>
+        </list>
+        <warning>Случайная передача PII в трейсах может привести к утечке. Настройте фильтры в Collector и аудиты схем
+            логов.
+        </warning>
+    </chapter>
+
+    <chapter title="Типовые ошибки и их исправление">
+        <list>
+            <li>
+                <format style="bold">Трейсы рвутся</format>
+                : не передаётся <code>traceparent</code>. Проверьте прокси/балансировщики, включите
+                автоинструментирование HTTP-клиентов/серверов.
+            </li>
+            <li>
+                <format style="bold">Пустые дашборды</format>
+                : Prometheus не видит таргеты. Проверьте <code>scrape_configs</code>, сетевые политики, TLS.
+            </li>
+            <li>
+                <format style="bold">Большие счета за хранение</format>
+                : высокая кардинальность метрик/атрибутов. Пересмотрите лейблы, бакеты, ретеншн и семплинг.
+            </li>
+            <li>
+                <format style="bold">Шумные алерты</format>
+                : нет гистерезиса/задержки <code>for:</code>, пороги не привязаны к SLO. Настройте дедупликацию и
+                маршрутизацию алертов.
+            </li>
+        </list>
+        <tip>Заведите
+            <format style="bold">runbook</format>
+            на каждый критичный алерт: предпосылки, шаги диагностики, команды, точки отката, владельцы.
+        </tip>
+    </chapter>
+    <chapter title="FAQ и лучшие практики">
+        <list>
+            <li>С чего начать? — Инструментируйте один критичный путь (например, &quot;создание заказа&quot;),
+                подключите OTel и Jaeger, затем добавляйте метрики и алерты.
+            </li>
+            <li>Как измерять пользовательские SLI? — Введите явные бизнес-метрики (время ответа ключевых операций, доля
+                успешных платежей).
+            </li>
+            <li>Как связать логи и трейсы? — Добавляйте <code>trace_id</code> в контекст логгера; используйте middleware
+                для авто-обогащения.
+            </li>
+        </list>
+        <tip>Правильное именование: сервисы, операции (span name), метки метрик — согласуйте словарь и следуйте
+            семантическим соглашениям OTel.
+        </tip>
+        <note>Правильное написание —
+            <format style="bold">Prometheus</format>
+            . Встречающийся вариант &quot;Prometeus&quot; — ошибка.
+        </note>
+    </chapter>
+</topic>
