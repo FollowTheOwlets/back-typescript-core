@@ -121,27 +121,23 @@ jobs:
             --app-link-border-color-dark: rgba(193, 68, 36, 0.2);
           }
           
-          @media (prefers-color-scheme: light) {
-            :root {
-              --bg: var(--wh-color-white);
-              --fg: var(--wh-color-text-main);
-              --primary: var(--wh-color-primary-light-theme);
-              --header-bg: var(--app-header);
-              --on-primary: var(--wh-color-text-main);
-              --pagefind-ui-text: var(--wh-color-text-main);
-            }
+          :root.theme-light {
+            --bg: var(--wh-color-white);
+            --fg: var(--wh-color-text-main);
+            --primary: var(--wh-color-primary-light-theme);
+            --header-bg: var(--app-header);
+            --on-primary: var(--wh-color-text-main);
+            --pagefind-ui-text: var(--wh-color-text-main);
           }
-          @media (prefers-color-scheme: dark) {
-            :root {
-              --wh-color-primary-light-theme: #C14424;
-              --bg: var(--app-header);
-              --fg: var(--wh-color-text-main);
-              --primary: var(--wh-color-primary-light-theme);
-              --header-bg: var(--app-header);
-              --on-primary: var(--wh-color-text-secondary);
-              --pagefind-ui-text: var(--wh-color-text-main);
-              --pagefind-ui-background: var(--app-header);
-            }
+          
+          :root.theme-dark {
+            --bg: var(--app-header);
+            --fg: var(--wh-color-text-main);
+            --primary: var(--wh-color-primary-light-theme);
+            --header-bg: var(--app-header);
+            --on-primary: var(--wh-color-text-secondary);
+            --pagefind-ui-text: var(--wh-color-text-main);
+            --pagefind-ui-background: var(--app-header);
           }
           
           .pagefind-ui--reset ol {
