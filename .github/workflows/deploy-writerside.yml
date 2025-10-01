@@ -104,7 +104,7 @@ jobs:
           npx --yes pagefind --source site --bundle-dir pagefind
 
       - name: Verify Pagefind assets
-        run: ls -lah pagefind
+        run: ls -lah site/pagefind
 
       # ---------- Тема: переопределяем цвета для светлой/тёмной тем ----------
       - name: Add theme overrides CSS (light/dark)
