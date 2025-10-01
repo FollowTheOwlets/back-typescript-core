@@ -1,4 +1,4 @@
-name: Build & Deploy WriterSide (with Pagefind + theme overrides)
+name: Build & Deploy WriterSide
 
 on:
   push:
@@ -13,20 +13,6 @@ permissions:
 env:
   # Инстанс из writerside.cfg
   INSTANCE: "Writerside/back-typescript"
-
-  # === Цвета (можно менять под себя) ===
-  # Светлая тема
-  LIGHT_PRIMARY: "#C14424"
-  LIGHT_BG: "#ffffff"
-  LIGHT_TEXT: "#111111"
-  LIGHT_HEADER_BG: "#f6f7f9"
-  LIGHT_ON_PRIMARY: "#ffffff"
-  # Тёмная тема
-  DARK_PRIMARY: "#FF7A59"
-  DARK_BG: "#1f1f1f"
-  DARK_TEXT: "#eeeeee"
-  DARK_HEADER_BG: "#2a2a2a"
-  DARK_ON_PRIMARY: "#000000"
 
 # Отменять старые прогоны для той же ветки
 concurrency:
@@ -117,20 +103,22 @@ jobs:
           }
           @media (prefers-color-scheme: light) {
             :root {
-              --bg: {{LIGHT_BG}};
-              --fg: {{LIGHT_TEXT}};
-              --primary: {{LIGHT_PRIMARY}};
-              --header-bg: {{LIGHT_HEADER_BG}};
-              --on-primary: {{LIGHT_ON_PRIMARY}};
+              --bg: var(--wh-color-white);
+              --fg: var(--wh-color-text-main);
+              --primary: var(--wh-color-primary-light-theme);
+              --header-bg: var(--app-header);
+              --on-primary: var(--wh-color-text-main);
+              --pagefind-ui-text: var(--wh-color-text-main);
             }
           }
           @media (prefers-color-scheme: dark) {
             :root {
-              --bg: {{DARK_BG}};
-              --fg: {{DARK_TEXT}};
-              --primary: {{DARK_PRIMARY}};
-              --header-bg: {{DARK_HEADER_BG}};
-              --on-primary: {{DARK_ON_PRIMARY}};
+              --bg: var(--app-header);
+              --fg: var(--wh-color-text-main);
+              --primary: var(--wh-color-primary-light-theme);
+              --header-bg: var(--app-header);
+              --on-primary: var(--wh-color-text-secondary);
+              --pagefind-ui-text: var(--wh-color-text-main);
             }
           }
 
