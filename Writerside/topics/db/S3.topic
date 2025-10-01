@@ -395,6 +395,9 @@ export class S3Module {
 }
 
             </code-block>
+                <br></br>
+                ---
+                <br></br>
                 <code-block lang="typescript">
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
