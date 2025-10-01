@@ -51,7 +51,7 @@
 **Симптом:** Один и тот же объект создаётся в разных местах, рассылается по всему коду через параметры/глобали.
 
 **Плохой пример (симптом в коде):**
-```ts
+```typescript
 // Везде new Config(), состояния рассинхронизируются  
 class Config {  
   constructor(public env = process.env.NODE_ENV ?? 'prod') {  
@@ -67,7 +67,7 @@ console.log(a.env === b.env); // может совпасть случайно, �
 
 **Код реализации:**
 
-```ts
+```typescript
 class Config {  
   private static instance?: Config;  
   
@@ -94,7 +94,7 @@ const cfg = Config.getInstance();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 type PayType = 'card' | 'cash' | 'crypto';  
   
 function createPayment(type: PayType) {  
@@ -118,7 +118,7 @@ function createPayment(type: PayType) {
 
 **Код реализации:**
 
-```ts
+```typescript
 abstract class Payment {  
   abstract pay(amount: number): void;  
 }  
@@ -158,7 +158,7 @@ p.pay(1999);
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 function renderUI(platform: 'win' | 'mac') {  
   const btn = platform === 'win' ? 'WinButton' : 'MacButton';  
   const chk = platform === 'win' ? 'WinCheckbox' : 'MacCheckbox';  
@@ -170,7 +170,7 @@ function renderUI(platform: 'win' | 'mac') {
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Button {  
   render(): string;  
 }  
@@ -247,7 +247,7 @@ buildUI(new WinFactory());
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 // трудно читать и поддерживать
 const report = new Report("Sales", true, undefined, undefined, "RU", 20, null, "A4", /* ... */);
 ```
@@ -256,7 +256,7 @@ const report = new Report("Sales", true, undefined, undefined, "RU", 20, null, "
 
 **Код реализации:**
 
-```ts
+```typescript
 class Query {  
   constructor(  
     public select = '*',  
@@ -308,7 +308,7 @@ const sql = new QueryBuilder()
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 const baseTpl = { title: 'Счёт', vat: 20, footer: 'Спасибо' };  
 
 function cloneInvoiceTpl() {  
@@ -324,7 +324,7 @@ function cloneInvoiceTpl() {
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Clonable<T> {  
   clone(): T;  
 }  
@@ -362,7 +362,7 @@ const tpl2 = tpl.clone();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 // Клиент знает детали старого API  
 class OldBankAPI {  
   sendMoney(sum: number) {  
@@ -379,7 +379,7 @@ function pay(amount: number, bank: OldBankAPI) {
 
 **Код реализации:**
 
-```ts
+```typescript
 class CardSystem {  
   sendMoney(sum: number) {  
     console.log('CardSystem bank:', sum);  
@@ -418,7 +418,7 @@ class Bank{
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 const cpu = new CPU();  
 const mem = new Memory();  
 const disk = new Disk();  
@@ -431,7 +431,7 @@ cpu.start(); // клиент управляет всем процессом
 
 **Код реализации:**
 
-```ts
+```typescript
 class CPU {  
   start() {  
     console.log('CPU start');  
@@ -475,7 +475,7 @@ new ComputerFacade().boot();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 class OrderServiceWithLoggingAndCachingAndMetrics { /* ... монолит ... */ }
 ```
 
@@ -483,7 +483,7 @@ class OrderServiceWithLoggingAndCachingAndMetrics { /* ... монолит ... */
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Notifier {  
   send(msg: string): void;  
 }  
@@ -525,7 +525,7 @@ notifier.send('Поступила заявка');
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 type Node = { name: string; children?: Node[] };  
   
 function print(n: Node) {  
@@ -541,7 +541,7 @@ function print(n: Node) {
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Component {  
   show(indent?: string): void;  
 }  
@@ -586,7 +586,7 @@ root.show();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 const data = service.getData();
 if (!cache["data"]) cache["data"] = data; // дублируем в контроллерах, сервисах и т.д.
 ```
@@ -595,7 +595,7 @@ if (!cache["data"]) cache["data"] = data; // дублируем в контро�
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Service {  
   getData(): string;  
 }  
@@ -636,7 +636,7 @@ svc.getData(); // cache
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 function price(base: number, region: 'EU' | 'US' | 'RU') {  
   if (region === 'EU') return base * 1.2;  
   if (region === 'US') return base * 1.1;  
@@ -648,7 +648,7 @@ function price(base: number, region: 'EU' | 'US' | 'RU') {
 
 **Код реализации:**
 
-```ts
+```typescript
 interface PricingStrategy {  
   calc(base: number): number;  
 }  
@@ -697,7 +697,7 @@ checkout.total(PricingType.EU, 3000);
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 function onPriceChange(v:number){
   updateUI(v);
   sendAnalytics(v);
@@ -709,7 +709,7 @@ function onPriceChange(v:number){
 
 **Код реализации:**
 
-```ts
+```typescript
 type Listener = (v: number) => void;  
   
 class Subject {  
@@ -743,7 +743,7 @@ price$.notify(120);
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 class Cart { items:string[]=[]; add(i:string){ this.items.push(i);} }
 const cart = new Cart();
 cart.add("Телефон");
@@ -754,7 +754,7 @@ cart.add("Телефон");
 
 **Код реализации:**
 
-```ts
+```typescript
 interface Command {  
   execute(): void;  
   
@@ -816,7 +816,7 @@ inv.undo();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 type DoorState = 'locked' | 'unlocked';  
 let state: DoorState = 'locked';  
   
@@ -835,7 +835,7 @@ function click() {
 
 **Код реализации:**
 
-```ts
+```typescript
 interface State {  
   handle(ctx: Context): void;  
 }  
@@ -880,7 +880,7 @@ door.request();
 
 **Плохой пример (симптом в коде):**
 
-```ts
+```typescript
 function handle(req:string){
   if (!req.includes("auth")) return "401";
   if (!req.includes("payload")) return "400";
@@ -892,7 +892,7 @@ function handle(req:string){
 
 **Код реализации:**
 
-```ts
+```typescript
 abstract class Handler {  
   private next?: Handler;  
   

@@ -314,7 +314,7 @@ Accept: application/json
             (protobuf). Обеспечивает строгие контракты через .proto-файлы, генерацию клиент/сервер кода, 4 режима
             вызовов (unary/streams) и эффективную передачу данных.
         </p>
-        <chapter title="Пример .proto контракта"> <code-block lang="protobuf">
+        <chapter title="Пример .proto контракта"> <code-block lang="go">
 syntax = "proto3";
 
 package orders.v1;

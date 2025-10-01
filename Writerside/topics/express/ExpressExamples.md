@@ -19,7 +19,7 @@ MVC (Model-View-Controller) — это шаблон проектирования
 
 ### 1. Создание структуры проекта {id="1_1"}
 
-```plain text
+```text
 /project
   /controllers
     userController.js
@@ -493,7 +493,7 @@ npm install dotenv
 
 В корне вашего проекта создайте файл с именем `.env` и добавьте в него переменные среды в формате `KEY=VALUE`. Пример:
 
-```plain text
+```text
 PORT=3000
 DB_URL=mongodb://localhost:27017/mydatabase
 SECRET_KEY=mysecretkey
@@ -896,7 +896,7 @@ sequelize.sync().then(() => {
 ### 6. Views
 Для работы приложения понадобится 3 шаблона pug (inde, edit, not_found) и 1 css файл:
 
-```pug
+```text
 // views/index.pug
 
 // Определение типа документа и языка
@@ -957,7 +957,7 @@ html(lang="en")
                       i.material-icons.md-18 delete
 ```
 
-```pug
+```text
 // views/edit.pug
 doctype html
 html(lang="en")
@@ -984,7 +984,7 @@ html(lang="en")
 
 ```
 
-```pug
+```text
 // views/not_found.pug
 doctype html
 html(lang="en")
