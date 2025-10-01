@@ -226,11 +226,7 @@ jobs:
               s.onload = cb; document.head.appendChild(s);
             }
 
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', () => ensurePagefind(init));
-            } else {
-              ensurePagefind(init);
-            }
+            document.addEventListener('DOMContentLoaded', () => ensurePagefind(init));
           })();
           JS
 
