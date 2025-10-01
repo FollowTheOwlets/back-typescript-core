@@ -16,22 +16,11 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      site_zip: ${{ steps.names.outputs.site_zip }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Derive artifact name
-        id: names
-        shell: bash
-        run: |
-          IID="${INSTANCE#*/}"
-          IID_UPPER=$(echo "$IID" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
-          SITE_ZIP="webHelp${IID_UPPER}2-all.zip"
-          echo "site_zip=$SITE_ZIP" >> $GITHUB_OUTPUT
 
       - name: Build docs via WriterSide
         uses: JetBrains/writerside-github-action@v4
@@ -39,13 +28,17 @@ jobs:
           instance: ${{ env.INSTANCE }}
           # docker-version: ${{ env.DOCKER_VERSION || 'latest' }}
 
+      - name: List build outputs
+        run: |
+            echo "Workspace:" && pwd
+            ls -lah .
+            echo "Artifacts dir:" && ls -lah artifacts || true
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: writerside
-          path: |
-            artifacts/${{ steps.names.outputs.site_zip }}
-            artifacts/report.json
+          path: artifacts/
           retention-days: 7
 
   test:
@@ -74,8 +67,22 @@ jobs:
           name: writerside
           path: artifacts
 
+      - name: Find site zip
+        id: findzip
+        shell: bash
+        run: |
+            set -e
+            echo "Artifacts in artifacts/:"
+            ls -lah artifacts
+            SITE_ZIP=$(ls artifacts/webHelp*2-all.zip | head -n1 || true)
+            if [ -z "$SITE_ZIP" ]; then
+            echo "❌ Site zip not found (pattern: artifacts/webHelp*2-all.zip)"; exit 1;
+            fi
+          echo "Found site zip: $SITE_ZIP"
+            echo "site_zip=$SITE_ZIP" >> "$GITHUB_OUTPUT"
+
       - name: Unzip website
-        run: unzip -O UTF-8 -qq "artifacts/${{ needs.build.outputs.site_zip }}" -d site
+        run: unzip -O UTF-8 -qq "${{ steps.findzip.outputs.site_zip }}" -d site
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
