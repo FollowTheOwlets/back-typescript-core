@@ -97,8 +97,7 @@ jobs:
         shell: bash
         run: |
           cat > site/theme-overrides.css <<'CSS'
-          /* Общие CSS-переменные — используем для наших оверлеев/кнопок и части базовых элементов */
-          :root {
+          :root.theme-light, :root.theme-dark {
             --wt-color-primary-dark-theme: #C14424;
             --wt-color-primary-dark-theme-80: rgba(193, 68, 36, 0.8);
             --wt-color-primary-dark-theme-20: rgba(193, 68, 36, 0.2);
