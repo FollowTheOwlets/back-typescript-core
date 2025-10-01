@@ -157,25 +157,6 @@ jobs:
           #pf-modal .pf-dialog { background: var(--bg) !important; color: var(--fg) !important; }
           #pf-modal a { color: var(--primary) !important; }
           CSS
-
-          # Подставим цвета из env
-          sed -i \
-            -e "s#{{LIGHT_BG}}#${LIGHT_BG}#g" \
-            -e "s#{{LIGHT_TEXT}}#${LIGHT_TEXT}#g" \
-            -e "s#{{LIGHT_PRIMARY}}#${LIGHT_PRIMARY}#g" \
-            -e "s#{{LIGHT_HEADER_BG}}#${LIGHT_HEADER_BG}#g" \
-            -e "s#{{LIGHT_ON_PRIMARY}}#${LIGHT_ON_PRIMARY}#g" \
-            -e "s#{{DARK_BG}}#${DARK_BG}#g" \
-            -e "s#{{DARK_TEXT}}#${DARK_TEXT}#g" \
-            -e "s#{{DARK_PRIMARY}}#${DARK_PRIMARY}#g" \
-            -e "s#{{DARK_HEADER_BG}}#${DARK_HEADER_BG}#g" \
-            -e "s#{{DARK_ON_PRIMARY}}#${DARK_ON_PRIMARY}#g" \
-            site/theme-overrides.css
-
-          # Инжектим линк на CSS в <head> у всех страниц сайта
-          find site -type f -name "*.html" -print0 | xargs -0 -I{} sh -c \
-            'grep -q "theme-overrides.css" "{}" || sed -i "s#</head>#<link rel=\"stylesheet\" href=\"./theme-overrides.css\" /></head>#" "{}"'
-
       # ---------- Модалка/хоткей Ctrl+K + кнопка; корректные пути на Pages ----------
       - name: Add Pagefind modal script (absolute basePath) and inject into pages
         shell: bash
