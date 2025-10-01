@@ -226,7 +226,12 @@ jobs:
               s.onload = cb; document.head.appendChild(s);
             }
 
-            setTimeout(() => ensurePagefind(init), 1000);
+            const interval = setInterval(() => {
+              try {
+                ensurePagefind(init);
+                clearInterval(interval);
+              } catch {}
+            }, 1000);
           })();
           JS
 
