@@ -11,7 +11,13 @@ permissions:
   id-token: write
 
 env:
+  # Укажи свой инстанс из writerside.cfg в формате Writerside/<id>
   INSTANCE: "Writerside/back-typescript"
+
+# (необязательно) отменять старые запуски, если пришёл новый коммит в ту же ветку
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -26,13 +32,12 @@ jobs:
         uses: JetBrains/writerside-github-action@v4
         with:
           instance: ${{ env.INSTANCE }}
-          # docker-version: ${{ env.DOCKER_VERSION || 'latest' }}
 
       - name: List build outputs
         run: |
-            echo "Workspace:" && pwd
-            ls -lah .
-            echo "Artifacts dir:" && ls -lah artifacts || true
+          echo "Workspace:" && pwd
+          ls -lah .
+          echo "Artifacts dir:" && ls -lah artifacts || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -71,15 +76,15 @@ jobs:
         id: findzip
         shell: bash
         run: |
-            set -e
-            echo "Artifacts in artifacts/:"
-            ls -lah artifacts
-            SITE_ZIP=$(ls artifacts/webHelp*2-all.zip | head -n1 || true)
-            if [ -z "$SITE_ZIP" ]; then
+          set -e
+          echo "Artifacts in artifacts/:"
+          ls -lah artifacts
+          SITE_ZIP=$(ls artifacts/webHelp*2-all.zip | head -n1 || true)
+          if [ -z "$SITE_ZIP" ]; then
             echo "❌ Site zip not found (pattern: artifacts/webHelp*2-all.zip)"; exit 1;
-            fi
+          fi
           echo "Found site zip: $SITE_ZIP"
-            echo "site_zip=$SITE_ZIP" >> "$GITHUB_OUTPUT"
+          echo "site_zip=$SITE_ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Unzip website
         run: unzip -O UTF-8 -qq "${{ steps.findzip.outputs.site_zip }}" -d site
