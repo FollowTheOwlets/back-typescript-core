@@ -7,6 +7,7 @@
                  start-page="Enter.md">
 
     <toc-element topic="Enter.md"/>
+    <toc-element topic="git.md"/>
     <toc-element topic="_JavaScript.topic">
         <toc-element topic="FirstProgram.topic"/>
         <toc-element topic="NPMManager.topic"/>

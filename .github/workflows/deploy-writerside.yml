@@ -1,4 +1,4 @@
-name: Build & Deploy WriterSide
+name: Build & Deploy WriterSide (with Pagefind modal search)
 
 on:
   push:
@@ -11,10 +11,10 @@ permissions:
   id-token: write
 
 env:
-  # Укажи свой инстанс из writerside.cfg в формате Writerside/<id>
+  # Инстанс из writerside.cfg
   INSTANCE: "Writerside/back-typescript"
 
-# (необязательно) отменять старые запуски, если пришёл новый коммит в ту же ветку
+# Отменять старые ранны для той же ветки
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
@@ -33,13 +33,7 @@ jobs:
         with:
           instance: ${{ env.INSTANCE }}
 
-      - name: List build outputs
-        run: |
-          echo "Workspace:" && pwd
-          ls -lah .
-          echo "Artifacts dir:" && ls -lah artifacts || true
-
-      - name: Upload artifact
+      - name: Upload artifact (whole artifacts dir)
         uses: actions/upload-artifact@v4
         with:
           name: writerside
@@ -77,20 +71,149 @@ jobs:
         shell: bash
         run: |
           set -e
-          echo "Artifacts in artifacts/:"
-          ls -lah artifacts
           SITE_ZIP=$(ls artifacts/webHelp*2-all.zip | head -n1 || true)
           if [ -z "$SITE_ZIP" ]; then
             echo "❌ Site zip not found (pattern: artifacts/webHelp*2-all.zip)"; exit 1;
           fi
-          echo "Found site zip: $SITE_ZIP"
           echo "site_zip=$SITE_ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Unzip website
         run: unzip -O UTF-8 -qq "${{ steps.findzip.outputs.site_zip }}" -d site
 
+      # ---------- Pagefind: статический бесплатный поиск ----------
+      - name: Build static search index (Pagefind)
+        run: |
+          if ! command -v npm >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y nodejs npm
+          fi
+          npx --yes pagefind --source site --bundle-dir site/pagefind
+
+      # Модалка/хоткей Ctrl+K + кнопка в шапке (почти как «родной» поиск)
+      - name: Add Pagefind modal (JS + CSS) and inject into pages
+        run: |
+          # JS-инициализация модалки и хоткеев
+          cat > site/pagefind-inline.js <<'JS'
+          (function () {
+            const STYLE_ID = 'pf-inline-style';
+            const MODAL_ID = 'pf-modal';
+            const BTN_ID = 'pf-trigger';
+          
+            function ensureStyle() {
+              if (document.getElementById(STYLE_ID)) return;
+              const s = document.createElement('style'); s.id = STYLE_ID;
+              s.textContent = `
+                #${MODAL_ID}{position:fixed;inset:0;display:none;z-index:2147483647;background:rgba(0,0,0,.45)}
+                #${MODAL_ID}.open{display:block}
+                #${MODAL_ID} .pf-dialog{box-sizing:border-box;position:relative;margin:8vh auto;max-width:960px;width:92%;
+                  background:#fff;color:#111;border-radius:12px;padding:16px 16px 8px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+                @media (prefers-color-scheme: dark){
+                  #${MODAL_ID} .pf-dialog{background:#1f1f1f;color:#eee}
+                }
+                #${BTN_ID}{position:fixed;right:16px;top:12px;z-index:2147483646;opacity:.85;backdrop-filter:saturate(180%) blur(6px);
+                  border-radius:8px;border:1px solid rgba(255,255,255,.25);padding:6px 10px;font:500 13px/1 system-ui,-apple-system,Segoe UI,Roboto,Arial;cursor:pointer}
+                #${BTN_ID}:hover{opacity:1}
+              `;
+              document.head.appendChild(s);
+            }
+          
+            function ensureModal() {
+              if (document.getElementById(MODAL_ID)) return;
+              const m = document.createElement('div'); m.id = MODAL_ID;
+              m.innerHTML = `<div class="pf-dialog"><div id="pf-ui"></div></div>`;
+              m.addEventListener('click', (e)=>{ if(e.target===m) close(); });
+              document.body.appendChild(m);
+            }
+          
+            function ensureButton() {
+              if (document.getElementById(BTN_ID)) return;
+              const b = document.createElement('button'); b.id = BTN_ID;
+              b.type='button'; b.title='Ctrl+K';
+              b.textContent = 'Ctrl+K for search';
+              b.addEventListener('click', open);
+              document.body.appendChild(b);
+            }
+          
+            function open(e){
+              if (e) e.preventDefault();
+              ensureModal();
+              const modal = document.getElementById(MODAL_ID);
+              modal.classList.add('open');
+              if (!window.__pf_ui_inited) {
+                window.__pf_ui_inited = true;
+                if (!document.querySelector('link[href*="pagefind-ui.css"]')) {
+                  const l = document.createElement('link'); l.rel='stylesheet'; l.href='./pagefind/pagefind-ui.css'; document.head.appendChild(l);
+                }
+                new PagefindUI({ element: '#pf-ui', showSubResults: true, translations: { placeholder: 'Поиск…' } });
+                setTimeout(() => {
+                  const input = document.querySelector('#pf-ui input[type="search"], #pf-ui input');
+                  if (input) input.focus();
+                }, 0);
+              } else {
+                const input = document.querySelector('#pf-ui input[type="search"], #pf-ui input');
+                if (input) input.focus();
+              }
+            }
+          
+            function close(){ const m = document.getElementById(MODAL_ID); if (m) m.classList.remove('open'); }
+            function keyHandler(e){
+              if ((e.ctrlKey || e.metaKey) && (e.key==='k' || e.key==='K')) { e.preventDefault(); open(e); }
+              if (e.key === 'Escape') close();
+            }
+          
+            function init(){
+              ensureStyle(); ensureModal(); ensureButton();
+              window.addEventListener('keydown', keyHandler, { passive: false });
+            }
+          
+            function ensurePagefind(cb){
+              if (window.PagefindUI) { cb(); return; }
+              const s = document.createElement('script'); s.defer=true; s.src='./pagefind/pagefind-ui.js';
+              s.onload = cb; document.head.appendChild(s);
+            }
+          
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', () => ensurePagefind(init));
+            } else {
+              ensurePagefind(init);
+            }
+          })();
+          JS
+          
+          # Инжектим подключение скрипта на все HTML
+          find site -type f -name "*.html" -print0 | xargs -0 -I{} sh -c \
+            'grep -q "pagefind-inline.js" "{}" || sed -i "s#</body>#<script defer src=\\"./pagefind-inline.js\\"></script></body>#" "{}"'
+
+      # (опционально) отдельная страница поиска по адресу /search.html
+      - name: Add /search.html
+        run: |
+          cat > site/search.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <title>Search</title>
+            <script defer src="./pagefind/pagefind-ui.js"></script>
+            <link rel="stylesheet" href="./pagefind/pagefind-ui.css">
+            <style>body{margin:2rem auto;max-width:960px;font-family:system-ui,sans-serif}</style>
+          </head>
+          <body>
+            <h1>Search</h1>
+            <div id="search"></div>
+            <script>
+              window.addEventListener('DOMContentLoaded', () => {
+                new PagefindUI({ element: "#search", showSubResults: true, translations: { placeholder: "Поиск…" } });
+              });
+            </script>
+          </body>
+          </html>
+          HTML
+      # -----------------------------------------------------------
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
