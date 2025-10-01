@@ -172,7 +172,7 @@ jobs:
                 #${MODAL_ID}.open{display:block}
                 #${MODAL_ID} .pf-dialog{box-sizing:border-box;position:relative;margin:8vh auto;max-width:960px;width:92%;
                   background:var(--bg,#fff);color:var(--fg,#111);border-radius:12px;padding:16px 16px 8px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-                #${BTN_ID}{position:fixed;right:16px;top:12px;z-index:2147483646;opacity:.85;backdrop-filter:saturate(180%) blur(6px);
+                #${BTN_ID}{opacity:.85;backdrop-filter:saturate(180%) blur(6px);
                   border-radius:8px;border:1px solid rgba(255,255,255,.25);padding:6px 10px;font:500 13px/1 system-ui,-apple-system,Segoe UI,Roboto,Arial;cursor:pointer;
                   background:var(--primary,#3b82f6);color:var(--on-primary,#fff);border-color:var(--primary,#3b82f6)}
                 #${BTN_ID}:hover{opacity:1}
@@ -190,8 +190,13 @@ jobs:
 
             function ensureButton() {
               if (document.getElementById(BTN_ID)) return;
-              const b = document.createElement('button'); b.id = BTN_ID; b.type='button'; b.title='Ctrl+K';
-              b.textContent = 'Ctrl+K for search'; b.addEventListener('click', open); document.body.appendChild(b);
+              const b = document.createElement('button'); 
+              b.id = BTN_ID; 
+              b.type='button'; 
+              b.title='Search';
+              b.textContent = 'Поиск'; 
+              b.addEventListener('click', open); 
+              document.querySelector(".wh-header").appendChild(b)
             }
 
             function open(e){
