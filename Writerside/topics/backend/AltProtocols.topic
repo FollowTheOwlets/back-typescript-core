@@ -314,7 +314,7 @@ Accept: application/json
             (protobuf). Обеспечивает строгие контракты через .proto-файлы, генерацию клиент/сервер кода, 4 режима
             вызовов (unary/streams) и эффективную передачу данных.
         </p>
-        <chapter title="Пример .proto контракта"> <code-block lang="Protobuf">
+        <chapter title="Пример .proto контракта"> <code-block lang="protobuf">
 syntax = "proto3";
 
 package orders.v1;
@@ -357,7 +357,7 @@ message Message { string text = 1; int64 ts = 2; }
             необходимые поля. Также поддерживаются
             mutation и subscription (обычно поверх WS).
         </p>
-        <chapter title="Пример схемы (SDL)"> <code-block lang="graphql"> type Order { id: ID! status: String! total: Float! items: [OrderItem!]! }
+        <chapter title="Пример схемы (SDL)"> <code-block lang="text"> type Order { id: ID! status: String! total: Float! items: [OrderItem!]! }
 
 type OrderItem {
     sku: String!
@@ -380,7 +380,7 @@ type Subscription {
 </code-block>
         </chapter>
         <chapter title="Пример запроса и ответа">
-<code-block lang="graphql">
+<code-block lang="text">
 query GetOrder($id: ID!) {
     order(id: $id) {
         id
@@ -433,7 +433,7 @@ query GetOrder($id: ID!) {
             .
         </p>
         <chapter title="Фрагмент SDP offer">
-            <code-block lang="plain text">
+            <code-block lang="Plain Text">
                 v=0
                 o=- 46117327 2 IN IP4 127.0.0.1
                 s=-

@@ -66,7 +66,7 @@
             <code>unknown</code>, <code>any</code>, <code>never</code>, а также <code>object</code>, массивы
             <code>T[]</code>
             и кортежи <code>[T1, T2]</code>.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 // Явные аннотации типов
                 let message: string = "Hello";
                 let count: number = 42;
@@ -97,7 +97,7 @@
             <tooltip term="Структурная типизация">структурную типизацию</tooltip>
             : совместимость определяется формой объекта (набором полей), а не именем типа.
         </p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 interface HasId {
                     id: string;
                 }
@@ -119,7 +119,7 @@
         <p>И <code>interface</code>, и <code>type</code> объявляют формы типов. <code>interface</code> поддерживает
             декларативное расширение (merging), <code>type</code> — более универсален (можно описывать объединения,
             пересечения и пр.).</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 interface A {
                     x: number;
                 }
@@ -136,7 +136,7 @@
     </chapter>
 
     <chapter title="Объединения, пересечения, литеральные и перечислимые типы">
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 type Id = string | number; // объединение
                 type Point2D = { x: number } &amp; { y: number }; // пересечение
 
@@ -155,7 +155,7 @@
 
     <chapter title="Сужение типов (type narrowing) и проверки">
         <p>TS анализирует ветвления и проверки, чтобы «сузить» тип к более конкретному.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                     function printId(id: string | number) {
                         if (typeof id === "string") {
                             console.log(id.toUpperCase());
@@ -175,7 +175,7 @@
 
     <chapter title="Дженерики (обобщения)">
         <p>Дженерики позволяют писать переиспользуемый код, сохраняющий информацию о типах.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                     function wrap&lt;T&gt;(value: T) {
                         return {value};
                     }
@@ -195,7 +195,7 @@
             <li><code>Record&lt;K, T&gt;</code>, <code>NonNullable&lt;T&gt;</code>, <code>ReturnType&lt;F&gt;</code>
             </li>
         </list>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 type User = { id: string; email?: string };
                 type UserPatch = Partial&lt;User&gt;;          // все поля необязательны
                 type UserRequired = Required&lt;User&gt;;      // все обязательны
@@ -205,7 +205,7 @@
 
     <chapter title="Функции, this и перегрузки">
         <p>Аннотируйте параметры и возвращаемые значения. Для разных сигнатур используйте перегрузки.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 function len(x: string): number;
                 function len(x: any[]): number;
                 function len(x: string | any[]) {
@@ -221,7 +221,7 @@
         <p>TS добавляет модификаторы <code>public</code>, <code>private</code>, <code>protected</code>,
             <code>readonly</code>,
             а также поля инициализации прямо в сигнатуре конструктора.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                 class Repo {
                     constructor(private readonly url: string) {
                     }
@@ -238,7 +238,7 @@
     <chapter title="Строгий режим и работа с null/undefined">
         <p>Включите строгий режим, чтобы компилятор помогал больше: <code>"strict": true</code>, включая <code>strictNullChecks</code>.
         </p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
                     function findEmail(u?: { email?: string }) {
                         // Опциональная последовательность и оператор объединения с null
                         return u?.email ?? "no-email@example.com";
@@ -406,7 +406,7 @@
                 } 
             </code-block>
     <p>Создадим файл <code>src/index.ts</code>:</p>
-    <code-block lang="ts">
+    <code-block lang="typescript">
                 // Мини-сервер HTTP без фреймворков
                 import http from "node:http";
 

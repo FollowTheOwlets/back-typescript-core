@@ -217,13 +217,13 @@
         </chapter>
         <chapter title="Примеры PromQL для траблшутинга">
             <p>Ошибки RPS по статусам</p>
-            <code-block lang="promql">sum by (status_code) (rate(http_requests_total[5m]))</code-block>
+            <code-block lang="PromQL">sum by (status_code) (rate(http_requests_total[5m]))</code-block>
             <p>P95 латентность (Histogram)</p>
-            <code-block lang="promql">histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))</code-block>
+            <code-block lang="PromQL">histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))</code-block>
             <p>Доля ошибок 5xx</p>
-            <code-block lang="promql">sum(rate(http_requests_total{status_code="5xx"}[5m])) / sum(rate(http_requests_total[5m]))</code-block>
+            <code-block lang="PromQL">sum(rate(http_requests_total{status_code="5xx"}[5m])) / sum(rate(http_requests_total[5m]))</code-block>
             <p>Насыщение CPU</p>
-            <code-block lang="promql">avg by (instance) (rate(process_cpu_seconds_total[5m]))</code-block>
+            <code-block lang="PromQL">avg by (instance) (rate(process_cpu_seconds_total[5m]))</code-block>
             <warning>Высокая
                 <format style="bold">кардинальность</format>
                 (много уникальных комбинаций лейблов) резко увеличивает нагрузку и стоимость. Не помещайте в лейблы

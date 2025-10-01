@@ -83,7 +83,7 @@
 
             <tabs>
                 <tab title="C++">
-                    <code-block lang="cpp">
+                    <code-block lang="c++">
                     #include &lt;iostream&gt;
                     #include &lt;string&gt;
 

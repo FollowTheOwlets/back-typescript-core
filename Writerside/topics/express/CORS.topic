@@ -82,7 +82,7 @@
     </chapter>
     <chapter title="Быстрый старт: пакет cors"><p>Проще всего управлять CORS через официальный пакет <code>cors</code>
         для Express.</p>
-        <code-block lang="ts">
+        <code-block lang="typescript">
         // src/app.ts (фрагмент)
         import express from &quot;express&quot;;
         import cors from &quot;cors&quot;;
@@ -103,7 +103,7 @@
         <tip>Если у вас несколько фронтендов, используйте функцию для <code>origin</code> и whitelist.</tip>
     </chapter>
 
-    <chapter title="Whitelist и динамический origin"> <code-block lang="ts">
+    <chapter title="Whitelist и динамический origin"> <code-block lang="typescript">
         // src/middlewares/cors.ts
         import cors from &quot;cors&quot;;
 
@@ -154,14 +154,14 @@
             <li>Только HTTPS для <code>SameSite=None; Secure</code>.</li>
         </list>
         <code-block
-                lang="ts"> // пример установки cookie в Express res.cookie(&quot;session&quot;, token, { httpOnly: true, secure: true, // обязательно в продакшн с HTTPS sameSite: &quot;none&quot;, // разрешить межсайтовую отправку domain: &quot;.example.com&quot;, // опционально: общий домен path: &quot;/&quot; }); </code-block>
+                lang="typescript"> // пример установки cookie в Express res.cookie(&quot;session&quot;, token, { httpOnly: true, secure: true, // обязательно в продакшн с HTTPS sameSite: &quot;none&quot;, // разрешить межсайтовую отправку domain: &quot;.example.com&quot;, // опционально: общий домен path: &quot;/&quot; }); </code-block>
         <warning>Неправильная комбинация <code>SameSite</code> и <code>Secure</code> приводит к «пропадающим» куки.
             Проверяйте в DevTools -&gt; Application -&gt; Cookies.
         </warning>
     </chapter>
     <chapter title="Ручная настройка без пакета cors (понимание механики)"><p>Иногда полезно явно увидеть ответы на
         preflight и основной запрос.</p>
-        <code-block lang="ts"> // src/app.ts (минимальный пример) import express from &quot;express&quot;;
+        <code-block lang="typescript"> // src/app.ts (минимальный пример) import express from &quot;express&quot;;
 
         const app = express();
 

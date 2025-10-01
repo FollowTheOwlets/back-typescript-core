@@ -64,7 +64,7 @@
         <chapter title="Пример: простая чистая функция сложения">
             <tabs>
                 <tab title="C++">
-                <code-block lang="cpp">
+                <code-block lang="c++">
           
                 #include &lt;iostream&gt;
                     
@@ -129,7 +129,7 @@
         <chapter title="Пример: обновление точки без мутаций">
             <tabs>
                 <tab title="C++">
-                <code-block lang="cpp">
+                <code-block lang="c++">
 
                     #include &lt;iostream&gt;
                     struct Point { int x; int y; };
@@ -256,7 +256,7 @@
         <chapter title="Пример: факториал (база, шаг, рекурсивный вызов)">
             <tabs>
                 <tab title="C++">
-                    <code-block lang="cpp">
+                    <code-block lang="c++">
                         #include &lt;iostream&gt;
 
                         long long fact(int n) {
@@ -371,7 +371,7 @@
                     </code-block>
                 </tab>
                 <tab title="C++ (итеративная альтернатива)"> 
-                    <code-block lang="cpp">
+                    <code-block lang="c++">
                         #include &lt;iostream&gt;
                         long long factIter(int n) {
                             long long acc = 1;

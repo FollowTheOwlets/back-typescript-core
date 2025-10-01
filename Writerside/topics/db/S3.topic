@@ -372,7 +372,7 @@ go get github.com/minio/minio-go/v7
                 <br></br>
                         ---
                 <br></br>
-                <code-block lang="ts">
+                <code-block lang="typescript">
 import {Module} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {Client as MinioClient, ClientOptions} from 'minio';
@@ -395,7 +395,7 @@ export class S3Module {
 }
 
             </code-block>
-                <code-block lang="ts">
+                <code-block lang="typescript">
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {Client as MinioClient} from 'minio';

@@ -53,7 +53,7 @@ npm init -y
         <p>
             По умолчанию Node.js использует систему модулей <tooltip term="CommonJS">CommonJS</tooltip> (если в <code>package.json</code> не указано иное). Создадим файл <code>index.js</code> и выведем текст.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 console.log('Hello, Node.js!');
 // Вывод: Hello, Node.js!
     </code-block>
@@ -73,7 +73,7 @@ node index.js
         <p>
             Скрипт можно сделать исполняемым в Unix-системах при помощи строки <tooltip term="shebang">shebang</tooltip>. Добавьте её в начало файла и дайте права на исполнение:
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 #!/usr/bin/env node
 console.log('Hello from executable!');
 // Вывод: Hello from executable!
@@ -92,7 +92,7 @@ chmod +x index.js
         <p>
             Доступ к аргументам запуска осуществляется через <code>process.argv</code>. Первые два элемента — путь к Node и путь к скрипту; полезные аргументы начинаются с индекса 2.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 const args = process.argv.slice(2);
 console.log('Args:', args.join(', '));
 // Вывод (пример): Args: --name, Alex
@@ -110,7 +110,7 @@ node index.js --name Alex
         <p>
             Конфигурацию удобно передавать через <tooltip term="Переменная окружения">переменные окружения</tooltip>, доступные как <code>process.env</code>. Используйте «разумные значения по умолчанию».
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 const port = process.env.PORT ?? 3000;
 console.log(`PORT = ${port}`);
 // Вывод (пример): PORT = 3000
@@ -128,7 +128,7 @@ PORT=8080 node index.js
         <p>
             Для информационных сообщений используйте <code>console.log</code> (пишет в <tooltip term="stdout">stdout</tooltip>), для ошибок — <code>console.error</code> (пишет в <tooltip term="stderr">stderr</tooltip>). Код возврата процесса задаётся <code>process.exit()</code>.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 console.log('info');
 // Вывод: info
 console.error('error');
@@ -174,7 +174,7 @@ npm run dev
         </p>
 
         <chapter title="CommonJS (require/module.exports)">
-      <code-block lang="js">
+      <code-block lang="javascript">
 const os = require('os');
 console.log(os.platform());
 // Вывод (пример): linux
@@ -192,7 +192,7 @@ console.log(os.platform());
     "type": "module"
 }
       </code-block>
-            <code-block lang="js">
+            <code-block lang="javascript">
 import { cpus } from 'os';
 console.log(cpus().length);
 // Вывод (пример): 8

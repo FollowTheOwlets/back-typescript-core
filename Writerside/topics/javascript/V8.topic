@@ -154,7 +154,7 @@
                 набором ключей приводит к «мегаморфизму» IC и деградации.
             </li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
         function makeUser(id, name) {
             return {id, name};
         }
@@ -187,7 +187,7 @@
                 <code>push</code>/<code>pop</code>.
             </li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
         const a = [1, 2, 3];
         a.push(4);
         console.log(a.length); // 4 </code-block>
@@ -216,7 +216,7 @@
             (Promises/queueMicrotask). Отдельно в Node есть очередь <code>process.nextTick</code>, обрабатываемая раньше
             микрозадач.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
         setTimeout(() =&gt; console.log('timeout'), 0);
         setImmediate(() =&gt; console.log('immediate'));
         Promise.resolve().then(() =&gt; console.log('microtask'));
@@ -254,7 +254,7 @@
                 проблемы.
             </li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
 // Пример наблюдаемого эффекта:
 const start = Date.now();
 // Имитация тяжёлой синхронной операции:
@@ -333,7 +333,7 @@ console.log('heavy done'); // heavy done
                 : <code>try/catch</code> в горячих путях может препятствовать оптимизациям.
             </li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
         function sum(...xs) {
             return xs.reduce((a, b) =&gt; a + b, 0);
         }
@@ -371,7 +371,7 @@ console.log('heavy done'); // heavy done
             </li>
         </list>
         <code-block
-                lang="js"> // Порядок и полный набор полей фиксируют форму: function makePoint(x, y) { return { x, y, z: 0, tag: null }; } const p = makePoint(1, 2); console.log(p.z); // 0 </code-block>
+                lang="javascript"> // Порядок и полный набор полей фиксируют форму: function makePoint(x, y) { return { x, y, z: 0, tag: null }; } const p = makePoint(1, 2); console.log(p.z); // 0 </code-block>
     </chapter>
     <chapter title="Диагностика производительности и памяти (инструменты)">
         <p> Для анализа существуют встроенные флаги и внешние профайлеры: <code>--trace_gc</code>, <code>--trace_gc_verbose</code>,
@@ -395,7 +395,7 @@ console.log('heavy done'); // heavy done
             </li>
         </list>
         <code-block
-                lang="js"> // Наблюдение за ростом памяти: const big = []; for (let i = 0; i &lt; 1e4; i++) big.push(Buffer.alloc(1024)); console.log(process.memoryUsage().heapUsed &gt; 0); // true </code-block>
+                lang="javascript"> // Наблюдение за ростом памяти: const big = []; for (let i = 0; i &lt; 1e4; i++) big.push(Buffer.alloc(1024)); console.log(process.memoryUsage().heapUsed &gt; 0); // true </code-block>
         <tip>Флаги <code>--max-old-space-size=&lt;MB&gt;</code> пригодны для контейнеров, чтобы ограничивать память и
             управлять частотой GC.
         </tip>
@@ -403,7 +403,7 @@ console.log('heavy done'); // heavy done
     <chapter title="Микрозадачи: Promises, queueMicrotask и nextTick"><p> V8 поддерживает общую очередь микрозадач:
         <code>Promise.then</code>/<code>queueMicrotask</code>. В Node.js есть ещё <code>process.nextTick</code>,
         исполняющийся раньше любой микрозадачи. Понимание порядка важно для детерминизма. </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 Promise.resolve().then(() =&gt;
 console.log('promise'));
 queueMicrotask(() =&gt; console.log('microtask'));

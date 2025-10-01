@@ -32,7 +32,7 @@
             <li><code>let</code> — переменные с блочной областью видимости.</li>
             <li><code>const</code> — переменные-константы, значение которых нельзя переопределить.</li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
       // Пример использования let и const
       let count = 10;
       const PI = 3.14;
@@ -56,7 +56,7 @@
             , которые являются сокращённой формой записи функций и наследуют <code>this</code> из внешнего
             контекста.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       // Обычная функция
       function sum(a, b) {
           return a + b;
@@ -80,7 +80,7 @@
             <tooltip term="Шаблонные строки">шаблонные строки</tooltip>
             , которые упрощают работу со строками и позволяют использовать выражения внутри строки.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       const name = "Alex";
       const age = 25;
       console.log(`Имя: ${name}, Возраст: ${age}`);
@@ -98,7 +98,7 @@
             <tooltip term="Деструктуризация">деструктуризации</tooltip>
             .
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       const user = {id: 1, name: "Ivan"};
       const {id, name} = user;
       console.log(id);   // 1
@@ -120,7 +120,7 @@
             ES6 добавил синтаксис <code>...</code>, который может использоваться для объединения или копирования
             массивов и объектов.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       const arr1 = [1, 2, 3];
       const arr2 = [...arr1, 4, 5];
       console.log(arr2); // [1, 2, 3, 4, 5]
@@ -143,7 +143,7 @@
             <tooltip term="Классы">классы</tooltip>
             — синтаксический сахар над прототипным наследованием.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class User {
           constructor(name) {
               this.name = name;
@@ -169,7 +169,7 @@
             <tooltip term="Модуль">модули</tooltip>
             с ключевыми словами <code>import</code> и <code>export</code>.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       // user.js
       export class User {
           constructor(name) {

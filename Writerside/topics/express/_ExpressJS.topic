@@ -3,7 +3,7 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
 <topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
-       title="ExpressJS" id="_ExpressJS" help-id="ExpressJS">
+       title="ExpressJS" id="_ExpressJS">
     <chapter title="Что такое Express и зачем он нужен">
         <p>
             <tooltip term="Express">Express</tooltip>
@@ -141,7 +141,7 @@
             npm i express
             node src/server.js
         </code-block>
-        <code-block lang="js">
+        <code-block lang="javascript">
             /* src/server.js */
             const express = require("express");
 
@@ -166,7 +166,7 @@
         <chapter title="Приложение и Router">
             <p><code>app</code> — корневой объект. <code>Router()</code> позволяет группировать маршруты по доменам и
                 подключать локальные middleware.</p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/modules/users/users.router.ts
                 import { Router } from "express";
                 import * as controller from "./users.controller";
@@ -179,7 +179,7 @@
                 usersRouter.patch("/:id", controller.update);
                 usersRouter.delete("/:id", controller.remove);
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/app.ts
                 import express from "express";
                 import { usersRouter } from "./modules/users/users.router";
@@ -189,7 +189,7 @@
                 app.use(express.json());
                 app.use("/users", usersRouter);
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/server.ts
                 import { app } from "./app";
 
@@ -211,7 +211,7 @@
                 <tooltip term="Репозиторий">репозиторий</tooltip>
                 общается с БД/внешними системами.
             </p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/modules/users/users.controller.ts
                 import { Request, Response, NextFunction } from "express";
                 import * as service from "./users.service";
@@ -262,7 +262,7 @@
                     }
                 }
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/modules/users/users.service.ts
                 import * as repo from "./users.repository";
                 import {User} from "./users.types";
@@ -287,7 +287,7 @@
                     return repo.remove(id);
                 }
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/modules/users/users.repository.ts
                 import {randomUUID} from "crypto";
                 import {User} from "./users.types";
@@ -331,7 +331,7 @@
                 принимает <code>(req, res, next)</code>. Оно может завершить ответ или передать управление дальше
                 вызовом <code>next()</code>. Порядок подключения влияет на поведение.
             </p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/middlewares/request-logger.middleware.ts
                 import { Request, Response, NextFunction } from "express";
 
@@ -344,13 +344,13 @@
                     next();
                 }
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/app.ts (фрагмент подключения логгера)
                 import { requestLogger } from "./middlewares/request-logger.middleware";
                 // ... после создания app
                 app.use(requestLogger);
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/middlewares/error.middleware.ts
                 import { Request, Response, NextFunction } from "express";
 
@@ -360,7 +360,7 @@
                     res.status(status).json({ error: message });
                 }
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/app.ts (подключение обработчика ошибок в самом конце)
                 import { errorMiddleware } from "./middlewares/error.middleware";
                 // ... после всех маршрутов и middleware
@@ -377,7 +377,7 @@
                 <tooltip term="CORS">CORS</tooltip>
                 .
             </p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/app.ts (фрагмент: парсинг, статика, CORS)
                 import cors from "cors";
                 import path from "path";
@@ -395,7 +395,7 @@
         <chapter title="Валидация входных данных">
             <p>Проверяйте параметры, <code>req.body</code> и <code>req.query</code> до бизнес-логики. Можно использовать
                 <code>express-validator</code> или <code>zod</code>/<code>yup</code>.</p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/modules/users/users.validators.ts
                 import { body, param } from "express-validator";
 
@@ -406,7 +406,7 @@
 
                 export const idParam = [ param("id").isUUID() ];
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/middlewares/validate.middleware.ts
                 import { validationResult } from "express-validator";
                 import { Request, Response, NextFunction } from "express";
@@ -424,7 +424,7 @@
 
         <chapter title="Асинхронные обработчики и ловля ошибок">
             <p>Асинхронные контроллеры должны передавать ошибки в общий обработчик. Оберните их в небольшую утилиту.</p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 import { Request, Response, NextFunction } from "express";
 
                 export const asyncHandler =
@@ -432,7 +432,7 @@
                     (req: Request, res: Response, next: NextFunction) =>
                         Promise.resolve(fn(req, res, next)).catch(next);
             </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // пример использования asyncHandler в роутере
                 import { Router } from "express";
                 import { asyncHandler } from "../../libs/http";
@@ -454,7 +454,7 @@
 
         <chapter title="Конфигурация и переменные окружения">
             <p>Чувствительные значения храните в окружении (<code>.env</code>) и валидируйте при старте.</p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/utils/env.ts
                 import * as dotenv from "dotenv";
                 dotenv.config();

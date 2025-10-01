@@ -3,7 +3,7 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
 <topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
-       title="NestJS" id="_NestJS" help-id="NestJS">
+       title="NestJS" id="_NestJS">
 
     <chapter title="NestJS — Установка зависимостей, создание и запуск первого проекта">
         <chapter title="Что такое NestJS и зачем он нужен">
@@ -147,7 +147,7 @@ http://localhost:3000
             <chapter title="src/main.ts">
                 <p>Точка входа в приложение. Здесь включим глобальную валидацию запросов, чтобы сразу получить
                     корректную обработку входных данных.</p>
-                <code-block lang="ts">
+                <code-block lang="typescript">
 import {NestFactory} from '@nestjs/core';
 import {AppModule} from './app.module';
 import {ValidationPipe} from '@nestjs/common';
@@ -176,7 +176,7 @@ bootstrap(); </code-block>
 
             
             <chapter title="src/app.module.ts">
-  <code-block lang="ts">
+  <code-block lang="typescript">
 
 
 import { Module } from '@nestjs/common';
@@ -193,7 +193,7 @@ export class AppModule {} </code-block>
 
             
             <chapter title="src/app.controller.ts">
-  <code-block lang="ts">
+  <code-block lang="typescript">
 
 
 import { Controller, Get } from '@nestjs/common';
@@ -212,7 +212,7 @@ export class AppController {
 
             
             <chapter title="src/app.service.ts">
-  <code-block lang="ts">
+  <code-block lang="typescript">
 
 
 import { Injectable } from '@nestjs/common';
@@ -351,7 +351,7 @@ export class AppService {
                 <code-block lang="bash">
 npm i class-validator class-transformer
       </code-block>
-                <code-block lang="ts">
+                <code-block lang="typescript">
 import {IsString, IsOptional} from 'class-validator';
 
 export class CreateItemDto {
@@ -372,7 +372,7 @@ export class CreateItemDto {
                     <tooltip term="Exception Filter">фильтр исключений</tooltip>
                     , чтобы возвращать единый формат ошибок клиентам.
                 </p>
-                    <code-block lang="ts">
+                    <code-block lang="typescript">
                         import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
 
                         @Catch(HttpException)
@@ -390,7 +390,7 @@ export class CreateItemDto {
                             }
                         }
                     </code-block>
-                <code-block lang="ts">
+                <code-block lang="typescript">
                     import {NestFactory} from '@nestjs/core';
                     import {AppModule} from './app.module';
                     import {HttpExceptionFilter} from './http/filter/http-exception.filter';
@@ -413,7 +413,7 @@ export class CreateItemDto {
                     <tooltip term="Trace Id">trace id</tooltip>
                     :
                 </p>
-                <code-block lang="ts">
+                <code-block lang="typescript">
                     import { Injectable, NestMiddleware } from '@nestjs/common';
                     import { Request, Response, NextFunction } from 'express';
 
@@ -425,7 +425,7 @@ export class CreateItemDto {
                         }
                     }
                 </code-block>
-                <code-block lang="ts">
+                <code-block lang="typescript">
                 import {Injectable, NestInterceptor, ExecutionContext, CallHandler} from '@nestjs/common';
                 import {Observable} from 'rxjs';
 

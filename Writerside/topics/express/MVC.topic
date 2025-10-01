@@ -460,7 +460,7 @@
             <chapter title="Представления (PUG)">
                 <p>В HTML-рендеринге представления получают уже подготовленные данные. Ниже — минимальный пример с
                     макетом и страницами списка/детали.</p>
-                <code-block lang="pug">
+                <code-block lang="Pug">
                     doctype html
                     html
                         head
@@ -470,7 +470,7 @@
                         #app
                             block content
                 </code-block>
-                <code-block lang="pug">
+                <code-block lang="Pug">
                     extends layouts/main
 
                     block content
@@ -489,7 +489,7 @@
                                     button(type="submit") Toggle
                 </code-block>
 
-                <code-block lang="pug">
+                <code-block lang="Pug">
                     extends layouts/main
 
                     block content

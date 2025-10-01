@@ -3,7 +3,7 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
 <topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
-       title="Командная разработка" id="_Командная-разработка" help-id="Командная-разработка">
+       title="Командная разработка" id="_Командная-разработка">
 
     <chapter title="Зачем нужна командная разработка">
         <p>Командная разработка — это организованная совместная работа нескольких специалистов над программным

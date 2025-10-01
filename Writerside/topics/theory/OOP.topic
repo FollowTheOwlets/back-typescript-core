@@ -163,7 +163,7 @@
 
             <tabs>
                 <tab title="C++">
-                <code-block lang="cpp">
+                <code-block lang="c++">
 // Наследование
 struct Shape { virtual double area() const = 0; };
 struct Circle : Shape {
@@ -362,7 +362,7 @@ func main() {
                 </tab>
 
                 <tab title="VBA">
-                <code-block lang="VisualBasic">
+                <code-block lang="vb">
 ' Наследование в VBA нет, только интерфейсы через Implements
 
 ' Композиция
@@ -440,7 +440,7 @@ End Sub
 
         <tabs>
             <tab title="C++">
-    <code-block lang="cpp">
+    <code-block lang="c++">
 
 
 \#include \&lt;iostream\&gt;
@@ -552,7 +552,7 @@ fmt.Println(s.Area()) // 12
 
 
             <tab title="VBA">
-    <code-block lang="visualbasic">
+    <code-block lang="vb">
 
 
 ' Class Module: Rect

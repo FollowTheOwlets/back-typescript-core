@@ -36,7 +36,7 @@
     <chapter title="Объявление и выражение класса">
         <p>Есть два способа задать класс: объявление (<code>class C {...}</code>) и выражение (<code>const C = class
             {...}</code> или именованное выражение <code>const C = class Named {...}</code>).</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Point {
           // Конструктор вызывается при создании экземпляра
           constructor(x, y) {
@@ -76,7 +76,7 @@
             <li>Возврат из конструктора не обязателен; если явно вернуть объект, он заменит создаваемый экземпляр.
             </li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Base {
           constructor(name) {
               this.name = name;
@@ -107,7 +107,7 @@
             <li>У базового класса поля-инициализаторы выполняются перед телом <code>constructor</code>.</li>
             <li>У производного — после вызова <code>super()</code> и до остального кода конструктора.</li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Counter {
           // публичное поле экземпляра
           value = 0;
@@ -134,7 +134,7 @@
             <tooltip term="Инкапсуляция">инкапсуляция</tooltip>
             на уровне языка.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class BankAccount {
           #balance = 0;              // приватное поле
           static #fee = 0.01;        // приватное статическое поле
@@ -161,7 +161,7 @@
     <chapter title="Статические поля и методы">
         <p><code>static</code>-члены принадлежат самому классу, а не экземплярам. Это удобное место для фабрик,
             констант, утилит.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Color {
           static named = {red: '#f00', green: '#0f0', blue: '#00f'};
 
@@ -186,7 +186,7 @@
 
     <chapter title="Геттеры и сеттеры (свойства)">
         <p>Геттеры/сеттеры объявляют вычисляемые свойства и позволяют валидировать присваивания.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Person {
           #_age = 0;
 
@@ -215,7 +215,7 @@
             <tooltip term="Полиморфизм">полиморфизма</tooltip>
             .
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Shape {
           area() {
               console.log("Родительский метод")
@@ -255,7 +255,7 @@
         <p>Класс — это функция особого вида; его методы — это свойства его <code>prototype</code>. Цепочка такова:
             <code>Child.prototype.__proto__ === Parent.prototype</code> и <code>Child.__proto__ === Parent</code>.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class A {
       }
 
@@ -275,7 +275,7 @@
         <p><code>this</code> в методах прототипа определяется вызовом. Для колбэков используйте <code>bind</code>
             или стрелочные поля-методы (они замыкают лексический <code>this</code>), но помните о накладных расходах
             на экземпляр.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Button {
           // стрелочное поле создаёт функцию на каждом экземпляре
           onClick = () =&gt; {
@@ -301,7 +301,7 @@
             <tooltip term="Композиция">композицию</tooltip>
             (объект содержит другие объекты и делегирует им работу), а не через глубокое наследование.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       const withLogging = (target) =&gt; ({
           ...target,
           log(msg) {
@@ -332,7 +332,7 @@
             <tooltip term="Миксин">Миксины</tooltip>
             добавляют функциональность классам без иерархий.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       const Timestamped = (Base) =&gt; class extends Base {
           touch() {
               this.updatedAt = Date.now();
@@ -358,7 +358,7 @@
     <chapter title="Абстрактные базовые классы и контракты (приёмы)">
         <p>В чистом JS нет ключевого слова <code>abstract</code>, но контракт можно выразить через проверки <code>new.target</code>
             и «виртуальные» методы.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Repo {
           constructor() {
               if (new.target === Repo) throw new Error('Use a concrete subclass');
@@ -387,7 +387,7 @@
     <chapter title="Сериализация, клонирование и сравнение">
         <p>Экземпляры классов при <code>JSON.stringify</code> теряют методы и приватные поля. Для переносимых
             представлений реализуйте <code>toJSON()</code> и статические фабрики/парсеры.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Point {
           constructor(x, y) {
               this.x = x;
@@ -420,7 +420,7 @@
             <li><code>Symbol.hasInstance</code> — позволяет настроить поведение <code>instanceof</code>.</li>
             <li>Асинхронные методы (<code>async</code>) и статические асинхронные фабрики.</li>
         </list>
-        <code-block lang="js">
+        <code-block lang="javascript">
       class Tokenizer {
           static patterns;
           static {

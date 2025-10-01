@@ -3,7 +3,7 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
 <topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
-       title="JavaScript" id="_JavaScript" help-id="JavaScript">
+       title="JavaScript" id="_JavaScript">
 
     <chapter title="В двух словах: что такое JavaScript">
         <p>
@@ -74,7 +74,7 @@
         <p>
             Ниже — три строки типичного серверного JS: чтение аргумента, дефолтное значение и аккуратный вывод. Мы не поднимаем сервер — просто демонстрируем синтаксис и удобство языка.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
 const nameArg = process.argv[2] ?? 'world';
 console.log(`Hello, ${nameArg}!`);
 // Пример запуска: node index.js Alex

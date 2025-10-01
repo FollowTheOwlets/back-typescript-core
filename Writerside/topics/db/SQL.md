@@ -87,33 +87,33 @@
 <warning><p><code>DROP</code> необратим без резервной копии. Для безопасного удаления используйте <code>DROP
     TABLE IF EXISTS</code>.</p></warning>
 
-<chapter title="Типы данных в PostgreSQL">
-    <p>
-        Корректный выбор типов повышает производительность и экономит место. В
-        <tooltip term="PostgreSQL">PostgreSQL</tooltip>
-        доступны:
-    </p>
-    <list>
-        <li>
-            <format style="bold">Числовые</format>: <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>decimal</code>, <code>numeric</code>.
-        </li>
-        <li>
-            <format style="bold">Строковые</format>: <code>varchar</code>, <code>text</code>, <code>char</code>.
-        </li>
-        <li>
-            <format style="bold">Дата и время</format>: <code>date</code>, <code>time</code>, <code>timestamp</code>.
-        </li>
-        <li>
-            <format style="bold">Логический</format>: <code>boolean</code>.
-        </li>
-        <li>
-            <format style="bold">Структурированные</format>: <code>json</code>, <code>jsonb</code>, массивы <code>[]</code>.
-        </li>
-    </list>
-    <tip>
-        <p><code>jsonb</code> предпочтителен для индексации и поиска по ключам JSON.</p>
-    </tip>
-</chapter>
+## Типы данных в PostgreSQL
+
+<p>
+    Корректный выбор типов повышает производительность и экономит место. В
+    <tooltip term="PostgreSQL">PostgreSQL</tooltip>
+    доступны:
+</p>
+<list>
+    <li>
+        <format style="bold">Числовые</format>: <code>smallint</code>, <code>integer</code>, <code>bigint</code>, <code>decimal</code>, <code>numeric</code>.
+    </li>
+    <li>
+        <format style="bold">Строковые</format>: <code>varchar</code>, <code>text</code>, <code>char</code>.
+    </li>
+    <li>
+        <format style="bold">Дата и время</format>: <code>date</code>, <code>time</code>, <code>timestamp</code>.
+    </li>
+    <li>
+        <format style="bold">Логический</format>: <code>boolean</code>.
+    </li>
+    <li>
+        <format style="bold">Структурированные</format>: <code>json</code>, <code>jsonb</code>, массивы <code>[]</code>.
+    </li>
+</list>
+<tip>
+    <p><code>jsonb</code> предпочтителен для индексации и поиска по ключам JSON.</p>
+</tip>
 
 ## Операции с данными
 

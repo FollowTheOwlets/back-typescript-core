@@ -130,7 +130,7 @@
         </note>
     </chapter>
     <chapter title="Пример 1: простой воркер (два файла)"><p>Рассчитаем тяжёлую функцию в отдельном потоке.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
             // main.js
         const { Worker, isMainThread } = require(&quot;node:worker_threads&quot;);
 
@@ -157,7 +157,7 @@
 
     <chapter title="Пример 2: воркер как отдельный модуль (многофайловый)"><p>Так чаще организуют код в реальных
         проектах.</p>
-        <code-block lang="js">// main.js const { Worker } = require(&quot;node:worker_threads&quot;); const path = require(&quot;node:path&quot;);
+        <code-block lang="javascript">// main.js const { Worker } = require(&quot;node:worker_threads&quot;); const path = require(&quot;node:path&quot;);
 
         function runTask(payload) {
             return new Promise((resolve, reject) => {
@@ -174,7 +174,7 @@
             const res = await runTask({op: "sum", items: [1, 2, 3]});
             console.log("sum:", res); // sum: 6
         })();</code-block>
-        <code-block lang="js">// worker.js
+        <code-block lang="javascript">// worker.js
         const {workerData, parentPort} = require("node:worker_threads");
 
         function compute(data) {
@@ -188,7 +188,7 @@
 
     <chapter title="Пример 3: простой пул воркеров (переиспользование потоков)"><p>Создаём фиксированное число воркеров
         и очередь задач.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // pool.js
         const { Worker } = require(&quot;node:worker_threads&quot;);
         const path = require(&quot;node:path&quot;);
@@ -261,7 +261,7 @@
         }
 
         module.exports = {WorkerPool};</code-block>
-        <code-block lang="js">// worker.js
+        <code-block lang="javascript">// worker.js
         const {parentPort} = require("node:worker_threads");
 
         parentPort.on("message", (task) => {
@@ -275,7 +275,7 @@
             }
             parentPort.postMessage({id: task.id, result});
         });</code-block>
-        <code-block lang="js">// main.js
+        <code-block lang="javascript">// main.js
         const {WorkerPool} = require("./pool");
 
         (async () =&gt; {
@@ -301,7 +301,7 @@
                 <tooltip term="TransferList"><code>transferList</code></tooltip>
                 .
             </p>
-            <code-block lang="js">
+            <code-block lang="javascript">
             // transfer.js
             const { Worker, isMainThread, parentPort } = require(&quot;node:worker_threads&quot;);
 
@@ -332,7 +332,7 @@
                 <tooltip term="Atomics"><code>Atomics</code></tooltip>
                 — синхронизировать доступ.
             </p>
-            <code-block lang="js">// shared.js
+            <code-block lang="javascript">// shared.js
             const {Worker, isMainThread, parentPort, workerData} = require("node:worker_threads");
 
             if (isMainThread) {
@@ -364,7 +364,7 @@
             <tooltip term="MessageChannel"><code>MessageChannel</code></tooltip>
             создаёт пару портов. Их можно передать воркеру и использовать как выделенную шину.
         </p>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // channel.js
         const { Worker, MessageChannel, isMainThread, parentPort } = require(&quot;node:worker_threads&quot;);
 
@@ -386,7 +386,7 @@
     <chapter title="Отмена задач и таймауты"><p>Прямой «убийства» функции нет — есть <code>worker.terminate()</code>,
         которое завершит поток целиком. Для &laquo;мягкой&raquo; отмены пошлите сигнал и регулярно проверяйте его в
         воркере.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
             // cancel.js
             const {Worker, isMainThread, parentPort} = require(&quot;node:worker_threads&quot;);
 
@@ -441,7 +441,7 @@
     </chapter>
     <chapter title="Производительность: измеряем и считаем"><p>Замеряйте «до/после» и учитывайте расходы на
         сериализацию/копирование.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // perf.js
         const { Worker } = require(&quot;node:worker_threads&quot;);
         const { performance } = require(&quot;node:perf_hooks&quot;);
@@ -467,7 +467,7 @@
 
     <chapter title="Расширенный многофайловый пример: обработка изображений в пуле"><p>Схема: главный поток читает
         список задач, пул раздаёт их воркерам, воркеры считают и возвращают результат. Здесь имитируем CPU-нагрузку.</p>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // pool.js
         const { Worker } = require(&quot;node:worker_threads&quot;);
         const path = require(&quot;node:path&quot;);
@@ -522,7 +522,7 @@
 
         module.exports = {Pool};
         </code-block>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // img.worker.js
         const {parentPort} = require("node:worker_threads");
 
@@ -533,7 +533,7 @@
             parentPort.postMessage({sum});
         });
         </code-block>
-        <code-block lang="js">
+        <code-block lang="javascript">
         // main.js
         const {Pool} = require("./pool");
         const path = require("node:path");

@@ -81,7 +81,7 @@
 
     <chapter title="Экспорт и импорт в TypeScript (ESM)">
         <chapter title="Именованный экспорт и импорт">
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/math/add.ts
                 export function add(a: number, b: number): number {
                     return a + b;
@@ -96,7 +96,7 @@
             </note>
         </chapter>
         <chapter title="Экспорт по умолчанию (default)">
-                <code-block lang="ts">
+                <code-block lang="typescript">
                 // src/utils/logger.ts
                 export default function log(message: string): void {
                     console.log(message); // демонстрация вывода
@@ -117,7 +117,7 @@
                 <format style="bold">index.ts</format>
                 собирает и переэкспортирует сущности из подпакетов, упрощая импорт в потребителях.
             </p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
             // src/math/index.ts
             export * from "./add.js";
             export * from "./mul.js";
@@ -135,7 +135,7 @@
     </chapter>
 
     <chapter title="CommonJS кратко (для легаси)">
-    <code-block lang="ts">
+    <code-block lang="typescript">
         // add.cjs
         function add(a, b) {
             return a + b;
@@ -200,7 +200,7 @@
 
         <chapter title="Установка внешних модулей и импорт">
             <p>После установки вы импортируете пакет по имени:</p>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 import _ from "lodash";
 
                 console.log(_.capitalize("hello")); // Hello
@@ -236,7 +236,7 @@
 
     <chapter title="Импорт модулей: относительные пути, алиасы, типы">
         <chapter title="Относительные и абсолютные пути">
-      <code-block lang="ts">
+      <code-block lang="typescript">
             import {add} from &quot;../math/add.js&quot;;         // относительный импорт
             import {parse} from &quot;node:path&quot;;              // встроенный модуль Node.js
             import express from &quot;express&quot;;                  // внешний пакет
@@ -264,7 +264,7 @@
             </warning>
         </chapter>
         <chapter title="Типы при импорте (type-only imports)">
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 import type {Request, Response} from &quot;express&quot;;
 
                 export function handler(req: Request, res: Response) {
@@ -289,7 +289,7 @@
                   LICENSE
                   .npmignore
                 </code-block>
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/sum.ts
                 export function sum(a: number, b: number): number {
                     return a + b;
@@ -425,7 +425,7 @@
 
     <chapter title="Короткие рецепты">
         <chapter title="Совместимость ESM &amp; CJS для потребителей">
-            <code-block lang="ts">
+            <code-block lang="typescript">
                 // src/index.ts
                 export function hello(name: string) {
                     return `Hello, ${name}!`;

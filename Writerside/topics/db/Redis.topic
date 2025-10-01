@@ -286,7 +286,7 @@ func main() {
             <code-block lang="bash">
                 npm i ioredis
             </code-block>
-                <code-block lang="ts">
+                <code-block lang="typescript">
                     import Redis from "ioredis";
                     
                     async function main() {
