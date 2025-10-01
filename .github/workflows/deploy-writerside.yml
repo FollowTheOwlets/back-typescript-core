@@ -136,12 +136,16 @@ jobs:
             --on-primary: var(--wh-color-text-secondary);
             --pagefind-ui-text: var(--wh-color-text-main);
             --pagefind-ui-background: var(--app-header);
-            --pagefind-ui-primary: var(--app-header);
+            --pagefind-ui-primary: var(--wh-color-white);
           }
           
           .pagefind-ui--reset ol {
               overflow: auto;
               max-height: 400px;
+          }
+          
+          .list>li:before {
+            content: "•";
           }
           CSS
       # ---------- Модалка/хоткей Ctrl+K + кнопка; корректные пути на Pages ----------
