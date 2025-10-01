@@ -86,7 +86,7 @@ jobs:
           if ! command -v npm >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y nodejs npm
           fi
-          npx --yes pagefind --source site --bundle-dir site/pagefind
+          npx --yes pagefind --source site --bundle-dir pagefind
 
       # Модалка/хоткей Ctrl+K + кнопка в шапке (почти как «родной» поиск)
       - name: Add Pagefind modal (JS + CSS) and inject into pages
