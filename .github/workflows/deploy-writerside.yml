@@ -226,7 +226,7 @@ jobs:
               s.onload = cb; document.head.appendChild(s);
             }
 
-            document.addEventListener('DOMContentLoaded', () => ensurePagefind(init));
+            setTimeout(() => ensurePagefind(init), 1000);
           })();
           JS
 
